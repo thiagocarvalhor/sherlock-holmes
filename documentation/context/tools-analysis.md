@@ -459,6 +459,324 @@ text = textract.process("doc.pdf").decode()
 - Menos controle fino
 - Menor precisão em documentos complexos
 
+---
+
+## Ferramentas de Suporte (Pré/Pós-processamento)
+
+### 21. pdf2image
+- **Tipo**: Conversor PDF → Imagens
+- **Licença**: MIT
+- **Instalação**: `pip install pdf2image`
+- **Dependência**: Ghostscript ou pdftoppm (sistema)
+
+#### O que faz
+Converte cada página de um PDF em imagem PIL (ou numpy array).
+
+#### Características
+- Converte PDF em imagens de alta qualidade
+- Outputs em PIL Image objects
+- Configurável: DPI, formato, etc.
+- Base para pipelines OCR
+
+#### Exemplo
+```python
+from pdf2image import convert_from_path
+
+# Converter PDF para imagens
+images = convert_from_path("documento.pdf", dpi=300)
+
+# Salvar imagens
+for i, image in enumerate(images):
+    image.save(f"page_{i}.png", "PNG")
+
+# Usar com OCR
+for image in images:
+    text = pytesseract.image_to_string(image)
+    print(text)
+```
+
+#### Vantagens
+- Simples e confiável
+- Base para pipelines OCR
+- DPI customizável (qualidade)
+- Muito usado em produção
+
+#### Desvantagens
+- Requer Ghostscript/pdftoppm no sistema
+- Overhead: cria arquivos intermediários
+- Memória: carrega todas as imagens
+
+#### Pipeline típico
+```
+PDF → pdf2image (imagens)
+  ↓
+Pytesseract (OCR)
+  ↓
+Texto
+```
+
+---
+
+### 22. pdfminer
+- **Tipo**: Extrator de texto de PDF clássico
+- **Licença**: MIT
+- **Instalação**: `pip install pdfminer`
+- **Alternativa moderna**: `pdfminer.six`
+
+#### O que faz
+Extração de texto de PDFs com análise estrutural.
+
+#### Características
+- Análise de layout
+- Extração de metadados
+- Suporte a múltiplas codificações
+- Muito testado (histórico)
+
+#### Exemplo
+```python
+from pdfminer.high_level import extract_text
+
+text = extract_text("documento.pdf")
+print(text)
+
+# Com mais controle
+from pdfminer.layout import LAParams
+from pdfminer.converter import PDFPageInterpreter, PDFResourceManager, TextConverter
+from pdfminer.pdfpage import PDFPage
+from io import StringIO
+
+output = StringIO()
+rsrcmgr = PDFResourceManager()
+device = TextConverter(rsrcmgr, output, laparams=LAParams())
+interpreter = PDFPageInterpreter(rsrcmgr, device)
+
+with open("doc.pdf", 'rb') as fp:
+    for page in PDFPage.get_pages(fp):
+        interpreter.process_page(page)
+
+text = output.getvalue()
+```
+
+#### Vantagens
+- Muito maduro e testado
+- Análise de layout
+- Comunidade grande
+- Histórico: usado em muitos projetos
+
+#### Desvantagens
+- Mais lento que PyMuPDF
+- Menos features modernas
+- Parsing de PDF pode ser frágil
+- Documentação desatualizada
+
+---
+
+### 23. PyPDF2
+- **Tipo**: Toolkit PDF puro Python
+- **Licença**: BSD
+- **Instalação**: `pip install pypdf2`
+- **Nota**: Versão antiga de `pypdf` (que é a moderna)
+
+#### O que faz
+Extração, manipulação e edição de PDFs em puro Python.
+
+#### Características
+- Sem C dependencies
+- Extração de info, texto, páginas
+- Merge, split, crop de PDFs
+- Encriptação/decriptação
+
+#### Exemplo
+```python
+from PyPDF2 import PdfReader, PdfWriter
+
+# Leitura
+reader = PdfReader("documento.pdf")
+text = "\n".join(page.extract_text() for page in reader.pages)
+
+# Manipulação
+writer = PdfWriter()
+for page in reader.pages:
+    writer.add_page(page)
+writer.write("output.pdf")
+```
+
+#### Vantagens
+- Puro Python (sem C dependencies)
+- Funciona em Lambda/containers
+- Suporte a múltiplas operações PDF
+- Sem dependências do sistema
+
+#### Desvantagens
+- Menos preciso que PyMuPDF
+- Mais lento
+- Comunidade menor
+- Menos maintenance
+- Versão moderna é `pypdf` (não PyPDF2)
+
+#### Nota
+`pypdf` (moderna) é o sucessor mantido de `PyPDF2`.
+
+---
+
+## Ferramentas de Pré-processamento (Imagens)
+
+### 24. Pillow (PIL)
+- **Tipo**: Processamento de imagens
+- **Licença**: HPND (permissiva)
+- **Instalação**: `pip install Pillow`
+
+#### O que faz
+Manipulação básica de imagens (redimensionar, rotacionar, filtros).
+
+#### Características
+- Conversão entre formatos
+- Ajuste de brilho, contraste, saturação
+- Rotação e redimensionamento
+- Muito simples
+
+#### Exemplo
+```python
+from PIL import Image, ImageEnhance, ImageOps
+
+img = Image.open("documento.png")
+
+# Conversões
+gray_img = ImageOps.grayscale(img)
+rgb_img = img.convert('RGB')
+
+# Ajustes
+enhancer = ImageEnhance.Contrast(img)
+img_enhanced = enhancer.enhance(2.0)  # Aumentar contraste
+
+# Transformações
+rotated = img.rotate(45)
+resized = img.resize((800, 600))
+
+# Salvar
+img_enhanced.save("output.png")
+```
+
+#### Vantagens
+- Simples e direto
+- Muito rápido
+- Comunidade grande
+- Perfeito para pré-processamento básico
+
+#### Desvantagens
+- Funcionalidades limitadas
+- Não adequado para processamento avançado
+- Para OCR: insuficiente sozinho
+
+---
+
+### 25. OpenCV (cv2)
+- **Tipo**: Visão computacional + processamento
+- **Licença**: Apache 2.0
+- **Instalação**: `pip install opencv-python`
+
+#### O que faz
+Processamento avançado de imagens, detecção, transformação.
+
+#### Características
+- Detecção de bordas, contornos, rotação
+- Denoising (remover ruído)
+- Thresholding (binarização)
+- Muito poderoso
+
+#### Exemplo
+```python
+import cv2
+import numpy as np
+
+img = cv2.imread("documento.png")
+
+# Conversão para grayscale
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+# Binarização
+_, binary = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
+
+# Denoising
+denoised = cv2.fastNlMeansDenoising(binary, h=10)
+
+# Detecção de bordas
+edges = cv2.Canny(gray, 100, 200)
+
+# Salvar
+cv2.imwrite("processed.png", denoised)
+```
+
+#### Vantagens
+- Muito poderoso
+- Detecção avançada (rotação, orientação)
+- Denoising profissional
+- Indústria standard
+
+#### Desvantagens
+- Curva de aprendizado
+- Overhead para operações simples
+- Maior consumo de recursos
+
+#### Uso típico com OCR
+```
+Imagem → OpenCV (pré-processamento)
+  ↓
+Denoising, binarização, deskew
+  ↓
+Tesseract/PaddleOCR (OCR)
+  ↓
+Texto com melhor precisão
+```
+
+---
+
+## Ferramentas de Conversão (Multi-formato)
+
+### 26. LibreOffice (soffice)
+- **Tipo**: Suite de conversão documentos
+- **Licença**: LGPL
+- **Instalação**: `apt-get install libreoffice-headless` (Linux) ou baixar (Windows)
+
+#### O que faz
+Converter entre formatos: DOCX, XLSX, ODP → PDF, TXT, etc.
+
+#### Características
+- Headless mode (sem GUI)
+- Suporta muitos formatos
+- Preserva layout e formatação
+- Bom para DOCX, XLSX, PPT
+
+#### Exemplo
+```python
+import subprocess
+
+# Converter DOCX para PDF
+subprocess.run([
+    'soffice', '--headless', '--convert-to', 'pdf',
+    'documento.docx'
+])
+
+# Depois extrair do PDF
+text = extract_text("documento.pdf")
+```
+
+#### Vantagens
+- Suporta muitos formatos
+- Preserva formatação
+- Confiável
+- Open source
+
+#### Desvantagens
+- Dependência do sistema pesada
+- Lento (inicia process)
+- Requer Xvfb em servers
+- Overhead para operações simples
+
+#### Quando usar
+- DOCX, XLSX, ODP como entrada
+- Quando preservar layout é importante
+
 ### 7. Keras-OCR
 - **Desenvolvedor**: Comunidade open source
 - **Tipo**: Deep Learning
