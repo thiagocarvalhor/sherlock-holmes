@@ -1,1909 +1,1369 @@
 # Análise de Ferramentas para Extração de Texto
 
-## Ferramentas Consideradas
+## Objetivo
 
-### 1. Dedoc
-- **Tipo**: Sistema universal de conversão de documentos
-- **Licença**: Apache-2.0 (open source, gratuito)
-- **Versão**: 2.6.1 (ativa e mantida)
+Este documento é um levantamento técnico das ferramentas que podem ser úteis para extração de texto, OCR, parsing de documentos, análise de layout e extração semântica no projeto Sherlock Holmes.
 
-#### O que Dedoc faz
-Dedoc extrai de documentos:
-- Conteúdo (texto)
-- Estrutura lógica (headings, seções, listas)
-- Tabelas (dados estruturados)
-- Metadados
-- Formatação (fontes, tamanhos, negrito, itálico, indentação)
+Ele não define plano de execução, ordem de testes, amostras, métricas de benchmark ou decisões de rodada. Esses pontos pertencem ao documento de plano em `documentation/plans/ocr-execution-plan-v1.md`.
 
-#### Formatos suportados
-- Office: DOCX, XLSX, PPTX, ODT
-- Web: HTML, EML, MHTML
-- Simples: TXT, CSV, JSON
-- PDF: PDFs com texto (layer copiável)
-- Scaneados: Imagens (PNG, JPG) + PDF sem texto
-- Compactados: ZIP, RAR
+O papel deste arquivo é responder:
 
-#### Pipeline interno do Dedoc
-```
-Documento (qualquer formato)
-↓
-Dedoc detecta tipo
-├─ PDF com texto? → pdfminer-six (similar ao PyMuPDF)
-└─ Imagem/PDF scaneado? → Tesseract OCR
-↓
-Saída unificada (estrutura + texto + tabelas)
-```
+- quais ferramentas existem no radar
+- em que categoria cada ferramenta se encaixa
+- quais problemas cada uma resolve melhor
+- quais limitações e riscos precisam ser considerados
+- quais ferramentas parecem mais aderentes ao contexto do projeto
 
-#### Capacidades especiais
-- Detecção automática de orientação de páginas scaneadas
-- OCR inteligente com Tesseract
-- Análise avançada de tabelas com contour analysis
-- Machine Learning para detectar bold, colunas, estrutura
-- Suporte a documentos aninhados (documentos dentro de documentos)
+## Critérios de Comparação
 
-### 2. PyMuPDF + PaddleOCR
-- **PyMuPDF**: Extração de texto de PDFs com layer de texto
-- **PaddleOCR**: OCR de alta precisão para documentos scaneados/imagens
-- **Licença**: Ambas open source, gratuitas
+As ferramentas são avaliadas de forma qualitativa pelos critérios abaixo.
 
-#### Fluxo esperado (com fallback)
-```
-Documento
-↓
-Detectar se PDF tem texto
-├─ Sim → PyMuPDF
-└─ Não → PaddleOCR
-↓
-Texto extraído
-```
+### Cobertura de entrada
 
-#### Vantagens
-- PaddleOCR é mais preciso que Tesseract
-- Controle total sobre qual ferramenta usar e quando
-- Implementação modular do pipeline
+- imagens escaneadas
+- PDFs com camada de texto
+- PDFs escaneados
+- documentos Office
+- HTML, e-mail e arquivos simples
+- imagens isoladas, screenshots e páginas digitalizadas
 
-#### Desvantagens
-- Requer lógica adicional de detecção e fallback
-- Mais código para gerenciar
-- Precisa tratar erros e validações manualmente
+### Tipo de extração
 
-### 3. Markitdown
-- **Desenvolvedor**: Microsoft
-- **Tipo**: Biblioteca Python para extração de dados de múltiplos formatos
-- **Licença**: Open source
-- **Instalação**: `pip install markitdown`
-
-#### O que faz
-Extrai informações de diferentes fontes e converte para Markdown.
-
-#### Formatos suportados
-- PDF
-- DOCX
-- XLSX
-- PowerPoint
-- HTML
-- E outros
-
-#### Características
-- Simples de usar
-- Focado em conversão para Markdown
-- Bom para extrair tabelas de Excel
-
-#### Limitações observadas (segundo artigo)
-- PDF com imagens e tabelas: não conseguiu extrair conteúdo das tabelas
-- Saída para PDF: sem output
-
-### 4. Docling
-- **Desenvolvedor**: IBM
-- **Tipo**: Biblioteca Python para extração e conversão de documentos
-- **Licença**: Open source
-- **Instalação**: `pip install docling`
-
-#### O que faz
-Extrai informações de documentos e converte para múltiplos formatos (Markdown, JSON, HTML).
-
-#### Formatos suportados
-- PDF
-- DOCX
-- XLSX
-- HTML
-- E outros
-
-#### Características
-- Múltiplos formatos de saída (Markdown, JSON, HTML)
-- Detecta estrutura (imagens, tabelas, texto)
-- Melhor em extração de Excel com fórmulas
-- Preserva formulas em tabelas
-
-#### Exemplo de uso
-```python
-from docling.document_converter import DocumentConverter
-
-source = "https://arxiv.org/pdf/2408.09869"  # local path ou URL
-converter = DocumentConverter()
-result = converter.convert(source)
-print(result.document.export_to_markdown())  # saída em Markdown
-```
-
-#### Limitações observadas (segundo artigo)
-- PDF com tabelas: detecta tabelas mas não extrai conteúdo
-- Necessita exploração mais aprofundada
-
----
-
-## Ferramentas OCR Específicas
-
-### 5. Tesseract OCR
-- **Desenvolvedor**: Google
-- **Tipo**: OCR clássico (Machine Learning tradicional)
-- **Licença**: Open source (Apache 2.0)
-- **Interface Python**: Pytesseract
-
-#### O que faz
-Extrai texto de imagens e documentos scaneados.
-
-#### Características
-- Referência de precisão em OCR
-- Suporta 100+ idiomas
-- Rápido em processamento
-- Sem suporte a GPU
-- Saída estruturada básica (bounding boxes, confiança)
-
-#### Interface Python - Pytesseract
-```python
-import pytesseract
-from pytesseract import Output
-
-# Extrair com dados estruturados
-results = pytesseract.image_to_data(img, output_type=Output.DICT)
-
-# Retorna: text, left, top, width, height, conf (confiança 0-100)
-
-# Converter imagem para string
-txt = pytesseract.image_to_string(img)
-```
-
-#### Vantagens
-- Simples de usar
-- Muito maduro e testado
-- Baixo consumo de recursos
-
-#### Desvantagens
-- Menos preciso que deep learning
-- Sem GPU support
-- Instalação complexa (dependências do sistema)
-
-### 6. EasyOCR
-- **Desenvolvedor**: Comunidade open source
-- **Tipo**: Deep Learning (CRAFT + CRNN)
-- **Licença**: Apache 2.0
-- **Instalação**: `pip install easyocr`
-
-#### O que faz
-OCR moderna usando redes neurais, otimizada para múltiplos idiomas.
-
-#### Características
-- Suporta 80+ idiomas
-- GPU support
-- Precisa de download de modelos (primeira execução)
-- Melhor precisão que Tesseract em casos complexos
-- Interface Python simples
-
-#### Exemplo
-```python
-import easyocr
-
-reader = easyocr.Reader(['en', 'pt'])
-result = reader.readtext('imagem.png')
-
-# result contém: [([x1,y1,x2,y2,x3,y3,x4,y4], texto, confiança), ...]
-```
-
-#### Vantagens
-- Alta precisão
-- Suporte a GPU
-- Comunidade ativa
-- Múltiplos idiomas
-
-#### Desvantagens
-- Primeiro uso baixa modelos (lento)
-- Consumo de memória maior
-- Comunidade menor que Tesseract
-
----
-
-## Ferramentas de Extração de PDF (Alternativas)
-
-### 14. pypdfium2
-- **Tipo**: Extração de PDF rápida
-- **Licença**: Apache 2.0
-- **Instalação**: `pip install pypdfium2`
-- **Performance**: 0.003s por página (MAIS RÁPIDO)
-
-#### O que faz
-Extração básica de texto de PDFs com máxima velocidade.
-
-#### Características
-- Velocidade extrema (0.003s/página)
-- Sem formatação, apenas texto puro
-- Sem dependências complexas
-- C++ binding otimizado
-
-#### Exemplo
-```python
-import pypdfium2 as pdfium
-
-text = "\n".join(
-    p.get_textpage().get_text_range() 
-    for p in pdfium.PdfDocument("doc.pdf")
-)
-```
-
-#### Vantagens
-- Blazingly fast
-- Simples de usar
-- Sem overhead
-
-#### Desvantagens
-- Sem preservação de formatação
-- Sem suporte a tabelas
-- Apenas texto puro
-
-### 15. pypdf
-- **Tipo**: Extração PDF Pythonic
-- **Licença**: BSD
-- **Instalação**: `pip install pypdf`
-- **Performance**: 0.024s por página
-
-#### O que faz
-Extração confiável de texto de PDFs, sem dependências C.
-
-#### Características
-- Funciona em Lambda functions
-- Sem C dependencies (containerizable)
-- Extração básica, ocasionais problemas de espaçamento
-- Muito testado e consolidado
-
-#### Exemplo
-```python
-from pypdf import PdfReader
-
-reader = PdfReader("doc.pdf")
-text = "\n".join(p.extract_text() for p in reader.pages)
-```
-
-#### Vantagens
-- Extremamente confiável
-- Sem dependências do sistema
-- Ótimo para ambientes containerizados
-- Comunidade grande
-
-#### Desvantagens
-- Ocasionais problemas de espaçamento
-- Sem estrutura ou formatação
-- Sem suporte a tabelas nativo
-
-### 16. pdfplumber
-- **Tipo**: Extração de dados estruturados de PDF
-- **Licença**: MIT
-- **Instalação**: `pip install pdfplumber`
-- **Performance**: 0.10s por página
-
-#### O que faz
-Extração avançada de dados tabulares e texto com análise de layout.
-
-#### Características
-- Extração de tabelas excelente
-- Análise de coordenadas
-- Controle fino de layout
-- Bounding box support
-
-#### Exemplo
-```python
-import pdfplumber
-
-with pdfplumber.open("doc.pdf") as pdf:
-    page = pdf.pages[0]
-    text = page.extract_text()
-    tables = page.extract_tables()
-```
-
-#### Vantagens
-- Excelente para tabelas
-- Análise de layout fino
-- Coordenadas precisas
-- Muitas opções configuráveis
-
-#### Desvantagens
-- Requer configuração para texto simples
-- Necessita de sintonia para bons resultados
-- Overhead de análise
-
-### 17. pymupdf4llm
-- **Tipo**: Extrator PDF → Markdown
-- **Licença**: AGPL
-- **Instalação**: `pip install pymupdf4llm`
-- **Performance**: 0.12s por página
-
-#### O que faz
-Converte PDFs em Markdown estruturado, preservando hierarquia.
-
-#### Características
-- Saída Markdown limpa
-- Preserva headings e estrutura
-- Suporte a tabelas
-- Formatação bem estruturada
-
-#### Exemplo
-```python
-import pymupdf4llm
-
-markdown = pymupdf4llm.to_markdown("doc.pdf")
-print(markdown)
-```
-
-#### Vantagens
+- texto puro
+- texto com bounding boxes
+- blocos, linhas e palavras
+- tabelas
+- layout e ordem de leitura
 - Markdown estruturado
-- Bom para RAG/LLMs
-- Velocidade razoável
-- Preserva hierarquia
-
-#### Desvantagens
-- AGPL license (cuidado em projetos comerciais)
-- Menos preciso em layouts complexos
-
-### 18. unstructured
-- **Tipo**: Particionamento semântico de documentos
-- **Licença**: Apache 2.0
-- **Instalação**: `pip install "unstructured[all-docs]"`
-- **Performance**: 1.29s por página
-
-#### O que faz
-Particiona documentos em chunks semânticos (Title, NarrativeText, etc).
-
-#### Características
-- Detecção semântica de elementos
-- Categorização automática
-- Perfeito para RAG
-- Suporte a múltiplos formatos
-
-#### Exemplo
-```python
-from unstructured.partition.auto import partition
-
-blocks = partition(filename="doc.pdf")
-for block in blocks:
-    print(f"{block.category}: {block.text}")
-    # Categorias: Title, NarrativeText, Table, etc.
-```
-
-#### Vantagens
-- Chunks semânticos (perfeito para RAG)
-- Detecção automática de tipo
-- Integração com embeddings
-- Múltiplos formatos
-
-#### Desvantagens
-- Mais lento (1.29s/página)
-- Dependências pesadas
-- Overhead computacional
-
-### 19. marker-pdf
-- **Tipo**: Conversion PDF → Markdown com Vision Model
-- **Licença**: GPL-3.0
-- **Instalação**: `pip install marker-pdf`
-- **Performance**: 11.3s por página (primeira vez baixa 1GB modelo)
-
-#### O que faz
-Conversão de alta fidelidade de PDFs para Markdown usando modelos vision.
-
-#### Características
-- Layout perfeito preservado
-- Reconhecimento de imagens
-- Markdown estruturado
-- Vision model (1GB)
-
-#### Exemplo
-```python
-from marker.converters.pdf import PdfConverter
-from marker.models import create_model_dict
-from marker.output import text_from_rendered
-
-text, _, _ = text_from_rendered(
-    PdfConverter(create_model_dict())("doc.pdf")
-)
-```
-
-#### Vantagens
-- Layout impecável
-- Melhor qualidade geral
-- Imagens preservadas
-- Markdown estruturado
-
-#### Desvantagens
-- Muito lento (11.3s/página)
-- 1GB modelo (primeira execução)
-- Alto consumo de recursos
-- GPL-3.0 (verificar licença para seu caso)
-
-### 20. textract
-- **Tipo**: Extrator universal com OCR fallback
-- **Licença**: MIT
-- **Instalação**: `pip install textract` (requer Tesseract do sistema)
-- **Performance**: 0.05s por página
-
-#### O que faz
-Extração de texto de múltiplos formatos com fallback automático para OCR.
-
-#### Características
-- Suporta PDF, DOCX, DOC, HTML, XLS, etc.
-- OCR automático se necessário
-- Trata múltiplos formatos uniformemente
-- Simples de usar
-
-#### Exemplo
-```python
-import textract
-
-text = textract.process("doc.pdf").decode()
-```
-
-#### Vantagens
-- Formato agnóstico
-- OCR fallback automático
-- Interface uniforme
-- Rápido
-
-#### Desvantagens
-- Dependência de Tesseract do sistema
-- Menos controle fino
-- Menor precisão em documentos complexos
-
----
-
-## Ferramentas de Suporte (Pré/Pós-processamento)
-
-### 21. pdf2image
-- **Tipo**: Conversor PDF → Imagens
-- **Licença**: MIT
-- **Instalação**: `pip install pdf2image`
-- **Dependência**: Ghostscript ou pdftoppm (sistema)
-
-#### O que faz
-Converte cada página de um PDF em imagem PIL (ou numpy array).
-
-#### Características
-- Converte PDF em imagens de alta qualidade
-- Outputs em PIL Image objects
-- Configurável: DPI, formato, etc.
-- Base para pipelines OCR
-
-#### Exemplo
-```python
-from pdf2image import convert_from_path
-
-# Converter PDF para imagens
-images = convert_from_path("documento.pdf", dpi=300)
-
-# Salvar imagens
-for i, image in enumerate(images):
-    image.save(f"page_{i}.png", "PNG")
-
-# Usar com OCR
-for image in images:
-    text = pytesseract.image_to_string(image)
-    print(text)
-```
-
-#### Vantagens
-- Simples e confiável
-- Base para pipelines OCR
-- DPI customizável (qualidade)
-- Muito usado em produção
-
-#### Desvantagens
-- Requer Ghostscript/pdftoppm no sistema
-- Overhead: cria arquivos intermediários
-- Memória: carrega todas as imagens
-
-#### Pipeline típico
-```
-PDF → pdf2image (imagens)
-  ↓
-Pytesseract (OCR)
-  ↓
-Texto
-```
-
----
-
-### 22. pdfminer
-- **Tipo**: Extrator de texto de PDF clássico
-- **Licença**: MIT
-- **Instalação**: `pip install pdfminer`
-- **Alternativa moderna**: `pdfminer.six`
-
-#### O que faz
-Extração de texto de PDFs com análise estrutural.
-
-#### Características
-- Análise de layout
-- Extração de metadados
-- Suporte a múltiplas codificações
-- Muito testado (histórico)
-
-#### Exemplo
-```python
-from pdfminer.high_level import extract_text
-
-text = extract_text("documento.pdf")
-print(text)
-
-# Com mais controle
-from pdfminer.layout import LAParams
-from pdfminer.converter import PDFPageInterpreter, PDFResourceManager, TextConverter
-from pdfminer.pdfpage import PDFPage
-from io import StringIO
-
-output = StringIO()
-rsrcmgr = PDFResourceManager()
-device = TextConverter(rsrcmgr, output, laparams=LAParams())
-interpreter = PDFPageInterpreter(rsrcmgr, device)
-
-with open("doc.pdf", 'rb') as fp:
-    for page in PDFPage.get_pages(fp):
-        interpreter.process_page(page)
-
-text = output.getvalue()
-```
-
-#### Vantagens
-- Muito maduro e testado
-- Análise de layout
-- Comunidade grande
-- Histórico: usado em muitos projetos
-
-#### Desvantagens
-- Mais lento que PyMuPDF
-- Menos features modernas
-- Parsing de PDF pode ser frágil
-- Documentação desatualizada
-
----
-
-### 23. PyPDF2
-- **Tipo**: Toolkit PDF puro Python
-- **Licença**: BSD
-- **Instalação**: `pip install pypdf2`
-- **Nota**: Versão antiga de `pypdf` (que é a moderna)
-
-#### O que faz
-Extração, manipulação e edição de PDFs em puro Python.
-
-#### Características
-- Sem C dependencies
-- Extração de info, texto, páginas
-- Merge, split, crop de PDFs
-- Encriptação/decriptação
-
-#### Exemplo
-```python
-from PyPDF2 import PdfReader, PdfWriter
-
-# Leitura
-reader = PdfReader("documento.pdf")
-text = "\n".join(page.extract_text() for page in reader.pages)
-
-# Manipulação
-writer = PdfWriter()
-for page in reader.pages:
-    writer.add_page(page)
-writer.write("output.pdf")
-```
-
-#### Vantagens
-- Puro Python (sem C dependencies)
-- Funciona em Lambda/containers
-- Suporte a múltiplas operações PDF
-- Sem dependências do sistema
-
-#### Desvantagens
-- Menos preciso que PyMuPDF
-- Mais lento
-- Comunidade menor
-- Menos maintenance
-- Versão moderna é `pypdf` (não PyPDF2)
-
-#### Nota
-`pypdf` (moderna) é o sucessor mantido de `PyPDF2`.
-
----
-
-## Ferramentas de Pré-processamento (Imagens)
-
-### 24. Pillow (PIL)
-- **Tipo**: Processamento de imagens
-- **Licença**: HPND (permissiva)
-- **Instalação**: `pip install Pillow`
-
-#### O que faz
-Manipulação básica de imagens (redimensionar, rotacionar, filtros).
-
-#### Características
-- Conversão entre formatos
-- Ajuste de brilho, contraste, saturação
-- Rotação e redimensionamento
-- Muito simples
-
-#### Exemplo
-```python
-from PIL import Image, ImageEnhance, ImageOps
-
-img = Image.open("documento.png")
-
-# Conversões
-gray_img = ImageOps.grayscale(img)
-rgb_img = img.convert('RGB')
-
-# Ajustes
-enhancer = ImageEnhance.Contrast(img)
-img_enhanced = enhancer.enhance(2.0)  # Aumentar contraste
-
-# Transformações
-rotated = img.rotate(45)
-resized = img.resize((800, 600))
-
-# Salvar
-img_enhanced.save("output.png")
-```
-
-#### Vantagens
-- Simples e direto
-- Muito rápido
-- Comunidade grande
-- Perfeito para pré-processamento básico
-
-#### Desvantagens
-- Funcionalidades limitadas
-- Não adequado para processamento avançado
-- Para OCR: insuficiente sozinho
-
----
-
-### 25. OpenCV (cv2)
-- **Tipo**: Visão computacional + processamento
-- **Licença**: Apache 2.0
-- **Instalação**: `pip install opencv-python`
-
-#### O que faz
-Processamento avançado de imagens, detecção, transformação.
-
-#### Características
-- Detecção de bordas, contornos, rotação
-- Denoising (remover ruído)
-- Thresholding (binarização)
-- Muito poderoso
-
-#### Exemplo
-```python
-import cv2
-import numpy as np
-
-img = cv2.imread("documento.png")
-
-# Conversão para grayscale
-gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-# Binarização
-_, binary = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
-
-# Denoising
-denoised = cv2.fastNlMeansDenoising(binary, h=10)
-
-# Detecção de bordas
-edges = cv2.Canny(gray, 100, 200)
-
-# Salvar
-cv2.imwrite("processed.png", denoised)
-```
-
-#### Vantagens
-- Muito poderoso
-- Detecção avançada (rotação, orientação)
-- Denoising profissional
-- Indústria standard
-
-#### Desvantagens
-- Curva de aprendizado
-- Overhead para operações simples
-- Maior consumo de recursos
-
-#### Uso típico com OCR
-```
-Imagem → OpenCV (pré-processamento)
-  ↓
-Denoising, binarização, deskew
-  ↓
-Tesseract/PaddleOCR (OCR)
-  ↓
-Texto com melhor precisão
-```
-
----
-
-## Ferramentas de Conversão (Multi-formato)
-
-### 26. LibreOffice (soffice)
-- **Tipo**: Suite de conversão documentos
-- **Licença**: LGPL
-- **Instalação**: `apt-get install libreoffice-headless` (Linux) ou baixar (Windows)
-
-#### O que faz
-Converter entre formatos: DOCX, XLSX, ODP → PDF, TXT, etc.
-
-#### Características
-- Headless mode (sem GUI)
-- Suporta muitos formatos
-- Preserva layout e formatação
-- Bom para DOCX, XLSX, PPT
-
-#### Exemplo
-```python
-import subprocess
-
-# Converter DOCX para PDF
-subprocess.run([
-    'soffice', '--headless', '--convert-to', 'pdf',
-    'documento.docx'
-])
-
-# Depois extrair do PDF
-text = extract_text("documento.pdf")
-```
-
-#### Vantagens
-- Suporta muitos formatos
-- Preserva formatação
-- Confiável
-- Open source
-
-#### Desvantagens
-- Dependência do sistema pesada
-- Lento (inicia process)
-- Requer Xvfb em servers
-- Overhead para operações simples
-
-#### Quando usar
-- DOCX, XLSX, ODP como entrada
-- Quando preservar layout é importante
-
-### 7. Keras-OCR
-- **Desenvolvedor**: Comunidade open source
-- **Tipo**: Deep Learning
-- **Licença**: MIT
-- **Instalação**: `pip install keras-ocr`
-
-#### Características
-- Baseado em Keras/TensorFlow
-- Bom para casos específicos
-- Comunidade pequena
-
-#### Limitações
-- Desenvolvimento parou
-- Comunidade pequena
-- Menos recomendado para novos projetos
-
-### 8. PaddleOCR
-- **Desenvolvedor**: Baidu
-- **Tipo**: Deep Learning (PaddlePaddle framework)
-- **Licença**: Apache 2.0
-- **Instalação**: `pip install paddleocr`
-
-#### O que faz
-OCR de alta precisão otimizado para velocidade.
-
-#### Características
-- Suporta 80+ idiomas
-- GPU support
-- Excelente relação precisão/velocidade
-- Modelos pré-treinados
-- Muito rápido
-
-#### Exemplo
-```python
-from paddleocr import PaddleOCR
-
-ocr = PaddleOCR(use_angle_cls=True, lang='pt')
-result = ocr.ocr('imagem.png', cls=True)
-
-# result: [[(bbox, (texto, confiança)), ...], ...]
-```
-
-#### Vantagens
-- Excelente qualidade
-- Muito rápido
-- GPU optimizado
-- Múltiplos idiomas
-
-#### Desvantagens
-- Menos comunidade que Tesseract
-- Documentação em chinês
-
----
-
-## Ferramentas OCR em Cloud
-
-### 9. Azure Form Recognizer (Microsoft)
-- **Tipo**: OCR + ML avançado em cloud
-- **Modelo**: Especializado em formulários e documentos estruturados
-- **Preço**: Por uso (pago)
-
-#### O que faz
-Extrai texto, key-value pairs, tabelas e estrutura de documentos.
-
-#### Especialização
-- Formulários
-- Invoices/Faturas
-- Recibos
-- Cartões de identidade
-- Documentos estruturados
-
-#### Vantagens
-- Excelente para documentos estruturados como licitações
-- Reconhecimento de tabelas perfeito
-- Muito preciso
-- Suporte Microsoft
-
-#### Desvantagens
-- Pago
-- Limite de requisições
-- Dependência de cloud
-
-### 10. Amazon Textract
-- **Tipo**: OCR + ML avançado em cloud
-- **Desenvolvedor**: Amazon AWS
-- **Preço**: Por uso (pago)
-
-#### O que faz
-Extrai texto, tabelas e formulários de documentos.
-
-#### Características
-- Reconhecimento de tabelas excelente
-- Análise de formulários
-- OCR de alta precisão
-
-#### Vantagens
-- Integrável com AWS
-- Muito preciso
-- Bom suporte
-
-#### Desvantagens
-- Pago
-- Limite de requisições
-- Dependência de cloud
-
-### 11. Google Cloud Vision
-- **Tipo**: OCR + Computer Vision em cloud
-- **Desenvolvedor**: Google
-- **Preço**: Por uso (pago)
-
-#### O que faz
-OCR geral + detecção de objetos, faces, logos.
-
-#### Características
-- Geral (não especializado)
-- Muito preciso para texto
-- Integração com Google Cloud
-
-#### Vantagens
-- Tecnologia Google
-- Muito preciso
-
-#### Desvantagens
-- Pago
-- Menos especializado que Form Recognizer/Textract
-- Limite de requisições
-
----
-
-## Ferramentas Faltantes Relevantes
-
-### 12. LayoutLM / LayoutLMv3
-- **Desenvolvedor**: Microsoft
-- **Tipo**: Document understanding multimodal (texto + layout + imagem)
-- **Licença**: Open source / modelos disponíveis via Hugging Face
-- **Instalação**: `pip install transformers torch`
-
-#### O que faz
-Modelos especializados em entender documentos visualmente ricos combinando o texto extraído, a posição dos blocos na página e informação visual.
-
-#### Características
-- Classificação de documento inteiro (`sequence classification`)
-- Extração de entidades/campos (`token classification`)
-- Usa layout espacial como sinal importante
-- Muito forte para formulários, recibos e documentos administrativos
-
-#### Vantagens
-- Excelente candidato para a **Fase 4 (Classificação)**
-- Mais robusto que classificação por texto puro quando o layout importa
-- Ecossistema maduro e bem documentado
-
-#### Desvantagens
-- Requer pipeline de OCR ou texto + bounding boxes
-- Treino e fine-tuning exigem dataset rotulado
-- Mais complexo que um classificador textual simples
-
-#### Uso recomendado no Sherlock Holmes
-- Detectar se o documento é edital, termo de referência, ata, anexo, contrato, aviso, planilha, etc.
-- Diferenciar tipos documentais que têm linguagem parecida, mas layout diferente
-
-### 13. Donut
-- **Desenvolvedor**: NAVER Clova AI
-- **Tipo**: Document understanding OCR-free
-- **Licença**: MIT
-- **Instalação**: `pip install transformers torch`
-
-#### O que faz
-Modelo end-to-end que interpreta imagens de documentos sem depender de OCR tradicional como etapa separada.
-
-#### Características
-- Faz classificação de documentos
-- Faz extração de informações estruturadas
-- Pode responder perguntas sobre o documento (VQA)
-- Reduz propagação de erro do OCR
-
-#### Vantagens
-- Forte alternativa para documentos scaneados ou visualmente complexos
-- Une entendimento visual e extração sem pipeline clássico de OCR
-- Bom potencial para MVPs orientados a IA
-
-#### Desvantagens
-- Mais pesado computacionalmente
-- Fine-tuning pode ser mais complexo
-- Menos previsível que pipelines modulares em casos operacionais
-
-#### Uso recomendado no Sherlock Holmes
-- Classificação de tipo documental quando OCR tradicional falhar
-- Experimentos de extração end-to-end em documentos escaneados
-
-### 14. docTR
-- **Desenvolvedor**: Mindee
-- **Tipo**: OCR deep learning + KIE
-- **Licença**: Apache 2.0
-- **Instalação**: `pip install python-doctr`
-
-#### O que faz
-Framework moderno para OCR com detecção + reconhecimento e suporte a pipelines de Key Information Extraction (KIE).
-
-#### Características
-- OCR end-to-end com modelos deep learning
-- Saída estruturada com blocos, linhas e palavras
-- Bounding boxes e leitura orientada a layout
-- Possui `kie_predictor` para detectar classes/campos
-
-#### Vantagens
-- Mais moderno e estruturado que OCR clássico puro
-- Bom meio-termo entre OCR e extração supervisionada
-- Pode reforçar Fase 3 e parte da Fase 5
-
-#### Desvantagens
-- Requer modelos e ambiente mais pesados
-- Não substitui sozinho a classificação sem dataset/tuning
-
-#### Uso recomendado no Sherlock Holmes
-- Alternativa ao Tesseract/EasyOCR/PaddleOCR
-- Extração orientada por campos visuais em formulários e anexos
-
-### 15. OCRmyPDF
-- **Desenvolvedor**: OCRmyPDF project
-- **Tipo**: Pré-processamento OCR para PDFs scaneados
-- **Licença**: MPL-2.0
-- **Instalação**: `pip install ocrmypdf` (com dependências de sistema)
-
-#### O que faz
-Adiciona camada OCR pesquisável em PDFs scaneados, preservando o PDF e corrigindo problemas comuns de rotação e skew.
-
-#### Características
-- Gera PDF pesquisável
-- `deskew` e rotação automática
-- Pipeline prático para documentos digitalizados
-- Usa Tesseract por baixo, mas entrega workflow mais pronto
-
-#### Vantagens
-- Excelente etapa de pré-processamento antes da Fase 3
-- Muito útil para acervo histórico e anexos scaneados
-- Reduz atrito operacional em PDFs ruins
-
-#### Desvantagens
-- Não faz classificação
-- Não resolve extração semântica
-- Depende de ferramentas do sistema
-
-### 16. MinerU
-- **Desenvolvedor**: OpenDataLab
-- **Tipo**: Parsing moderno de documentos para Markdown/JSON
-- **Licença**: Open source
-- **Instalação**: varia conforme stack/projeto
-
-#### O que faz
-Converte PDFs e documentos Office em formatos prontos para consumo por LLMs, preservando melhor ordem de leitura e estrutura semântica.
-
-#### Características
-- Saída em Markdown e JSON
-- Remove ruído estrutural (headers, footers, page numbers)
-- Melhor alinhado a pipelines de RAG e extração semântica
-- Suporta múltiplos formatos
-
-#### Vantagens
-- Candidato forte para benchmark com `Dedoc`, `Docling` e `pymupdf4llm`
-- Pode gerar texto mais limpo para LLM/classificação
-- Interessante para Fase 3 em pipelines LLM-first
-
-#### Desvantagens
-- Ecossistema ainda menos consolidado que alternativas mais antigas
-- Requer testes práticos para validar em licitações brasileiras
-
----
-
-## Ferramentas de Extração com LLM
-
-### 17. LangExtract
-- **Desenvolvedor**: Google
-- **Tipo**: Biblioteca Python para extração AI-powered com LLMs
-- **Licença**: Open source
-- **Instalação**: `pip install langextract`
-- **Modelos suportados**: OpenAI GPT, Google Gemini, Anthropic Claude, modelos locais (Ollama)
-
-#### O que faz
-Transforma texto não-estruturado em dados estruturados usando Large Language Models (LLMs).
-
-#### Como funciona
-Define um schema (estrutura de dados desejada) e o LLM extrai campos semanticamente relevantes do texto.
-
-#### Exemplo básico
-```python
-from langextract import Extractor, Schema, Field
-
-# Definir schema
-schema = Schema(
-    products=Field(
-        type="list",
-        fields={
-            "name": Field(type="string"),
-            "price": Field(type="float")
-        }
-    )
-)
-
-# Criar extrator
-extractor = Extractor(schema=schema, model="gpt-4-turbo")
-
-# Texto desorganizado
-text = """
-Our latest launch includes:
-- iPhone 15 Pro priced at $1199
-- MacBook Air M3 priced at $1399
-"""
-
-# Extrair
-result = extractor.extract(text)
-# Retorna: {"products": [{"name": "iPhone 15 Pro", "price": 1199.0}, ...]}
-```
-
-#### Características principais
-- Define schemas para estruturar output
-- Suporta múltiplos modelos LLM
-- Chunking automático para textos longos
-- Processamento paralelo de batches
-- Context-aware extraction (entende o significado)
-- Retorna JSON, CSV ou DataFrames
-- Integração com pandas, ETL pipelines
-
-#### Casos de uso
-- Extração de resumes (nome, skills, experiência)
-- Parsing de invoices (vendor, data, total)
-- Categorização de support tickets
-- Estruturação de emails
-- Análise de relatórios financeiros
-- Licitações (valor, data, objeto, órgão)
-
-#### Saída
-```python
-import pandas as pd
-
-# Converter para DataFrame
-df = pd.DataFrame(result["products"])
-
-# Salvar como CSV
-df.to_csv("products.csv")
-
-# Visualizar
-df.plot(x="name", y="price", kind="bar")
-```
-
-#### Vantagens
-- Entende contexto semântico (não é regex)
-- Define estrutura facilmente com schemas
-- Cuida de variações no texto ("USD 1199", "$1,199", "1.199 dólares")
-- Suporta documentos longos com chunking
-- Integração com múltiplos LLMs
-- Transformação em múltiplos formatos (JSON, CSV, DataFrame)
-- Perfeito para dados despadronizados
-
-#### Desvantagens
-- Requer API key (OpenAI, Gemini, etc.)
-- Custo por chamada de API
-- Latência de rede (cloud models)
-- Depende da qualidade do modelo LLM escolhido
-- Precisa de schemas bem definidos
-
-#### Instalação e setup
-```bash
-# 1. Criar virtual environment
-python -m venv venv
-source venv/bin/activate  # macOS/Linux
-venv\Scripts\activate     # Windows
-
-# 2. Instalar
-pip install langextract
-
-# 3. Configurar API key (OpenAI exemplo)
-export OPENAI_API_KEY="sua_chave_aqui"
-
-# 4. Verificar
-python -m langextract --version
-```
-
-#### Dicas de otimização
-- Manter campos específicos ("price" melhor que "data")
-- Usar modelos menores (gpt-3.5-turbo) para volume alto e economizar custo
-- Cachear respostas localmente para datasets grandes
-- Integrar em pipelines Airflow ou dbt para processamento agendado
-- Usar modelos locais (Ollama) para casos sensíveis a privacidade
-
-#### Integração com Sherlock Holmes
-LangExtract seria perfeito para a **Fase 5 (Extração de campos estruturados)**:
-
-```python
-# Exemplo para licitação
-schema = Schema(
-    valor_estimado=Field(type="float"),
-    data_abertura=Field(type="string"),
-    objeto_licitacao=Field(type="string"),
-    orgao_responsavel=Field(type="string"),
-    modalidade=Field(type="string"),
-    edital_link=Field(type="string")
-)
-
-# Após extrair texto (Fase 3), passar para LangExtract
-extractor = Extractor(schema=schema, model="gpt-4-turbo")
-campos_estruturados = extractor.extract(texto_da_licitacao)
-
-# Resultado: JSON estruturado pronto para armazenar/analisar
-```
-
-### 18. SmolDocling
-- **Desenvolvedor**: HuggingFace + IBM (colaboração)
-- **Tipo**: Modelo vision ultra-compacto para document conversion
-- **Tamanho**: 256M parâmetros (5-10x menor que concorrentes)
-- **Performance**: Compara com modelos 27x maiores
-- **Licença**: Open source
-- **Instalação**: `pip install docling-core mlx-vlm pillow`
-- **Framework**: MLX (Apple Silicon) ou PyTorch
-
-#### O que faz
-Converte imagens de documentos em formato DocTags (XML-like) preservando estrutura, layout e conteúdo.
-
-#### DocTags Format
-Formato XML-like que define:
-- Element type: texto, imagem, tabela, código, título, rodapé
-- Position on page: bounding box (x1, y1, x2, y2)
-- Content: informação textual ou estrutural
-
-```xml
-<document>
-  <section>
-    <heading>Título</heading>
-    <paragraph>Parágrafo de texto</paragraph>
-    <table>
-      <table_row>
-        <table_cell>Dado</table_cell>
-      </table_row>
-    </table>
-  </section>
-</document>
-```
-
-#### Características principais
-- End-to-end document conversion
-- Preserva reading order (ordem de leitura)
-- Mantém layout original (posição de elementos)
-- Reconhecimento de tabelas com estrutura
-- OCR integrado
-- Extração de equações matemáticas
-- Code list recognition
-- Nested structures support
-- Position-aware (bounding boxes)
-- Tamanho ultra-compacto
-
-#### Casos de uso
-- Document classification (classificação)
-- OCR (reconhecimento de texto)
-- Layout analysis (análise de estrutura)
-- Table recognition (reconhecimento de tabelas)
-- Key-value extraction (extração de pares chave-valor)
-- Graph understanding (compreensão de gráficos)
-- Equation recognition (reconhecimento de equações)
-- Code extraction
-
-#### Exemplo de uso
-```python
-from io import BytesIO
-from pathlib import Path
-from PIL import Image
-from docling_core.types.doc import ImageRefMode
-from docling_core.types.doc.document import DocTagsDocument, DoclingDocument
-from mlx_vlm import load, generate
-from mlx_vlm.prompt_utils import apply_chat_template
-from mlx_vlm.utils import load_config, stream_generate
-
-# Carregar modelo
-model_path = "ds4sd/SmolDocling-256M-preview-mlx-bf16"
-model, processor = load(model_path)
-config = load_config(model_path)
-
-# Preparar entrada
-prompt = "Convert this page to docling."
-image = "documento.png"
-
-# Carregar imagem
-pil_image = Image.open(image)
-
-# Aplicar template
-formatted_prompt = apply_chat_template(processor, config, prompt, num_images=1)
-
-# Gerar DocTags
-output = ""
-for token in stream_generate(
-    model, processor, formatted_prompt, [image], max_tokens=4096
-):
-    output += token.text
-    if "</doctag>" in token.text:
-        break
-
-# Criar documento
-doctags_doc = DocTagsDocument.from_doctags_and_image_pairs([output], [pil_image])
-doc = DoclingDocument(name="Documento")
-doc.load_from_doctags(doctags_doc)
-
-# Exportar
-print(doc.export_to_markdown())  # Markdown
-doc.save_as_html(Path("output.html"))  # HTML
-```
-
-#### Vantagens
-- Ultra-compacto (256M params) - roda localmente
-- Performance competitiva com modelos 27x maiores
-- End-to-end (sem pipeline complexo)
-- Preserva estrutura e layout
-- Excelente em tabelas, equações, code lists
-- Open source
-- Sem dependência de API cloud
-- Suporta Apple Silicon (MLX)
-- Formato DocTags bem definido
-
-#### Desvantagens
-- Requer mais poder computacional que Tesseract
-- Ainda requer download de modelo (256M)
-- Comunidade menor que alternativas (novo)
-- MLX limitado a Apple Silicon (PyTorch necessário para outros)
-
-#### Performance (vs. outros modelos)
-Segundo benchmark DocLayNet:
-- Edit Distance: 0.48 (mais baixo = melhor)
-- F1-Score: 0.80 (mais alto = melhor)
-- Code lists: 0.11 Edit Distance, 0.92 F1-Score
-- Equações: 0.11 Edit Distance, 0.95 F1-Score
-
-Comparação: Supera Qwen2.5-VL (7B params) em várias métricas.
-
-#### Integração com Sherlock Holmes
-SmolDocling seria excelente para **Fase 3 (Extração de estrutura)**:
-
-```python
-# Após OCR/extração básica, usar SmolDocling
-# para preservar estrutura e layout
-
-# Vantagem: Extrai tabelas estruturadas
-# Vantagem: Sem dependência de cloud (local)
-# Vantagem: Compacto o suficiente para serverless/edge
-```
-
----
-
-## Conceito: Gerenciamento de Fallback
-
-Fallback = plano B quando algo falha.
-
-### Sem gerenciamento (não robusto)
-```python
-texto = extrair_com_pymupdf(documento)  # Tenta uma vez
-# Se falhar, tudo quebra
-```
-
-### Com gerenciamento (robusto)
-```python
-try:
-    texto = extrair_com_pymupdf(documento)
-    if texto está vazio:
-        raise Exception("PDF sem texto detectável")
-except:
-    logger.info("PyMuPDF falhou, tentando PaddleOCR...")
-    try:
-        texto = extrair_com_paddleocr(documento)
-        if texto está vazio:
-            raise Exception("PaddleOCR também falhou")
-    except Exception as e:
-        logger.error(f"Todas as ferramentas falharam: {e}")
-        raise
-
-return texto
-```
-
-### O que gerenciar
-1. Detectar quando usar cada ferramenta
-2. Capturar erros em cada etapa
-3. Validar resultado (não vazio, qualidade mínima)
-4. Logging detalhado (qual ferramenta foi usada, erros)
-
----
-
-## Comparação Completa: Todas as Ferramentas
-
-### Categoria 1: Parsers Gerais (Multi-formato)
-
-| Aspecto | Dedoc | Markitdown | Docling | SmolDocling |
-|---------|-------|------------|---------|-------------|
-| Desenvolvedor | ISPRAS (Rusia) | Microsoft | IBM | HuggingFace + IBM |
-| Gerenciamento de fallback | Automático | Não | Não | Não |
-| OCR integrado | Tesseract | Não | Não | Sim (vision-based) |
-| Extração de estrutura | Sim (headings, listas, tabelas) | Sim (básica) | Sim (estrutura + fórmulas) | Sim (end-to-end com DocTags) |
-| Formatos de entrada | PDF/DOCX/XLSX/HTML/imagens/ZIP | PDF/DOCX/XLSX/PPT/HTML | PDF/DOCX/XLSX/HTML | Imagens/PDF (vision) |
-| Formatos de saída | JSON/estrutura nativa | Markdown | Markdown/JSON/HTML | DocTags/Markdown/HTML |
-| Tabelas PDF | Detecta estrutura | Falha em PDFs | Detecta mas não extrai | Excelente |
-| Imagens em PDF | Detecta | Não | Detecta | Sim (vision-based) |
-| Equações matemáticas | Não | Não | Não | Sim |
-| Scaneados/Imagens | Sim (OCR) | Não | Não | Sim (vision-based) |
-| Layout/Positioning | Básico | Não | Básico | Excelente (bounding boxes) |
-| Instalação | Docker ou pip | pip | pip | pip (MLX ou PyTorch) |
-| Complexidade | Simples | Simples | Simples | Simples |
-| Tamanho modelo | Médio | Médio | Médio | 256M (ultra-compacto) |
-
-### Categoria 2: Ferramentas OCR Específicas (Open Source)
-
-| Aspecto | Tesseract | EasyOCR | Keras-OCR | PaddleOCR |
-|---------|-----------|---------|-----------|-----------|
-| Desenvolvedor | Google | Comunidade | Comunidade | Baidu |
-| Tipo | OCR clássico | Deep Learning | Deep Learning | Deep Learning |
-| Qualidade | Boa (referência) | Muito boa | Boa | Excelente |
-| Idiomas | 100+ | 80+ | Limitado | 80+ |
-| Velocidade | Rápido | Médio | Lento | Rápido |
-| Precisão | Média | Alta | Alta | Muito Alta |
-| Interface Python | Pytesseract | Nativa | Nativa | Nativa |
-| GPU support | Não | Sim | Sim | Sim |
-| Formatos entrada | Imagens | Imagens | Imagens | Imagens |
-| Saída estruturada | Pouca | Pouca | Pouca | Pouca |
-| Instalação | Complexa (dependências) | pip | pip | pip |
-| Comunidade | Grande | Crescente | Pequena | Crescente |
-
-### Categoria 3: Ferramentas OCR em Cloud (Pagas)
-
-| Aspecto | Azure Form Recognizer | Amazon Textract | Google Cloud Vision |
-|---------|----------------------|-----------------|---------------------|
-| Desenvolvedor | Microsoft | Amazon | Google |
-| Tipo | ML avançado (cloud) | ML avançado (cloud) | ML avançado (cloud) |
-| Qualidade | Excelente | Excelente | Excelente |
-| Especialização | Formulários/documentos estruturados | Documentos estruturados | Geral |
-| Preço | Pago | Pago | Pago |
-| OCR | Sim | Sim | Sim |
-| Extração de dados | Sim (key-value, tabelas, estrutura) | Sim (tabelas, texto, formulários) | Sim (texto, objetos) |
-| Reconhecimento de tabelas | Excelente | Excelente | Bom |
-| Reconhecimento de formulários | Excelente | Excelente | Bom |
-| Limite de requisições | Sim | Sim | Sim |
-| Documentação | Excelente | Excelente | Excelente |
-| Integração | Fácil via SDK | Fácil via SDK | Fácil via SDK |
-
-### Categoria 4: Combinação Clássica
-
-| Aspecto | PyMuPDF + PaddleOCR |
-|---------|---------------------|
-| Para PDFs com texto | PyMuPDF |
-| Para PDFs scaneados | PaddleOCR |
-| Gerenciamento de fallback | Manual (seu código) |
-| Controle | Total |
-| Complexidade | Complexa |
-| Custo | Gratuito |
-
-### Categoria 5: PDF Extraction Specific (Benchmark do Artigo 2025)
-
-| Ferramenta | Velocidade | Qualidade Texto | Tabelas | Estrutura | Recomendado Para |
-|-----------|-----------|-----------------|---------|-----------|------------------|
-| **pypdfium2** | 0.003s (FASTEST) | Básica | Não | Não | Alto volume, indexação simples |
-| **pypdf** | 0.024s | Confiável | Não | Não | Lambda, containers |
-| **pdfplumber** | 0.10s | Boa | Excelente | Média | Extração de dados tabulares |
-| **pymupdf4llm** | 0.12s | Excelente | Sim | Sim (Markdown) | Markdown, RAG systems |
-| **textract** | 0.05s | Boa | Média | Não | Multi-formato com OCR |
-| **unstructured** | 1.29s | Estruturada | Média | Excelente (semântica) | RAG, chunks semânticos |
-| **marker-pdf** | 11.3s | Perfeita | Excelente | Perfeita (vision) | Alta fidelidade, imagens |
-
-**Nota importante:** Tempos baseados em teste com 1 página. marker-pdf baixa 1GB modelo na primeira execução.
-
-**Trade-offs observados:**
-- Speed vs Quality: pypdfium2 é 3000x mais rápido que marker-pdf
-- Structure vs Simplicity: unstructured/marker-pdf têm estrutura mas são lentos
-- Reliability: pypdf é o mais confiável (sem C dependencies)
-
-### Categoria 5.5: Extração com LLM (IA-powered)
-
-| Aspecto | LangExtract | LangChain (custom) | Modelos LLM puros |
-|---------|-------------|-------------------|-------------------|
-| Desenvolvedor | Google | Comunidade | OpenAI/Anthropic/Google |
-| Tipo | Extração com schema | Framework customizável | Chamadas diretas |
-| Modelos | GPT, Gemini, Claude, locais | Qualquer LLM | Qualquer LLM |
-| Instalação | pip install | pip install | API keys |
-| Schemas/estrutura | Sim (Field-based) | Customizável | Manual via prompts |
-| Context-aware | Sim (entende semântica) | Sim | Sim |
-| Tratamento de variações | Automático | Manual | Manual |
-| Saída estruturada | JSON/CSV/DataFrame | Customizável | JSON (com parsing) |
-| Chunking automático | Sim | Parcial | Não |
-| Processamento paralelo | Sim | Sim | Não |
-| Documentação | Boa | Excelente | Excelente |
-| Custo | API key (pago) | API key (pago) | API key (pago) |
-| Latência | Médio-Alto | Médio-Alto | Médio-Alto |
-| Privacidade | Envia para cloud | Envia para cloud | Envia para cloud |
-| Modelos locais | Sim (Ollama) | Sim (LLaMA, etc) | Sim (Ollama) |
-
-### Categoria 5: Extração com LLM (IA-powered)
-
-| Aspecto | LangExtract | LangChain (custom) | Modelos LLM puros |
-|---------|-------------|-------------------|-------------------|
-| Desenvolvedor | Google | Comunidade | OpenAI/Anthropic/Google |
-| Tipo | Extração com schema | Framework customizável | Chamadas diretas |
-| Modelos | GPT, Gemini, Claude, locais | Qualquer LLM | Qualquer LLM |
-| Instalação | pip install | pip install | API keys |
-| Schemas/estrutura | Sim (Field-based) | Customizável | Manual via prompts |
-| Context-aware | Sim (entende semântica) | Sim | Sim |
-| Tratamento de variações | Automático | Manual | Manual |
-| Saída estruturada | JSON/CSV/DataFrame | Customizável | JSON (com parsing) |
-| Chunking automático | Sim | Parcial | Não |
-| Processamento paralelo | Sim | Sim | Não |
-| Documentação | Boa | Excelente | Excelente |
-| Custo | API key (pago) | API key (pago) | API key (pago) |
-| Latência | Médio-Alto | Médio-Alto | Médio-Alto |
-| Privacidade | Envia para cloud | Envia para cloud | Envia para cloud |
-| Modelos locais | Sim (Ollama) | Sim (LLaMA, etc) | Sim (Ollama) |
-
----
-
-## Limitações de cada ferramenta
+- JSON estruturado
+- campos semânticos
+
+### Robustez operacional
+
+- facilidade de instalação
+- dependências de sistema
+- suporte a CPU/GPU
+- consumo de memória
+- maturidade do projeto
+- manutenção e comunidade
+- clareza de licença
+
+### Adequação ao Sherlock Holmes
+
+- documentos administrativos e licitatórios
+- documentos em português
+- necessidade de preservar ordem de leitura
+- presença de tabelas, formulários e anexos
+- uso local versus cloud
+- custo operacional
+- privacidade dos documentos
+
+## Mapa Geral de Categorias
+
+| Categoria | Ferramentas | Papel principal |
+|---|---|---|
+| OCR local clássico | `Tesseract`, `pytesseract`, `OCRmyPDF` | OCR maduro, baseline e PDFs pesquisáveis |
+| OCR local deep learning | `PaddleOCR`, `docTR`, `EasyOCR`, `Keras-OCR` | OCR em imagens com detecção + reconhecimento |
+| OCR histórico/especializado | `Kraken`, `OCRopus` | documentos históricos, manuscritos ou tipografia irregular |
+| OCR híbrido/transformer | `TrOCR` | reconhecimento de texto em regiões já detectadas |
+| Modelos multimodais emergentes | `DeepSeek-OCR`, `Dots.OCR`, `OLMo-OCR 2`, `Qwen3-VL`, `Donut`, `SmolDocling` | OCR + layout + document understanding |
+| Parsers e conversores de documentos | `Dedoc`, `Docling`, `Markitdown`, `MinerU`, `unstructured`, `marker-pdf`, `pymupdf4llm`, `textract` | conversão para texto, Markdown ou estrutura |
+| Extração PDF com texto | `PyMuPDF`, `pypdfium2`, `pypdf`, `pdfplumber`, `pdfminer.six`, `PyPDF2` | extrair texto de PDFs que já têm camada textual |
+| Pré-processamento e suporte | `Pillow`, `OpenCV`, `pdf2image`, `LibreOffice` | preparar imagens, converter formatos e melhorar entrada |
+| Cloud/comercial | `Amazon Textract`, `Azure AI Document Intelligence`, `Google Cloud Vision`, `ABBYY`, `Nanonets`, `Rossum.AI` | OCR gerenciado, formulários, tabelas e IDP |
+| Extração semântica com LLM | `LangExtract`, `LangChain`, chamadas diretas a LLMs | transformar texto extraído em campos estruturados |
+| Baixa aderência ao stack atual | `PyOCR`, `IronOCR`, `SwiftOCR` | wrappers ou ferramentas úteis apenas em contextos específicos |
+
+## Resumo de Aderência
+
+| Ferramenta | Categoria | Relevância potencial | Observação curta |
+|---|---|---:|---|
+| `Tesseract` | OCR clássico | Alta | baseline maduro e barato |
+| `PaddleOCR` | OCR deep learning | Alta | forte para OCR local moderno |
+| `docTR` | OCR deep learning estruturado | Alta | saída em blocos, linhas e palavras |
+| `EasyOCR` | OCR deep learning | Média/alta | bom candidato local alternativo |
+| `PyMuPDF` | PDF textual | Alta | muito útil para PDFs com camada de texto |
+| `pdfplumber` | PDF textual/layout | Média/alta | forte para tabelas e coordenadas |
+| `Dedoc` | parser universal | Média | bom conceito de pipeline unificado |
+| `Docling` | parser/conversor | Média/alta | promissor para Markdown/estrutura |
+| `SmolDocling` | multimodal/document conversion | Média/alta | forte em estrutura, tabelas e DocTags |
+| `marker-pdf` | PDF para Markdown com visão | Média | alta fidelidade, mas pesado e licença exige atenção |
+| `unstructured` | particionamento semântico | Média | útil para RAG/chunks, mais lento |
+| `Amazon Textract` | cloud/comercial | Média/alta | forte para formulários e tabelas |
+| `Azure AI Document Intelligence` | cloud/comercial | Média/alta | forte em documentos estruturados |
+| `Google Cloud Vision` | cloud/comercial | Média | OCR geral gerenciado |
+| `ABBYY` | comercial | Média | referência comercial madura |
+| `Nanonets` | comercial/IDP | Média | automação documental customizável |
+| `Rossum.AI` | comercial/IDP | Média | processamento inteligente de documentos |
+| `DeepSeek-OCR` | multimodal emergente | Experimental | velocidade em GPU a validar |
+| `Dots.OCR` | multimodal emergente | Experimental | compacto, estrutura a validar |
+| `OLMo-OCR 2` | multimodal/PDF Markdown | Experimental | promissor para PDFs complexos |
+| `Qwen3-VL` | vision-language | Experimental | OCR + raciocínio visual |
+| `TrOCR` | reconhecimento transformer | Experimental | requer detecção/crops externos |
+| `Keras-OCR` | OCR deep learning | Baixa | menos atraente para pipeline novo |
+| `Kraken` | OCR histórico | Específica | útil se houver manuscritos/documentos antigos |
+| `OCRopus` | OCR histórico/acadêmico | Baixa | mais legado/pesquisa |
+| `PyOCR` | wrapper OCR | Baixa | interface, não motor OCR |
+| `IronOCR` | comercial .NET | Baixa | desalinhado do stack Python |
+| `SwiftOCR` | mobile/iOS | Baixa | útil apenas para frente mobile |
+
+## OCR Local Clássico e Deep Learning
+
+### Tesseract / pytesseract
+
+Tipo:
+- OCR clássico open source
+- motor nativo com wrapper Python via `pytesseract`
+
+Melhor uso:
+- baseline local
+- imagens com texto impresso razoavelmente limpo
+- OCR barato e sem dependência de cloud
+- extração simples de texto, palavras, confiança e bounding boxes
+
+Saída:
+- texto puro
+- dados por palavra via `image_to_data`
+- bounding boxes por caractere via `image_to_boxes`
+
+Pontos fortes:
+- maduro e amplamente usado
+- suporte a muitos idiomas
+- baixo custo operacional
+- bom para comparação com ferramentas modernas
+
+Limitações:
+- costuma sofrer mais em layouts complexos, fundos ruins, ruído e documentos visualmente ricos
+- instalação pode depender de binários do sistema
+- não oferece compreensão semântica nem estrutura rica por padrão
+
+Relevância para o Sherlock Holmes:
+- alta como ferramenta de referência técnica
+- menos indicada como solução final única se os documentos tiverem muito layout, tabela ou baixa qualidade visual
+
+### PaddleOCR
+
+Tipo:
+- OCR deep learning open source
+- usa ecossistema PaddlePaddle
+
+Melhor uso:
+- OCR local moderno
+- documentos escaneados
+- imagens com layouts mais variados
+- cenários em que velocidade e qualidade importam
+
+Saída:
+- texto
+- bounding boxes
+- confiança por trecho
+
+Pontos fortes:
+- boa relação entre qualidade e velocidade
+- suporte a múltiplos idiomas
+- suporte a GPU
+- modelos pré-treinados
+
+Limitações:
+- dependências mais pesadas que Tesseract
+- ecossistema e documentação podem exigir mais cuidado
+- saída estrutural ainda pode precisar de pós-processamento para tabelas e campos
+
+Relevância para o Sherlock Holmes:
+- alta para OCR local em documentos escaneados
+- ferramenta central no radar de OCR open source moderno
+
+### docTR
+
+Tipo:
+- framework OCR deep learning da Mindee
+- detecção + reconhecimento
+- também possui componentes relacionados a KIE, dependendo do uso
+
+Melhor uso:
+- OCR em imagens e PDFs
+- análise com blocos, linhas e palavras
+- casos em que a estrutura da página importa mais que texto bruto
+
+Saída:
+- estrutura em páginas, blocos, linhas e palavras
+- bounding boxes
+- valores textuais
+
+Pontos fortes:
+- saída mais organizada que OCR de texto bruto
+- usa modelos modernos de detecção e reconhecimento
+- bom encaixe para avaliação de ordem de leitura e layout
+
+Limitações:
+- ambiente mais pesado que Tesseract
+- pode exigir PyTorch ou TensorFlow, conforme instalação
+- não substitui uma etapa semântica de extração de campos
+
+Relevância para o Sherlock Holmes:
+- alta quando a estrutura do OCR for importante
+- bom contraponto a `PaddleOCR` na avaliação de OCR local
+
+### EasyOCR
+
+Tipo:
+- OCR deep learning open source
+- usa CRAFT para detecção e CRNN para reconhecimento
+
+Melhor uso:
+- OCR local alternativo
+- múltiplos idiomas
+- imagens menos padronizadas
+- casos em que bounding boxes e confiança por trecho sejam úteis
+
+Saída:
+- texto detectado
+- bounding boxes
+- confiança
+
+Pontos fortes:
+- simples de usar
+- bom suporte multilíngue
+- pode superar Tesseract em imagens menos limpas
+- usa PyTorch e pode se beneficiar de GPU
+
+Limitações:
+- download de modelos na primeira execução
+- consumo de memória maior que Tesseract
+- pode ser mais lento dependendo do ambiente
+
+Relevância para o Sherlock Holmes:
+- média/alta como alternativa local
+- especialmente interessante se o dataset real mostrar variação visual alta ou necessidade multilíngue
+
+### Keras-OCR
+
+Tipo:
+- OCR deep learning baseado em Keras/TensorFlow
+- usa CRAFT + CRNN
+
+Melhor uso:
+- estudo técnico
+- comparação histórica com EasyOCR
+- experimentos pontuais em inglês
+
+Saída:
+- palavras detectadas
+- bounding boxes
+
+Pontos fortes:
+- pipeline relativamente claro
+- pode produzir bons resultados em imagens simples
+
+Limitações:
+- menor aderência para projetos novos
+- suporte linguístico mais limitado
+- comunidade e manutenção menos atraentes que alternativas atuais
+
+Relevância para o Sherlock Holmes:
+- baixa
+- deve permanecer como referência, não como prioridade prática
+
+### TrOCR
+
+Tipo:
+- reconhecedor de texto baseado em transformers
+- disponível via Hugging Face
+
+Melhor uso:
+- reconhecer texto em regiões já recortadas
+- comparar qualidade de reconhecimento puro
+- combinar com outro detector de texto
+
+Saída:
+- texto gerado a partir de imagem/crop
+
+Pontos fortes:
+- arquitetura moderna encoder-decoder
+- bom potencial em reconhecimento quando a região de texto já está bem isolada
+
+Limitações:
+- não é OCR completo para páginas inteiras
+- exige etapa anterior de detecção/segmentação
+- pode adicionar complexidade sem resolver layout end-to-end
+
+Relevância para o Sherlock Holmes:
+- experimental
+- mais útil em arquitetura híbrida do que como ferramenta direta de OCR documental
+
+### Kraken
+
+Tipo:
+- OCR open source com foco em documentos históricos e manuscritos
+
+Melhor uso:
+- documentos antigos
+- tipografias incomuns
+- manuscritos
+- corpora que permitam treinamento especializado
+
+Pontos fortes:
+- mais alinhado a digitalização histórica que OCRs generalistas
+- pode ser relevante em acervos com material degradado ou não padronizado
+
+Limitações:
+- menos aderente a documentos administrativos modernos
+- pode exigir treinamento e curadoria de dataset
+
+Relevância para o Sherlock Holmes:
+- específica
+- vale considerar apenas se aparecerem documentos históricos, manuscritos ou tipografias muito fora do padrão
+
+### OCRopus
+
+Tipo:
+- OCR open source histórico/acadêmico
+
+Melhor uso:
+- pesquisa
+- digitalização histórica
+- experimentos com pipelines antigos/customizados
+
+Pontos fortes:
+- relevância histórica na área de OCR
+
+Limitações:
+- menos prioritário que ferramentas modernas
+- menor aderência para um pipeline operacional novo
+
+Relevância para o Sherlock Holmes:
+- baixa
+
+## Modelos Multimodais e Document Understanding
+
+### DeepSeek-OCR
+
+Tipo:
+- modelo OCR multimodal/open source citado como voltado a imagens e PDFs
+
+Melhor uso:
+- OCR com GPU
+- cenários que exigem throughput alto
+- experimentos com serving via `vLLM` ou `Transformers`
+
+Saída:
+- texto gerado a partir de imagem/documento
+
+Pontos fortes:
+- promete velocidade alta em hardware forte
+- representa a linha recente de OCR com modelos multimodais
+
+Limitações:
+- requisitos de GPU e VRAM precisam ser confirmados
+- maturidade, licença e custo operacional precisam de validação em fontes primárias
+- pode ser excessivo para OCR simples
+
+Relevância para o Sherlock Holmes:
+- experimental
+- candidato para estudo futuro de OCR multimodal local
+
+### Dots.OCR
+
+Tipo:
+- modelo OCR open source compacto citado como capaz de lidar com texto, tabelas e layout
+
+Melhor uso:
+- OCR local com estrutura
+- experimentos com modelos multimodais menores
+- comparação com `PaddleOCR`, `docTR` e `SmolDocling`
+
+Pontos fortes:
+- proposta de ser mais leve que modelos multimodais grandes
+- potencial para texto, tabelas e layout em uma abordagem unificada
+
+Limitações:
+- precisa de validação independente
+- requisitos de GPU, licença, idiomas e formato de saída precisam ser confirmados
+
+Relevância para o Sherlock Holmes:
+- experimental
+
+### OLMo-OCR 2
+
+Tipo:
+- ferramenta/modelo citada para OCR e conversão de PDFs para Markdown estruturado
+
+Melhor uso:
+- PDFs técnicos ou acadêmicos
+- documentos com tabelas, equações, cabeçalhos e múltiplos blocos
+- geração de Markdown com ordem de leitura mais limpa
+
+Pontos fortes:
+- proposta alinhada a documentos complexos e leitura estruturada
+- pode competir mais com conversores/document parsers do que com OCR puro
+
+Limitações:
+- requisitos de hardware podem ser altos
+- informações precisam ser validadas com documentação oficial
+- aderência a documentos administrativos brasileiros ainda é incerta
+
+Relevância para o Sherlock Holmes:
+- experimental, com interesse médio/alto para PDFs complexos
+
+### Qwen3-VL
+
+Tipo:
+- modelo vision-language multimodal
+- não é apenas OCR
+
+Melhor uso:
+- OCR combinado com compreensão visual
+- perguntas e respostas sobre documentos
+- screenshots, interfaces e documentos multilíngues
+- cenários com raciocínio espacial
+
+Pontos fortes:
+- pode entender texto, layout e contexto visual em uma mesma interface
+- útil para document understanding, não só transcrição
+
+Limitações:
+- pode ser pesado e caro localmente
+- requer avaliação cuidadosa de licença, VRAM, latência e privacidade
+- pode ser mais amplo do que o necessário para extração textual inicial
+
+Relevância para o Sherlock Holmes:
+- experimental
+- mais adequado a uma camada futura de compreensão visual/semântica
+
+### Donut
+
+Tipo:
+- modelo OCR-free de document understanding
+- desenvolvido pela NAVER Clova AI
+
+Melhor uso:
+- classificação e extração end-to-end a partir de imagens de documentos
+- formulários e documentos visualmente complexos
+- experimentos sem pipeline OCR tradicional
+
+Saída:
+- texto/estrutura gerada pelo modelo, dependendo da tarefa
+
+Pontos fortes:
+- reduz dependência de OCR separado
+- une visão e extração estruturada
+- relevante para documentos escaneados complexos
+
+Limitações:
+- fine-tuning pode ser necessário
+- previsibilidade operacional menor que pipelines modulares
+- custo computacional maior que OCR clássico
+
+Relevância para o Sherlock Holmes:
+- experimental
+- útil como alternativa de document understanding, não como substituto imediato de OCR simples
+
+### LayoutLM / LayoutLMv3
+
+Tipo:
+- modelos de document understanding que combinam texto, layout e imagem
+
+Melhor uso:
+- classificação de documentos
+- extração de entidades/campos com layout
+- documentos administrativos com estrutura recorrente
+
+Entrada típica:
+- texto já extraído
+- bounding boxes
+- imagem ou sinais visuais, conforme modelo
+
+Pontos fortes:
+- usa posição espacial como sinal importante
+- bom para formulários, recibos e documentos com layout previsível
+
+Limitações:
+- requer OCR ou texto com coordenadas
+- geralmente exige dataset rotulado e fine-tuning
+- não é OCR por si só
+
+Relevância para o Sherlock Holmes:
+- média para fases futuras de classificação e extração supervisionada
+
+### SmolDocling
+
+Tipo:
+- modelo vision compacto para document conversion
+- associado ao ecossistema Docling/DocTags
+
+Melhor uso:
+- converter imagens ou páginas em representação estruturada
+- preservar layout, ordem de leitura, tabelas e elementos visuais
+- gerar Markdown/HTML por meio de DocTags
+
+Saída:
+- DocTags
+- Markdown
+- HTML, dependendo do fluxo
+
+Pontos fortes:
+- proposta compacta em comparação com modelos vision maiores
+- foco em estrutura e layout
+- interessante para tabelas, equações e documentos ricos
+
+Limitações:
+- ainda requer modelo e ambiente ML
+- maturidade e desempenho devem ser testados no dataset real
+- pode ser mais complexo que OCR tradicional
+
+Relevância para o Sherlock Holmes:
+- média/alta como ferramenta de document conversion estruturada
+
+### MinerU
+
+Tipo:
+- parser moderno de documentos para Markdown/JSON
+
+Melhor uso:
+- preparar documentos para LLMs e RAG
+- preservar ordem de leitura
+- remover ruído estrutural como cabeçalhos, rodapés e numeração
+
+Saída:
+- Markdown
+- JSON
+
+Pontos fortes:
+- alinhado a pipelines LLM-first
+- pode produzir texto mais limpo que extração PDF simples
+
+Limitações:
+- ecossistema menos consolidado que bibliotecas mais antigas
+- precisa de validação com documentos licitatórios brasileiros
+
+Relevância para o Sherlock Holmes:
+- média como parser/conversor futuro
+
+## Parsers e Conversores Multi-formato
 
 ### Dedoc
-- Não faz extração de campos específicos
-- Não faz classificação de documento
-- Não tem compreensão semântica de contexto
 
-### PyMuPDF + PaddleOCR
-- Não extrai estrutura lógica automaticamente
-- Não tem reconhecimento automático de tabelas
-- Não normaliza formatos diferentes
+Tipo:
+- sistema universal de conversão e análise de documentos
 
-### Markitdown
-- Sem OCR (não funciona com imagens/PDF scaneados)
-- Não extraiu tabelas de PDF no teste
-- Não funciona bem com PDFs complexos
+Entradas:
+- PDF
+- DOCX, XLSX, PPTX, ODT
+- HTML, EML, MHTML
+- TXT, CSV, JSON
+- imagens e PDFs escaneados
+- arquivos compactados
+
+Saída:
+- texto
+- estrutura lógica
+- tabelas
+- metadados
+- formatação
+
+Pontos fortes:
+- tenta unificar múltiplos formatos
+- possui fallback de OCR com Tesseract para imagens/PDFs escaneados
+- pode detectar estrutura, tabelas e metadados
+
+Limitações:
+- pode ser pesado para casos simples
+- qualidade de OCR depende de Tesseract quando usado como fallback
+- precisa ser avaliado em instalação, compatibilidade e qualidade de saída
+
+Relevância para o Sherlock Holmes:
+- média
+- interessante se a variedade de formatos for mais importante que controle fino por ferramenta
 
 ### Docling
-- Sem OCR (não funciona com imagens/PDF scaneados)
-- Detecta tabelas mas não extrai conteúdo em PDF
-- Requer mais exploração e testes
 
----
+Tipo:
+- biblioteca de conversão e extração de documentos
+- desenvolvida pela IBM
 
-## Insights do Artigo: Markitdown vs Docling
+Entradas:
+- PDF
+- DOCX
+- XLSX
+- HTML
+- outros formatos suportados pelo projeto
 
-### Teste com PDF
-Resultado: Ambas tiveram dificuldade
-- Markitdown: Sem output
-- Docling: Detectou tabelas e imagens, mas não extraiu conteúdo
+Saída:
+- Markdown
+- JSON
+- HTML
 
-### Teste com Excel
-Resultado: Docling superior para casos específicos
+Pontos fortes:
+- foco em estrutura e conversão
+- boa aderência a pipelines que precisam de Markdown limpo
+- bom radar para PDFs e documentos Office
 
-**Markitdown**: Extrai valores das células em Markdown, mas saída com muitos "NaN" (células vazias)
+Limitações:
+- em algumas referências, ainda precisa de exploração para PDFs com tabelas complexas
+- não deve ser tratado como OCR puro
 
-**Docling**: 
-- Extrai valores em formato limpo
-- Preserva fórmulas do Excel
-- Saída mais estruturada e legível
+Relevância para o Sherlock Holmes:
+- média/alta para conversão estruturada
 
-### Conclusão do artigo
-Ambas ferramentas complementam-se bem. Para extrair tanto fórmulas quanto valores, usar ambas em conjunto é eficaz.
+### Markitdown
 
----
+Tipo:
+- biblioteca da Microsoft para converter múltiplos formatos em Markdown
 
-## Observação Importante
+Melhor uso:
+- conversão simples para Markdown
+- documentos Office
+- fluxos em que Markdown seja a saída padrão
 
-Nenhuma das ferramentas até agora resolveu perfeitamente:
-- Extração de dados de tabelas em PDF
-- OCR de alta qualidade integrado
-- Compreensão semântica para campos específicos
+Pontos fortes:
+- simples de usar
+- boa ergonomia para conversão geral
 
-Isso reforça que o pipeline do Sherlock Holmes precisará de múltiplas camadas (estrutura + classificação + extração semântica).
+Limitações:
+- não é motor OCR
+- pode falhar ou gerar saída limitada em PDFs complexos, tabelas e imagens
 
----
+Relevância para o Sherlock Holmes:
+- média/baixa
+- útil como referência de conversão, não como solução de OCR
 
-## Artigo: OCR - Extracting Value from Unstructured Data
+### pymupdf4llm
 
-### Contexto Geral (Gavita Regunath, 2023)
+Tipo:
+- conversor de PDF para Markdown baseado em PyMuPDF
 
-**Problema:**
-- 80-90% de dados globais são não-estruturados
-- Crescimento de 55-65% ao ano
-- Difícil de analisar e usar para decisões
-- Referido como "dark data" (dados sem valor aparente)
+Melhor uso:
+- PDFs com camada textual
+- preparação de conteúdo para LLMs/RAG
+- preservar alguma estrutura em Markdown
 
-**Conceitos:**
-- Dados estruturados: organizados, máquina-legível (Excel, bancos de dados)
-- Dados não-estruturados: documentos scaneados, imagens, áudio, vídeo, posts
+Pontos fortes:
+- saída Markdown limpa
+- boa velocidade
+- baseado em uma biblioteca PDF madura
 
-### Por que OCR importa
+Limitações:
+- licença AGPL exige atenção para uso comercial
+- pode sofrer em PDFs escaneados ou layouts muito complexos
 
-OCR converte "dark data" em dados estruturados e utilizáveis.
+Relevância para o Sherlock Holmes:
+- média
 
-Exemplos de aplicação por setor:
+### unstructured
 
-1. Healthcare: Digitalizar e organizar prontuários médicos
-2. Finance/Banking: Extrair dados de faturas, recibos, extratos bancários
-3. Legal: Converter contratos e briefs em texto pesquisável
-4. Retail: Extrair dados de recibos para automação de contas a pagar
-5. Government: Automatizar extração de formulários, declarações fiscais
-6. Manufacturing: Extrair dados de relatórios de inspeção e testes
-7. Education: Digitalizar livros e materiais de estudo
+Tipo:
+- biblioteca de particionamento semântico de documentos
 
-### Ferramentas disponíveis
+Melhor uso:
+- RAG
+- geração de chunks por tipo de elemento
+- classificação de blocos como título, texto narrativo, tabela etc.
 
-Opções livres/open source:
-- Tesseract (Google, muito preciso)
-- EasyOCR
-- Keras-OCR
+Pontos fortes:
+- abstração semântica útil para pipelines LLM
+- suporta múltiplos formatos
+- bom para organizar documentos em blocos
 
-Opções pagas (cloud):
+Limitações:
+- dependências podem ser pesadas
+- performance tende a ser inferior a extratores simples
+- qualidade varia por tipo de documento
+
+Relevância para o Sherlock Holmes:
+- média para fases de estruturação e RAG
+
+### marker-pdf
+
+Tipo:
+- conversor PDF para Markdown com modelos vision
+
+Melhor uso:
+- alta fidelidade de layout
+- PDFs complexos
+- documentos em que estrutura visual seja essencial
+
+Pontos fortes:
+- alta qualidade em layout e Markdown
+- bom para documentos ricos em imagens/tabelas
+
+Limitações:
+- muito mais pesado que alternativas simples
+- modelos grandes podem exigir download e hardware adequado
+- licença GPL-3.0 exige atenção
+
+Relevância para o Sherlock Holmes:
+- média como referência de alta fidelidade
+
+### textract
+
+Tipo:
+- extrator multi-formato com fallback OCR
+
+Melhor uso:
+- extração uniforme de texto em vários formatos
+- protótipos simples
+
+Pontos fortes:
+- interface simples
+- suporta vários formatos
+- pode usar Tesseract como dependência
+
+Limitações:
+- menos controle fino
+- depende de binários do sistema
+- menor precisão em documentos complexos
+
+Relevância para o Sherlock Holmes:
+- baixa/média
+
+### OCRmyPDF
+
+Tipo:
+- ferramenta para adicionar camada OCR pesquisável a PDFs escaneados
+
+Melhor uso:
+- transformar PDFs escaneados em PDFs pesquisáveis
+- aplicar deskew e rotação automática
+- preservar arquivo PDF como artefato
+
+Pontos fortes:
+- workflow maduro para PDFs digitalizados
+- usa Tesseract por baixo
+- muito útil como etapa de normalização
+
+Limitações:
+- não resolve extração semântica
+- não é ideal para comparação de OCR bruto em imagens isoladas
+- depende de ferramentas do sistema
+
+Relevância para o Sherlock Holmes:
+- média se o pipeline precisar lidar com PDFs escaneados reais
+
+### LibreOffice / soffice
+
+Tipo:
+- suíte de conversão de documentos
+
+Melhor uso:
+- converter DOCX, XLSX, PPT e ODT para PDF ou texto
+- preservar layout antes de extração
+
+Pontos fortes:
+- suporta muitos formatos
+- útil em modo headless
+- maduro para conversão Office
+
+Limitações:
+- dependência pesada de sistema
+- startup lento
+- pode exigir ajustes em servidor
+
+Relevância para o Sherlock Holmes:
+- média como ferramenta auxiliar de conversão
+
+## Extração de PDF com Camada Textual
+
+### PyMuPDF
+
+Tipo:
+- biblioteca Python para leitura e manipulação de PDF
+
+Melhor uso:
+- PDFs com texto copiável
+- extração rápida de texto
+- acesso a páginas, coordenadas, imagens e metadados
+
+Pontos fortes:
+- rápido
+- maduro
+- flexível
+- bom para detectar se um PDF já tem texto
+
+Limitações:
+- não faz OCR sozinho
+- precisa de fallback para PDFs escaneados
+
+Relevância para o Sherlock Holmes:
+- alta para PDFs com camada textual e detecção de fallback
+
+### pypdfium2
+
+Tipo:
+- binding Python para PDFium
+
+Melhor uso:
+- extração muito rápida de texto simples
+- alto volume de PDFs com camada textual
+
+Pontos fortes:
+- velocidade
+- simplicidade
+
+Limitações:
+- pouca estrutura
+- não é focado em tabelas
+- não resolve OCR
+
+Relevância para o Sherlock Holmes:
+- média como baseline rápido para PDFs textuais
+
+### pypdf
+
+Tipo:
+- biblioteca Python pura para leitura/manipulação de PDF
+
+Melhor uso:
+- ambientes onde dependências C são indesejadas
+- extração básica de texto
+- manipulação simples de PDFs
+
+Pontos fortes:
+- puro Python
+- confiável para casos simples
+- bom em ambientes serverless/containers restritos
+
+Limitações:
+- menos preciso e menos rico que alternativas com análise de layout
+- pode ter problemas de espaçamento
+
+Relevância para o Sherlock Holmes:
+- média/baixa
+
+### pdfplumber
+
+Tipo:
+- biblioteca para extração de texto, tabelas e coordenadas em PDF
+
+Melhor uso:
+- PDFs com tabelas
+- inspeção de layout
+- extração com bounding boxes
+
+Pontos fortes:
+- excelente para tabelas em PDFs textuais
+- controle fino de layout
+- útil para debugging visual
+
+Limitações:
+- não faz OCR
+- requer ajuste por documento em casos complexos
+
+Relevância para o Sherlock Holmes:
+- média/alta para documentos licitatórios com tabelas textuais
+
+### pdfminer.six
+
+Tipo:
+- extrator clássico de texto e layout em PDF
+
+Melhor uso:
+- extração textual com análise de layout
+- casos que exigem controle sobre parsing PDF
+
+Pontos fortes:
+- maduro
+- muito usado historicamente
+- base para outras ferramentas
+
+Limitações:
+- pode ser mais lento
+- parsing pode ser frágil em PDFs complexos
+
+Relevância para o Sherlock Holmes:
+- média como componente indireto ou fallback
+
+### PyPDF2
+
+Tipo:
+- biblioteca PDF antiga, sucedida na prática por `pypdf`
+
+Melhor uso:
+- manutenção de código legado
+- manipulações simples de PDF
+
+Pontos fortes:
+- conhecida
+- sem dependências C
+
+Limitações:
+- menos recomendada para novos projetos que `pypdf`
+
+Relevância para o Sherlock Holmes:
+- baixa
+
+## Pré-processamento e Suporte de Imagem
+
+### Pillow
+
+Tipo:
+- biblioteca Python para manipulação básica de imagens
+
+Melhor uso:
+- abrir, converter, redimensionar e salvar imagens
+- grayscale
+- ajuste simples de contraste, brilho e rotação
+
+Pontos fortes:
+- simples
+- leve
+- muito usada
+
+Limitações:
+- limitada para visão computacional avançada
+- insuficiente sozinha para deskew, denoising complexo e análise de layout
+
+Relevância para o Sherlock Holmes:
+- alta como dependência auxiliar simples
+
+### OpenCV
+
+Tipo:
+- biblioteca de visão computacional
+
+Melhor uso:
+- binarização
+- deskew
+- denoising
+- detecção de bordas e contornos
+- pré-processamento reprodutível de OCR
+
+Pontos fortes:
+- muito poderoso
+- padrão de mercado
+- cobre operações avançadas de imagem
+
+Limitações:
+- maior complexidade
+- decisões de pré-processamento podem melhorar ou piorar OCR conforme o documento
+
+Relevância para o Sherlock Holmes:
+- alta como ferramenta de pré-processamento
+
+### pdf2image
+
+Tipo:
+- conversor de PDF para imagens
+
+Melhor uso:
+- rasterizar PDFs para OCR
+- controlar DPI antes de aplicar OCR em páginas
+
+Pontos fortes:
+- simples e confiável
+- muito usado em pipelines OCR
+
+Limitações:
+- depende de Poppler/Ghostscript, conforme ambiente
+- pode gerar alto consumo de memória e arquivos intermediários
+
+Relevância para o Sherlock Holmes:
+- média/alta quando PDFs escaneados precisarem virar imagens
+
+## Cloud, APIs Comerciais e IDP
+
+### Amazon Textract
+
+Tipo:
+- serviço cloud AWS para OCR, tabelas e formulários
+
+Melhor uso:
+- formulários
+- tabelas
+- documentos semi-estruturados
+- workloads integrados à AWS
+
+Pontos fortes:
+- forte em tabelas e key-value pairs
+- serviço gerenciado
+- boa integração com ecossistema AWS
+
+Limitações:
+- custo por uso
+- envio de documentos para cloud
+- dependência de provedor
+
+Relevância para o Sherlock Holmes:
+- média/alta como referência cloud para documentos estruturados
+
+### Azure AI Document Intelligence
+
+Também conhecido historicamente como:
 - Azure Form Recognizer
-- Amazon Textract
-- Google Cloud Vision
-
-### Exemplo Prático: Pytesseract
-
-Caso de uso: Extrair informações de uma fatura em francês.
-
-Código básico:
-```python
-import pytesseract
-from pytesseract import Output
-import cv2
-
-# Extrair dados estruturados
-results = pytesseract.image_to_data(img, output_type=Output.DICT)
-
-# Dados retornados:
-# - text: palavras detectadas
-# - left: distância do canto esquerdo (pixels)
-# - top: distância do topo (pixels)
-# - width/height: dimensões do bounding box
-# - conf: confiança da predição (0-100)
-```
-
-Filtrando por confiança:
-```python
-confidence_value = 70
-
-for i in range(len(results["text"])):
-    conf = int(results["conf"][i])
-    
-    if conf > confidence_value:
-        # Desenhar retângulo ao redor do texto
-        # Adicionar texto na imagem
-        # Procurar apenas predictions com alta confiança
-```
-
-Convertendo imagem para string:
-```python
-txt = pytesseract.image_to_string(file_name)
-```
-
-### Após extrair o texto
-
-O artigo sugere:
-- Tradução automática (usando Google Translate)
-- Análise de conteúdo
-- Integração com outros sistemas
-- Para escala: usar Azure Form Recognizer (cloud, mais robusto)
-
-### Insights para o Sherlock Holmes
-
-1. OCR não é binário - há níveis de confiança
-2. Pode-se filtrar resultados por confiança
-3. Bounding boxes ajudam a localizar dados
-4. Tesseract é referência de precisão
-5. Para invoices/formulários: Form Recognizer é melhor (cloud, ML avançado)
-6. Pós-extração pode incluir tradução, análise, integração
-
-
----
-
-## Pipeline Completo: Integrando Todas as Ferramentas
-
-### Fluxo recomendado para Sherlock Holmes
-
-```
-Fase 1: Buscar licitações (PNCP, portais)
-↓
-Fase 2: Baixar documentos
-↓
-Fase 3: Extrair texto e estrutura
-├─ Opção A: Dedoc (completo, consolidado)
-├─ Opção B: SmolDocling (ultra-compacto, excelente tabelas)
-├─ Opção C: PyMuPDF + PaddleOCR (maximal control)
-├─ Opção D: Docling (alternativa, bom em Excel)
-└─ Opção E: Tesseract + Markitdown (simplista)
-↓
-Fase 4: Classificar documento
-├─ Detectar: "É licitação? Qual tipo?"
-└─ Ferramentas: ML model ou LLM
-↓
-Fase 5: Extrair campos estruturados
-├─ Opção A: LangExtract (recomendado, semântico)
-├─ Opção B: LLM custom (GPT, Claude direto)
-├─ Opção C: Azure Form Recognizer (cloud, otimizado)
-└─ Opção D: Regex + regras (básico)
-↓
-JSON estruturado final
-```
-
-### Sugestão de Stack para MVP
-
-**Fase 3 (Extração de texto):** SmolDocling OU Dedoc
-- SmolDocling: ultra-compacto, excelente em tabelas, DocTags nativo
-- Dedoc: mais consolidado, fallback automático, mais comunidade
-
-**Fase 4 (Classificação):** LLM leve (GPT-3.5 small) ou modelo classificação simples
-- Detecta tipo de licitação
-- Rápido
-
-**Fase 5 (Extração de campos):** LangExtract
-- Schema-based
-- Semântico
-- Fácil iterar schemas
-
----
-
-## Plano de Benchmark: Sprint de Testes (Open Source)
-
-### O que testar - Fase 3 (Extração)
-
-**Stack clássica (baseline):**
-1. Tesseract (sozinho)
-2. PyMuPDF (apenas PDFs com texto)
-3. PyMuPDF + Tesseract (fallback clássico)
-4. PyMuPDF + PaddleOCR (fallback moderno)
-
-**Alternativas rápidas:**
-5. pypdfium2 (ultra-rápido)
-6. pdfplumber (tabelas)
-
-**Novos players:**
-7. Dedoc (completo)
-8. SmolDocling (vision model compacto)
-9. pymupdf4llm (markdown estruturado)
-10. unstructured (chunks semânticos)
-11. marker-pdf (high fidelity, mas lento)
-
-**Total: 11 opções para testar**
-
----
-
-### Cronograma Realista
-
-| Ferramenta | Setup | Teste 30 docs | Total |
-|-----------|-------|---------------|-------|
-| Tesseract | 30min | 15min | 45min |
-| PyMuPDF | 5min | 5min | 10min |
-| PyMuPDF+Tes | 5min | 20min | 25min |
-| PyMuPDF+PO | 15min | 10min | 25min |
-| pypdfium2 | 5min | 1min | 6min |
-| pdfplumber | 5min | 10min | 15min |
-| Dedoc | 10min | 10min | 20min |
-| SmolDocling | 15min | 20min | 35min |
-| pymupdf4llm | 5min | 10min | 15min |
-| unstructured | 10min | 30min | 40min |
-| marker-pdf | 20min* | 15min | 35min |
-| **TOTAL** | **2.5h** | **2h** | **~4.5h** |
-
-*marker-pdf: primeira vez baixa 1GB modelo
-
----
-
-### Métricas a Medir
-
-Para cada ferramenta, em cada documento:
-
-```
-VELOCIDADE
-- Tempo por documento (segundos)
-- Throughput (docs/segundo)
-- Consumo memória RAM
-
-QUALIDADE
-- Caracteres extraídos vs. esperado
-- OCR accuracy (se houver ground truth)
-- Preservação de estrutura (tabelas, headings)
-- Taxa de sucesso (sem erros)
-
-ROBUSTEZ
-- Falhas por tipo de erro
-- Tipos de PDF que falham
-- Edge cases detectados
-
-RECURSOS
-- Dependências do sistema
-- Tamanho do modelo
-- Complexidade de setup
-```
-
----
-
-### Script de Teste (Skeleton)
-
-```python
-import time
-import json
-from pathlib import Path
-
-# Importar extractores
-from extractors import (
-    TesseractExtractor,
-    PyMuPFExtractor,
-    PyMuPDFTesseractExtractor,
-    PyMuPDFPaddleExtractor,
-    pypdfium2Extractor,
-    pdfplumberExtractor,
-    DedocExtractor,
-    SmolDoclingExtractor,
-    pymupdf4llmExtractor,
-    UnstructuredExtractor,
-    MarkerPDFExtractor,
-)
-
-# Configurar teste
-test_docs = list(Path("test_data/").glob("*.pdf"))[:30]
-extractors = [
-    ("Tesseract", TesseractExtractor()),
-    ("PyMuPF", PyMuPFExtractor()),
-    ("PyMuPDF+Tes", PyMuPDFTesseractExtractor()),
-    ("PyMuPDF+PaddleOCR", PyMuPDFPaddleExtractor()),
-    ("pypdfium2", pypdfium2Extractor()),
-    ("pdfplumber", pdfplumberExtractor()),
-    ("Dedoc", DedocExtractor()),
-    ("SmolDocling", SmolDoclingExtractor()),
-    ("pymupdf4llm", pymupdf4llmExtractor()),
-    ("unstructured", UnstructuredExtractor()),
-    ("marker-pdf", MarkerPDFExtractor()),
-]
-
-results = {}
-
-# Executar testes
-for name, extractor in extractors:
-    print(f"\nTestando {name}...")
-    results[name] = {
-        "total_time": 0,
-        "success_count": 0,
-        "error_count": 0,
-        "documents": []
-    }
-    
-    for doc in test_docs:
-        start = time.time()
-        try:
-            text = extractor.extract(doc)
-            elapsed = time.time() - start
-            
-            results[name]["documents"].append({
-                "file": doc.name,
-                "time": elapsed,
-                "status": "success",
-                "text_length": len(text),
-            })
-            results[name]["success_count"] += 1
-            results[name]["total_time"] += elapsed
-            
-        except Exception as e:
-            results[name]["documents"].append({
-                "file": doc.name,
-                "status": "error",
-                "error": str(e),
-            })
-            results[name]["error_count"] += 1
-
-# Salvar resultados
-with open("benchmark_results.json", "w") as f:
-    json.dump(results, f, indent=2)
-
-# Gerar summary
-print("\n" + "="*60)
-print("BENCHMARK SUMMARY")
-print("="*60)
-
-for name, data in results.items():
-    avg_time = data["total_time"] / data["success_count"] if data["success_count"] > 0 else float('inf')
-    success_rate = data["success_count"] / len(test_docs) * 100
-    
-    print(f"\n{name}:")
-    print(f"  - Avg time: {avg_time:.3f}s/doc")
-    print(f"  - Success rate: {success_rate:.1f}% ({data['success_count']}/{len(test_docs)})")
-    print(f"  - Total time: {data['total_time']:.1f}s")
-```
-
----
-
-### Próximas Etapas do MVP
-
-1. **Coletar dataset de teste**
-   - 20-30 licitações reais variadas
-   - Mix de: PDFs com texto, scaneados, com tabelas
-
-2. **Implementar extractores wrapper**
-   - Interface uniforme para cada ferramenta
-   - Try/except consistent
-
-3. **Rodar benchmark (4-5 horas)**
-   - Coletar todos os dados
-   - Gerar relatório
-
-4. **Analisar resultados**
-   - Tabular: tempo, sucesso, qualidade
-   - Decidir: Top 2 ferramentas por fase
-
-5. **Implementar Fase 3 com ferramenta vencedora**
-   - Integrar no pipeline
-   - Testes com Fase 4 e 5
-
-Nenhuma ferramenta resolve tudo. O sucesso do Sherlock Holmes depende de:
-
-1. **Extração de texto e estrutura robusta** (Fase 3)
-   - Diferentes formatos de entrada
-   - OCR de qualidade
-   - Preservação de estrutura
-   - Reconhecimento de tabelas
-
-2. **Classificação inteligente** (Fase 4)
-   - Identifica tipo de documento
-   - Permite regras diferentes por tipo
-   - Melhora precisão da Fase 5
-
-3. **Extração semântica** (Fase 5)
-   - Entende contexto ("valor" pode ser em reais, dólares, euros)
-   - Lida com variações ("25 de dezembro" vs "25/12" vs "25-12-2025")
-   - Extrai relações entre campos
-
-Combinar ferramentas é a chave!
-
----
-
-## Próximas Etapas
-
-1. Confirmar escolha: Dedoc ou PyMuPDF + PaddleOCR
-2. Estruturar o projeto com a ferramenta escolhida
-3. Implementar Fase 3 (extração de texto)
-4. Passar para Fase 4 (classificação)
-5. Passar para Fase 5 (extração de campos)
+
+Tipo:
+- serviço cloud Microsoft para OCR e análise documental
+
+Melhor uso:
+- formulários
+- invoices
+- recibos
+- documentos estruturados
+- cenários corporativos com requisitos Microsoft/compliance
+
+Pontos fortes:
+- forte para key-value pairs e tabelas
+- modelos pré-construídos e customizáveis
+- boa integração com Azure
+
+Limitações:
+- custo por uso
+- dependência de cloud
+- privacidade precisa ser avaliada
+
+Relevância para o Sherlock Holmes:
+- média/alta como alternativa cloud/comercial
+
+### Google Cloud Vision
+
+Tipo:
+- serviço cloud de visão computacional e OCR geral
+
+Melhor uso:
+- OCR geral
+- imagens variadas
+- integração com Google Cloud
+
+Pontos fortes:
+- serviço maduro
+- bom OCR geral
+- APIs simples
+
+Limitações:
+- menos especializado em formulários/tabelas que Textract ou Azure AI Document Intelligence
+- custo e dependência de cloud
+
+Relevância para o Sherlock Holmes:
+- média
+
+### ABBYY FineReader / ABBYY Vantage
+
+Tipo:
+- OCR e Intelligent Document Processing comercial
+
+Melhor uso:
+- OCR corporativo
+- PDFs escaneados
+- documentos de alta exigência de qualidade
+- fluxos empresariais
+
+Pontos fortes:
+- referência histórica em OCR comercial
+- maturidade de mercado
+- boa opção de benchmark comercial se houver acesso/licença
+
+Limitações:
+- custo e licenciamento
+- menor transparência que open source
+
+Relevância para o Sherlock Holmes:
+- média como referência comercial
+
+### Nanonets OCR
+
+Tipo:
+- plataforma comercial/cloud de OCR e automação documental
+
+Melhor uso:
+- invoices
+- formulários
+- workflows customizados
+- documentos de negócio com revisão e automação
+
+Pontos fortes:
+- customização por caso de uso
+- foco em automação documental
+
+Limitações:
+- custo
+- dependência de plataforma externa
+- precisa de avaliação de privacidade e integração
+
+Relevância para o Sherlock Holmes:
+- média como IDP comercial no radar
+
+### Rossum.AI
+
+Tipo:
+- plataforma comercial de Intelligent Document Processing
+
+Melhor uso:
+- documentos estruturados e semi-estruturados
+- invoices
+- formulários corporativos
+- workflows com revisão humana
+
+Pontos fortes:
+- foco operacional em processamento documental
+- bom radar para automação empresarial
+
+Limitações:
+- custo
+- dependência de plataforma
+- pode ser mais voltado a workflows corporativos do que a experimentação técnica local
+
+Relevância para o Sherlock Holmes:
+- média como referência IDP
+
+## Extração Semântica com LLM
+
+### LangExtract
+
+Tipo:
+- biblioteca para extração estruturada com LLMs
+
+Melhor uso:
+- transformar texto já extraído em campos estruturados
+- aplicar schemas
+- lidar com variações de linguagem
+
+Pontos fortes:
+- saída estruturada
+- abordagem semântica
+- pode usar modelos cloud ou locais, conforme configuração
+
+Limitações:
+- não substitui OCR
+- depende da qualidade do texto de entrada
+- custo, latência e privacidade variam conforme o modelo usado
+
+Relevância para o Sherlock Holmes:
+- média/alta para etapas posteriores à extração textual
+
+### LangChain / chamadas diretas a LLMs
+
+Tipo:
+- frameworks ou integrações diretas para orquestrar LLMs
+
+Melhor uso:
+- classificação
+- extração de campos
+- normalização de texto
+- geração de JSON a partir do texto OCR
+
+Pontos fortes:
+- flexibilidade
+- integração com múltiplos modelos
+- pode combinar regras, chunks e validações
+
+Limitações:
+- não resolve OCR
+- exige controle de custo, qualidade e alucinação
+- precisa de validação estruturada da saída
+
+Relevância para o Sherlock Holmes:
+- alta em fases semânticas, não na extração visual inicial
+
+## Ferramentas de Baixa Aderência ou Uso Específico
+
+### PyOCR
+
+Tipo:
+- wrapper/interface Python para motores OCR
+
+Uso possível:
+- padronizar chamadas para ferramentas como Tesseract
+
+Limitações:
+- não é um motor OCR competitivo por si só
+- adiciona pouco se a integração direta for simples
+
+Relevância:
+- baixa
+
+### IronOCR
+
+Tipo:
+- biblioteca comercial de OCR com foco forte em .NET
+
+Uso possível:
+- projetos C#/.NET
+- ambientes corporativos Windows
+
+Limitações:
+- desalinhado ao stack Python inicialmente previsto
+- comercial
+
+Relevância:
+- baixa
+
+### SwiftOCR
+
+Tipo:
+- OCR voltado ao ecossistema Apple/mobile
+
+Uso possível:
+- apps iOS/macOS
+
+Limitações:
+- pouco aderente a backend de processamento documental
+
+Relevância:
+- baixa no escopo atual
+
+## Comparações por Cenário
+
+### Imagens escaneadas
+
+Ferramentas mais relevantes:
+- `PaddleOCR`
+- `docTR`
+- `EasyOCR`
+- `Tesseract`
+
+Observação:
+- `Tesseract` é bom baseline
+- `PaddleOCR` e `docTR` tendem a ser mais interessantes quando o layout ou a qualidade da imagem varia
+- `EasyOCR` é boa alternativa local, especialmente com múltiplos idiomas
+
+### PDFs com camada textual
+
+Ferramentas mais relevantes:
+- `PyMuPDF`
+- `pypdfium2`
+- `pypdf`
+- `pdfplumber`
+- `pdfminer.six`
+
+Observação:
+- OCR não deve ser a primeira opção se o PDF já possui texto copiável
+- `pdfplumber` ganha relevância quando tabelas e coordenadas importam
+
+### PDFs escaneados
+
+Ferramentas mais relevantes:
+- `OCRmyPDF`
+- `pdf2image` + OCR local
+- `PaddleOCR`
+- `docTR`
+- `Tesseract`
+
+Observação:
+- uma etapa de rasterização ou criação de camada OCR pesquisável pode ser necessária
+- pré-processamento com `OpenCV` pode melhorar ou piorar resultados, então precisa ser medido
+
+### Layout, tabelas e Markdown estruturado
+
+Ferramentas mais relevantes:
+- `Docling`
+- `SmolDocling`
+- `marker-pdf`
+- `pymupdf4llm`
+- `unstructured`
+- `pdfplumber`
+- `MinerU`
+- `OLMo-OCR 2`
+
+Observação:
+- estas ferramentas competem mais em estrutura/ordem de leitura do que em OCR puro
+- tabelas exigem avaliação qualitativa, porque mais texto extraído não significa tabela corretamente entendida
+
+### Documentos estruturados e formulários em cloud
+
+Ferramentas mais relevantes:
+- `Amazon Textract`
+- `Azure AI Document Intelligence`
+- `ABBYY`
+- `Nanonets OCR`
+- `Rossum.AI`
+- `Google Cloud Vision`
+
+Observação:
+- cloud pode entregar melhor qualidade operacional, mas traz custo, privacidade e dependência externa
+- `Google Cloud Vision` é mais OCR geral; `Textract`, `Azure`, `ABBYY`, `Nanonets` e `Rossum` tendem a ser mais documentais/IDP
+
+### Documentos históricos, manuscritos ou tipografia incomum
+
+Ferramentas mais relevantes:
+- `Kraken`
+- `OCRopus`
+
+Observação:
+- só devem ganhar peso se o dataset real tiver esse perfil
+
+### OCR multimodal e document understanding experimental
+
+Ferramentas mais relevantes:
+- `DeepSeek-OCR`
+- `Dots.OCR`
+- `OLMo-OCR 2`
+- `Qwen3-VL`
+- `Donut`
+- `SmolDocling`
+
+Observação:
+- exigem validação de licença, hardware e maturidade
+- podem ser muito promissoras, mas não devem ser confundidas com OCR local simples
+
+## Riscos e Perguntas em Aberto
+
+- Qual ferramenta lida melhor com português em documentos administrativos brasileiros?
+- Quais ferramentas preservam melhor ordem de leitura em documentos com múltiplas colunas?
+- Qual ferramenta mantém tabelas em formato realmente utilizável?
+- Qual o custo de hardware para modelos multimodais locais?
+- Quais licenças permitem uso comercial ou operacional?
+- Em quais casos cloud compensa frente a execução local?
+- Qual saída é mais útil para fases posteriores: texto puro, Markdown, JSON, bounding boxes ou DocTags?
+- Quais ferramentas têm instalação viável em Windows e em ambiente de produção futuro?
+
+## Fontes e Artigos Consultados
+
+### Levantamento inicial do projeto
+
+Contribuição:
+- listou ferramentas gerais de OCR, parsing PDF, conversão, pré-processamento e extração com LLM
+- trouxe comparações iniciais entre `Dedoc`, `Docling`, `Markitdown`, `PyMuPDF`, `PaddleOCR`, `Tesseract`, `SmolDocling`, `unstructured`, `marker-pdf` e outras
+
+### Artigo: OCR - Extracting Value from Unstructured Data
+
+Contribuição:
+- reforçou o papel do OCR na transformação de dados não estruturados em texto utilizável
+- destacou `Tesseract`, `EasyOCR`, `Keras-OCR` e ferramentas cloud como opções comuns
+- reforçou a importância de confiança, bounding boxes e pós-processamento
+
+### Artigo: Markitdown vs Docling
+
+Contribuição:
+- destacou diferenças entre ferramentas de conversão para Markdown/estrutura
+- sugeriu que `Docling` pode ser melhor em alguns casos de Excel/fórmulas
+- indicou limitações de ambas em PDFs complexos com tabelas/imagens
+
+### Artigo: The Ultimate Guide to Top OCR Solutions in 2025
+
+Fonte:
+- Mahernaija, publicado em 2025-01-20 e atualizado em 2025-01-22
+
+Contribuição:
+- reforçou critérios de escolha como acurácia, suporte a idiomas, customização, integração, custo e escala
+- trouxe ao radar `Nanonets OCR`, `Rossum.AI`, `ABBYY`, `Kraken`, `OCRopus`, `PyOCR`, `IronOCR` e `SwiftOCR`
+- reforçou ferramentas cloud como `Google Cloud Vision`, `Amazon Textract` e `Azure AI Document Intelligence`
+
+### Artigo: Top 5 Python Libraries for Extracting Text from Images
+
+Fonte:
+- Eugenia Anello, Towards Data Science, publicado em 2023-07-25
+
+Contribuição:
+- comparou `pytesseract`, `EasyOCR`, `Keras-OCR`, `TrOCR` e `docTR`
+- reforçou a diferença entre OCR completo e modelos apenas de reconhecimento
+- adicionou `TrOCR` ao radar como reconhecedor transformer que precisa de detecção/crops externos
+
+### Artigo: Top 4 Open-Source OCR Models
+
+Fonte:
+- Algo Insights, Coding Nexus, publicado em 2025-10-26
+
+Contribuição:
+- trouxe modelos recentes de OCR multimodal e vision-language ao radar
+- adicionou `DeepSeek-OCR`, `OLMo-OCR 2`, `Qwen3-VL` e `Dots.OCR`
+- reforçou a necessidade de tratar modelos emergentes como experimentais até validação com documentação oficial, requisitos de hardware e testes no dataset real
+
+## Síntese
+
+O radar atual cobre quatro famílias importantes:
+
+- OCR local tradicional e deep learning para imagens escaneadas
+- extração e parsing de PDFs com texto ou estrutura
+- ferramentas cloud/comerciais para documentos estruturados
+- modelos multimodais emergentes para OCR e document understanding
+
+Nenhuma ferramenta resolve todo o problema sozinha. O caminho técnico mais realista tende a combinar extração textual, preservação de layout, pré-processamento, fallback e uma camada posterior de extração semântica.

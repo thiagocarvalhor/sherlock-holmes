@@ -4,6 +4,12 @@
 
 Validar, de forma controlada e comparável, quais ferramentas e estratégias de OCR apresentam melhor desempenho inicial para o projeto Sherlock Holmes usando o dataset de documentos escaneados disponível em `data/raw/dataset`.
 
+## Referência de Contexto
+
+O radar técnico de ferramentas está documentado em `documentation/context/tools-analysis.md`.
+
+Este plano usa apenas um subconjunto desse levantamento para manter a fase inicial controlada. Ferramentas citadas no radar, mas não incluídas nesta rodada, devem ser tratadas como candidatas futuras e não como escopo automático da fase 1.
+
 ## Escopo da Fase 1
 
 Esta primeira fase terá foco exclusivo na validação inicial de OCR sobre imagens escaneadas já disponíveis no dataset.
@@ -155,14 +161,22 @@ Nesta primeira rodada, a seleção de ferramentas deve ser pequena o suficiente 
 
 ##### 2.4. Ferramentas que ficam fora desta rodada inicial
 
-- `EasyOCR`
-  - pode entrar em rodada posterior se for necessário ampliar a comparação
+As ferramentas abaixo permanecem no radar técnico, mas ficam fora desta rodada para preservar comparabilidade, reduzir custo de setup e manter o foco em OCR local sobre imagens.
 
-- `OCRmyPDF`
-  - não entra nesta fase porque o dataset atual é composto por imagens, não PDFs
+- alternativas locais de OCR
+  - `EasyOCR`: candidata natural para uma rodada posterior se for necessário ampliar a comparação local
+  - `Keras-OCR`: baixa prioridade para pipeline novo, mas pode servir como referência histórica/técnica
+  - `Kraken` e `OCRopus`: relevantes apenas se surgirem documentos históricos, manuscritos ou tipografias incomuns
 
-- ferramentas cloud
-  - ficam fora nesta rodada para evitar custo, dependência externa e variação operacional
+- ferramentas focadas em PDFs, layout ou conversão estruturada
+  - `OCRmyPDF`: não entra nesta fase porque o dataset atual é composto por imagens, não PDFs
+  - `Docling`, `SmolDocling`, `pymupdf4llm`, `marker-pdf`, `unstructured` e `MinerU`: relevantes para PDFs reais, Markdown estruturado, tabelas e ordem de leitura, mas fora do escopo inicial de OCR em imagens
+
+- ferramentas cloud ou comerciais
+  - `Amazon Textract`, `Azure AI Document Intelligence`, `Google Cloud Vision`, `ABBYY`, `Nanonets OCR` e `Rossum.AI`: ficam fora desta rodada para evitar custo, dependência externa, avaliação de privacidade e variação operacional
+
+- modelos multimodais experimentais
+  - `DeepSeek-OCR`, `Dots.OCR`, `OLMo-OCR 2`, `Qwen3-VL`, `Donut` e `TrOCR`: ficam fora desta rodada por exigirem validação específica de hardware, licença, maturidade e formato de saída
 
 ##### 2.5. Resultado esperado desta etapa
 
@@ -296,6 +310,14 @@ Cada execução por arquivo deve registrar, no mínimo:
 - tamanho do texto extraído
 - mensagem de erro, quando houver
 
+Campos opcionais recomendados quando a ferramenta disponibilizar:
+
+- número de palavras extraídas
+- confiança média ou scores de confiança por trecho
+- caminho para saída bruta da ferramenta
+- caminho para saída estruturada, quando houver
+- observações de pré-processamento ou fallback
+
 ##### 4.3. Formato recomendado
 
 Para esta fase, a recomendação é usar `JSON` por documento e `CSV` de consolidação por rodada.
@@ -322,6 +344,10 @@ Uso sugerido:
   "elapsed_seconds": 0.82,
   "text": "texto extraido do documento",
   "text_length": 1284,
+  "word_count": 214,
+  "confidence_avg": null,
+  "raw_output_path": "data/processed/ocr/tesseract/none/Form/img_001.raw.json",
+  "structured_output_path": null,
   "error": null
 }
 ```
@@ -679,10 +705,13 @@ Uma nova rodada deve ser considerada se ocorrer um ou mais dos cenários abaixo:
 
 ##### 8.6. Possíveis expansões da rodada 2
 
-- incluir novas ferramentas, como `EasyOCR`
+- incluir alternativas locais como `EasyOCR`
 - revisar presets de pré-processamento
 - ampliar a amostra
-- iniciar testes com PDFs para aproximar o pipeline real
+- iniciar testes com PDFs reais para aproximar o pipeline do cenário final
+- avaliar ferramentas de PDF, layout e Markdown estruturado, como `OCRmyPDF`, `Docling`, `SmolDocling`, `pymupdf4llm`, `marker-pdf`, `unstructured` e `MinerU`
+- avaliar ferramentas cloud ou comerciais, como `Amazon Textract`, `Azure AI Document Intelligence`, `Google Cloud Vision`, `ABBYY`, `Nanonets OCR` e `Rossum.AI`, se custo e privacidade forem aceitáveis
+- abrir uma rodada experimental com modelos multimodais, como `DeepSeek-OCR`, `Dots.OCR`, `OLMo-OCR 2`, `Qwen3-VL`, `Donut` ou `TrOCR`, somente após validação de hardware, licença e formato de saída
 
 ##### 8.7. Artefato final desta etapa
 
