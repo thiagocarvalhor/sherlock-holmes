@@ -210,6 +210,255 @@ result = reader.readtext('imagem.png')
 - Consumo de memória maior
 - Comunidade menor que Tesseract
 
+---
+
+## Ferramentas de Extração de PDF (Alternativas)
+
+### 14. pypdfium2
+- **Tipo**: Extração de PDF rápida
+- **Licença**: Apache 2.0
+- **Instalação**: `pip install pypdfium2`
+- **Performance**: 0.003s por página (MAIS RÁPIDO)
+
+#### O que faz
+Extração básica de texto de PDFs com máxima velocidade.
+
+#### Características
+- Velocidade extrema (0.003s/página)
+- Sem formatação, apenas texto puro
+- Sem dependências complexas
+- C++ binding otimizado
+
+#### Exemplo
+```python
+import pypdfium2 as pdfium
+
+text = "\n".join(
+    p.get_textpage().get_text_range() 
+    for p in pdfium.PdfDocument("doc.pdf")
+)
+```
+
+#### Vantagens
+- Blazingly fast
+- Simples de usar
+- Sem overhead
+
+#### Desvantagens
+- Sem preservação de formatação
+- Sem suporte a tabelas
+- Apenas texto puro
+
+### 15. pypdf
+- **Tipo**: Extração PDF Pythonic
+- **Licença**: BSD
+- **Instalação**: `pip install pypdf`
+- **Performance**: 0.024s por página
+
+#### O que faz
+Extração confiável de texto de PDFs, sem dependências C.
+
+#### Características
+- Funciona em Lambda functions
+- Sem C dependencies (containerizable)
+- Extração básica, ocasionais problemas de espaçamento
+- Muito testado e consolidado
+
+#### Exemplo
+```python
+from pypdf import PdfReader
+
+reader = PdfReader("doc.pdf")
+text = "\n".join(p.extract_text() for p in reader.pages)
+```
+
+#### Vantagens
+- Extremamente confiável
+- Sem dependências do sistema
+- Ótimo para ambientes containerizados
+- Comunidade grande
+
+#### Desvantagens
+- Ocasionais problemas de espaçamento
+- Sem estrutura ou formatação
+- Sem suporte a tabelas nativo
+
+### 16. pdfplumber
+- **Tipo**: Extração de dados estruturados de PDF
+- **Licença**: MIT
+- **Instalação**: `pip install pdfplumber`
+- **Performance**: 0.10s por página
+
+#### O que faz
+Extração avançada de dados tabulares e texto com análise de layout.
+
+#### Características
+- Extração de tabelas excelente
+- Análise de coordenadas
+- Controle fino de layout
+- Bounding box support
+
+#### Exemplo
+```python
+import pdfplumber
+
+with pdfplumber.open("doc.pdf") as pdf:
+    page = pdf.pages[0]
+    text = page.extract_text()
+    tables = page.extract_tables()
+```
+
+#### Vantagens
+- Excelente para tabelas
+- Análise de layout fino
+- Coordenadas precisas
+- Muitas opções configuráveis
+
+#### Desvantagens
+- Requer configuração para texto simples
+- Necessita de sintonia para bons resultados
+- Overhead de análise
+
+### 17. pymupdf4llm
+- **Tipo**: Extrator PDF → Markdown
+- **Licença**: AGPL
+- **Instalação**: `pip install pymupdf4llm`
+- **Performance**: 0.12s por página
+
+#### O que faz
+Converte PDFs em Markdown estruturado, preservando hierarquia.
+
+#### Características
+- Saída Markdown limpa
+- Preserva headings e estrutura
+- Suporte a tabelas
+- Formatação bem estruturada
+
+#### Exemplo
+```python
+import pymupdf4llm
+
+markdown = pymupdf4llm.to_markdown("doc.pdf")
+print(markdown)
+```
+
+#### Vantagens
+- Markdown estruturado
+- Bom para RAG/LLMs
+- Velocidade razoável
+- Preserva hierarquia
+
+#### Desvantagens
+- AGPL license (cuidado em projetos comerciais)
+- Menos preciso em layouts complexos
+
+### 18. unstructured
+- **Tipo**: Particionamento semântico de documentos
+- **Licença**: Apache 2.0
+- **Instalação**: `pip install "unstructured[all-docs]"`
+- **Performance**: 1.29s por página
+
+#### O que faz
+Particiona documentos em chunks semânticos (Title, NarrativeText, etc).
+
+#### Características
+- Detecção semântica de elementos
+- Categorização automática
+- Perfeito para RAG
+- Suporte a múltiplos formatos
+
+#### Exemplo
+```python
+from unstructured.partition.auto import partition
+
+blocks = partition(filename="doc.pdf")
+for block in blocks:
+    print(f"{block.category}: {block.text}")
+    # Categorias: Title, NarrativeText, Table, etc.
+```
+
+#### Vantagens
+- Chunks semânticos (perfeito para RAG)
+- Detecção automática de tipo
+- Integração com embeddings
+- Múltiplos formatos
+
+#### Desvantagens
+- Mais lento (1.29s/página)
+- Dependências pesadas
+- Overhead computacional
+
+### 19. marker-pdf
+- **Tipo**: Conversion PDF → Markdown com Vision Model
+- **Licença**: GPL-3.0
+- **Instalação**: `pip install marker-pdf`
+- **Performance**: 11.3s por página (primeira vez baixa 1GB modelo)
+
+#### O que faz
+Conversão de alta fidelidade de PDFs para Markdown usando modelos vision.
+
+#### Características
+- Layout perfeito preservado
+- Reconhecimento de imagens
+- Markdown estruturado
+- Vision model (1GB)
+
+#### Exemplo
+```python
+from marker.converters.pdf import PdfConverter
+from marker.models import create_model_dict
+from marker.output import text_from_rendered
+
+text, _, _ = text_from_rendered(
+    PdfConverter(create_model_dict())("doc.pdf")
+)
+```
+
+#### Vantagens
+- Layout impecável
+- Melhor qualidade geral
+- Imagens preservadas
+- Markdown estruturado
+
+#### Desvantagens
+- Muito lento (11.3s/página)
+- 1GB modelo (primeira execução)
+- Alto consumo de recursos
+- GPL-3.0 (verificar licença para seu caso)
+
+### 20. textract
+- **Tipo**: Extrator universal com OCR fallback
+- **Licença**: MIT
+- **Instalação**: `pip install textract` (requer Tesseract do sistema)
+- **Performance**: 0.05s por página
+
+#### O que faz
+Extração de texto de múltiplos formatos com fallback automático para OCR.
+
+#### Características
+- Suporta PDF, DOCX, DOC, HTML, XLS, etc.
+- OCR automático se necessário
+- Trata múltiplos formatos uniformemente
+- Simples de usar
+
+#### Exemplo
+```python
+import textract
+
+text = textract.process("doc.pdf").decode()
+```
+
+#### Vantagens
+- Formato agnóstico
+- OCR fallback automático
+- Interface uniforme
+- Rápido
+
+#### Desvantagens
+- Dependência de Tesseract do sistema
+- Menos controle fino
+- Menor precisão em documentos complexos
+
 ### 7. Keras-OCR
 - **Desenvolvedor**: Comunidade open source
 - **Tipo**: Deep Learning
@@ -718,6 +967,45 @@ return texto
 | Complexidade | Complexa |
 | Custo | Gratuito |
 
+### Categoria 5: PDF Extraction Specific (Benchmark do Artigo 2025)
+
+| Ferramenta | Velocidade | Qualidade Texto | Tabelas | Estrutura | Recomendado Para |
+|-----------|-----------|-----------------|---------|-----------|------------------|
+| **pypdfium2** | 0.003s (FASTEST) | Básica | Não | Não | Alto volume, indexação simples |
+| **pypdf** | 0.024s | Confiável | Não | Não | Lambda, containers |
+| **pdfplumber** | 0.10s | Boa | Excelente | Média | Extração de dados tabulares |
+| **pymupdf4llm** | 0.12s | Excelente | Sim | Sim (Markdown) | Markdown, RAG systems |
+| **textract** | 0.05s | Boa | Média | Não | Multi-formato com OCR |
+| **unstructured** | 1.29s | Estruturada | Média | Excelente (semântica) | RAG, chunks semânticos |
+| **marker-pdf** | 11.3s | Perfeita | Excelente | Perfeita (vision) | Alta fidelidade, imagens |
+
+**Nota importante:** Tempos baseados em teste com 1 página. marker-pdf baixa 1GB modelo na primeira execução.
+
+**Trade-offs observados:**
+- Speed vs Quality: pypdfium2 é 3000x mais rápido que marker-pdf
+- Structure vs Simplicity: unstructured/marker-pdf têm estrutura mas são lentos
+- Reliability: pypdf é o mais confiável (sem C dependencies)
+
+### Categoria 5.5: Extração com LLM (IA-powered)
+
+| Aspecto | LangExtract | LangChain (custom) | Modelos LLM puros |
+|---------|-------------|-------------------|-------------------|
+| Desenvolvedor | Google | Comunidade | OpenAI/Anthropic/Google |
+| Tipo | Extração com schema | Framework customizável | Chamadas diretas |
+| Modelos | GPT, Gemini, Claude, locais | Qualquer LLM | Qualquer LLM |
+| Instalação | pip install | pip install | API keys |
+| Schemas/estrutura | Sim (Field-based) | Customizável | Manual via prompts |
+| Context-aware | Sim (entende semântica) | Sim | Sim |
+| Tratamento de variações | Automático | Manual | Manual |
+| Saída estruturada | JSON/CSV/DataFrame | Customizável | JSON (com parsing) |
+| Chunking automático | Sim | Parcial | Não |
+| Processamento paralelo | Sim | Sim | Não |
+| Documentação | Boa | Excelente | Excelente |
+| Custo | API key (pago) | API key (pago) | API key (pago) |
+| Latência | Médio-Alto | Médio-Alto | Médio-Alto |
+| Privacidade | Envia para cloud | Envia para cloud | Envia para cloud |
+| Modelos locais | Sim (Ollama) | Sim (LLaMA, etc) | Sim (Ollama) |
+
 ### Categoria 5: Extração com LLM (IA-powered)
 
 | Aspecto | LangExtract | LangChain (custom) | Modelos LLM puros |
@@ -942,7 +1230,196 @@ JSON estruturado final
 
 ---
 
-## Observação Importante sobre o Pipeline
+## Plano de Benchmark: Sprint de Testes (Open Source)
+
+### O que testar - Fase 3 (Extração)
+
+**Stack clássica (baseline):**
+1. Tesseract (sozinho)
+2. PyMuPDF (apenas PDFs com texto)
+3. PyMuPDF + Tesseract (fallback clássico)
+4. PyMuPDF + PaddleOCR (fallback moderno)
+
+**Alternativas rápidas:**
+5. pypdfium2 (ultra-rápido)
+6. pdfplumber (tabelas)
+
+**Novos players:**
+7. Dedoc (completo)
+8. SmolDocling (vision model compacto)
+9. pymupdf4llm (markdown estruturado)
+10. unstructured (chunks semânticos)
+11. marker-pdf (high fidelity, mas lento)
+
+**Total: 11 opções para testar**
+
+---
+
+### Cronograma Realista
+
+| Ferramenta | Setup | Teste 30 docs | Total |
+|-----------|-------|---------------|-------|
+| Tesseract | 30min | 15min | 45min |
+| PyMuPDF | 5min | 5min | 10min |
+| PyMuPDF+Tes | 5min | 20min | 25min |
+| PyMuPDF+PO | 15min | 10min | 25min |
+| pypdfium2 | 5min | 1min | 6min |
+| pdfplumber | 5min | 10min | 15min |
+| Dedoc | 10min | 10min | 20min |
+| SmolDocling | 15min | 20min | 35min |
+| pymupdf4llm | 5min | 10min | 15min |
+| unstructured | 10min | 30min | 40min |
+| marker-pdf | 20min* | 15min | 35min |
+| **TOTAL** | **2.5h** | **2h** | **~4.5h** |
+
+*marker-pdf: primeira vez baixa 1GB modelo
+
+---
+
+### Métricas a Medir
+
+Para cada ferramenta, em cada documento:
+
+```
+VELOCIDADE
+- Tempo por documento (segundos)
+- Throughput (docs/segundo)
+- Consumo memória RAM
+
+QUALIDADE
+- Caracteres extraídos vs. esperado
+- OCR accuracy (se houver ground truth)
+- Preservação de estrutura (tabelas, headings)
+- Taxa de sucesso (sem erros)
+
+ROBUSTEZ
+- Falhas por tipo de erro
+- Tipos de PDF que falham
+- Edge cases detectados
+
+RECURSOS
+- Dependências do sistema
+- Tamanho do modelo
+- Complexidade de setup
+```
+
+---
+
+### Script de Teste (Skeleton)
+
+```python
+import time
+import json
+from pathlib import Path
+
+# Importar extractores
+from extractors import (
+    TesseractExtractor,
+    PyMuPFExtractor,
+    PyMuPDFTesseractExtractor,
+    PyMuPDFPaddleExtractor,
+    pypdfium2Extractor,
+    pdfplumberExtractor,
+    DedocExtractor,
+    SmolDoclingExtractor,
+    pymupdf4llmExtractor,
+    UnstructuredExtractor,
+    MarkerPDFExtractor,
+)
+
+# Configurar teste
+test_docs = list(Path("test_data/").glob("*.pdf"))[:30]
+extractors = [
+    ("Tesseract", TesseractExtractor()),
+    ("PyMuPF", PyMuPFExtractor()),
+    ("PyMuPDF+Tes", PyMuPDFTesseractExtractor()),
+    ("PyMuPDF+PaddleOCR", PyMuPDFPaddleExtractor()),
+    ("pypdfium2", pypdfium2Extractor()),
+    ("pdfplumber", pdfplumberExtractor()),
+    ("Dedoc", DedocExtractor()),
+    ("SmolDocling", SmolDoclingExtractor()),
+    ("pymupdf4llm", pymupdf4llmExtractor()),
+    ("unstructured", UnstructuredExtractor()),
+    ("marker-pdf", MarkerPDFExtractor()),
+]
+
+results = {}
+
+# Executar testes
+for name, extractor in extractors:
+    print(f"\nTestando {name}...")
+    results[name] = {
+        "total_time": 0,
+        "success_count": 0,
+        "error_count": 0,
+        "documents": []
+    }
+    
+    for doc in test_docs:
+        start = time.time()
+        try:
+            text = extractor.extract(doc)
+            elapsed = time.time() - start
+            
+            results[name]["documents"].append({
+                "file": doc.name,
+                "time": elapsed,
+                "status": "success",
+                "text_length": len(text),
+            })
+            results[name]["success_count"] += 1
+            results[name]["total_time"] += elapsed
+            
+        except Exception as e:
+            results[name]["documents"].append({
+                "file": doc.name,
+                "status": "error",
+                "error": str(e),
+            })
+            results[name]["error_count"] += 1
+
+# Salvar resultados
+with open("benchmark_results.json", "w") as f:
+    json.dump(results, f, indent=2)
+
+# Gerar summary
+print("\n" + "="*60)
+print("BENCHMARK SUMMARY")
+print("="*60)
+
+for name, data in results.items():
+    avg_time = data["total_time"] / data["success_count"] if data["success_count"] > 0 else float('inf')
+    success_rate = data["success_count"] / len(test_docs) * 100
+    
+    print(f"\n{name}:")
+    print(f"  - Avg time: {avg_time:.3f}s/doc")
+    print(f"  - Success rate: {success_rate:.1f}% ({data['success_count']}/{len(test_docs)})")
+    print(f"  - Total time: {data['total_time']:.1f}s")
+```
+
+---
+
+### Próximas Etapas do MVP
+
+1. **Coletar dataset de teste**
+   - 20-30 licitações reais variadas
+   - Mix de: PDFs com texto, scaneados, com tabelas
+
+2. **Implementar extractores wrapper**
+   - Interface uniforme para cada ferramenta
+   - Try/except consistent
+
+3. **Rodar benchmark (4-5 horas)**
+   - Coletar todos os dados
+   - Gerar relatório
+
+4. **Analisar resultados**
+   - Tabular: tempo, sucesso, qualidade
+   - Decidir: Top 2 ferramentas por fase
+
+5. **Implementar Fase 3 com ferramenta vencedora**
+   - Integrar no pipeline
+   - Testes com Fase 4 e 5
 
 Nenhuma ferramenta resolve tudo. O sucesso do Sherlock Holmes depende de:
 
