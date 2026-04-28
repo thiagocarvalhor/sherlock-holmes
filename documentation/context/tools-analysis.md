@@ -906,9 +906,148 @@ OCR geral + detecção de objetos, faces, logos.
 
 ---
 
+## Ferramentas Faltantes Relevantes
+
+### 12. LayoutLM / LayoutLMv3
+- **Desenvolvedor**: Microsoft
+- **Tipo**: Document understanding multimodal (texto + layout + imagem)
+- **Licença**: Open source / modelos disponíveis via Hugging Face
+- **Instalação**: `pip install transformers torch`
+
+#### O que faz
+Modelos especializados em entender documentos visualmente ricos combinando o texto extraído, a posição dos blocos na página e informação visual.
+
+#### Características
+- Classificação de documento inteiro (`sequence classification`)
+- Extração de entidades/campos (`token classification`)
+- Usa layout espacial como sinal importante
+- Muito forte para formulários, recibos e documentos administrativos
+
+#### Vantagens
+- Excelente candidato para a **Fase 4 (Classificação)**
+- Mais robusto que classificação por texto puro quando o layout importa
+- Ecossistema maduro e bem documentado
+
+#### Desvantagens
+- Requer pipeline de OCR ou texto + bounding boxes
+- Treino e fine-tuning exigem dataset rotulado
+- Mais complexo que um classificador textual simples
+
+#### Uso recomendado no Sherlock Holmes
+- Detectar se o documento é edital, termo de referência, ata, anexo, contrato, aviso, planilha, etc.
+- Diferenciar tipos documentais que têm linguagem parecida, mas layout diferente
+
+### 13. Donut
+- **Desenvolvedor**: NAVER Clova AI
+- **Tipo**: Document understanding OCR-free
+- **Licença**: MIT
+- **Instalação**: `pip install transformers torch`
+
+#### O que faz
+Modelo end-to-end que interpreta imagens de documentos sem depender de OCR tradicional como etapa separada.
+
+#### Características
+- Faz classificação de documentos
+- Faz extração de informações estruturadas
+- Pode responder perguntas sobre o documento (VQA)
+- Reduz propagação de erro do OCR
+
+#### Vantagens
+- Forte alternativa para documentos scaneados ou visualmente complexos
+- Une entendimento visual e extração sem pipeline clássico de OCR
+- Bom potencial para MVPs orientados a IA
+
+#### Desvantagens
+- Mais pesado computacionalmente
+- Fine-tuning pode ser mais complexo
+- Menos previsível que pipelines modulares em casos operacionais
+
+#### Uso recomendado no Sherlock Holmes
+- Classificação de tipo documental quando OCR tradicional falhar
+- Experimentos de extração end-to-end em documentos escaneados
+
+### 14. docTR
+- **Desenvolvedor**: Mindee
+- **Tipo**: OCR deep learning + KIE
+- **Licença**: Apache 2.0
+- **Instalação**: `pip install python-doctr`
+
+#### O que faz
+Framework moderno para OCR com detecção + reconhecimento e suporte a pipelines de Key Information Extraction (KIE).
+
+#### Características
+- OCR end-to-end com modelos deep learning
+- Saída estruturada com blocos, linhas e palavras
+- Bounding boxes e leitura orientada a layout
+- Possui `kie_predictor` para detectar classes/campos
+
+#### Vantagens
+- Mais moderno e estruturado que OCR clássico puro
+- Bom meio-termo entre OCR e extração supervisionada
+- Pode reforçar Fase 3 e parte da Fase 5
+
+#### Desvantagens
+- Requer modelos e ambiente mais pesados
+- Não substitui sozinho a classificação sem dataset/tuning
+
+#### Uso recomendado no Sherlock Holmes
+- Alternativa ao Tesseract/EasyOCR/PaddleOCR
+- Extração orientada por campos visuais em formulários e anexos
+
+### 15. OCRmyPDF
+- **Desenvolvedor**: OCRmyPDF project
+- **Tipo**: Pré-processamento OCR para PDFs scaneados
+- **Licença**: MPL-2.0
+- **Instalação**: `pip install ocrmypdf` (com dependências de sistema)
+
+#### O que faz
+Adiciona camada OCR pesquisável em PDFs scaneados, preservando o PDF e corrigindo problemas comuns de rotação e skew.
+
+#### Características
+- Gera PDF pesquisável
+- `deskew` e rotação automática
+- Pipeline prático para documentos digitalizados
+- Usa Tesseract por baixo, mas entrega workflow mais pronto
+
+#### Vantagens
+- Excelente etapa de pré-processamento antes da Fase 3
+- Muito útil para acervo histórico e anexos scaneados
+- Reduz atrito operacional em PDFs ruins
+
+#### Desvantagens
+- Não faz classificação
+- Não resolve extração semântica
+- Depende de ferramentas do sistema
+
+### 16. MinerU
+- **Desenvolvedor**: OpenDataLab
+- **Tipo**: Parsing moderno de documentos para Markdown/JSON
+- **Licença**: Open source
+- **Instalação**: varia conforme stack/projeto
+
+#### O que faz
+Converte PDFs e documentos Office em formatos prontos para consumo por LLMs, preservando melhor ordem de leitura e estrutura semântica.
+
+#### Características
+- Saída em Markdown e JSON
+- Remove ruído estrutural (headers, footers, page numbers)
+- Melhor alinhado a pipelines de RAG e extração semântica
+- Suporta múltiplos formatos
+
+#### Vantagens
+- Candidato forte para benchmark com `Dedoc`, `Docling` e `pymupdf4llm`
+- Pode gerar texto mais limpo para LLM/classificação
+- Interessante para Fase 3 em pipelines LLM-first
+
+#### Desvantagens
+- Ecossistema ainda menos consolidado que alternativas mais antigas
+- Requer testes práticos para validar em licitações brasileiras
+
+---
+
 ## Ferramentas de Extração com LLM
 
-### 12. LangExtract
+### 17. LangExtract
 - **Desenvolvedor**: Google
 - **Tipo**: Biblioteca Python para extração AI-powered com LLMs
 - **Licença**: Open source
@@ -1043,7 +1182,7 @@ campos_estruturados = extractor.extract(texto_da_licitacao)
 # Resultado: JSON estruturado pronto para armazenar/analisar
 ```
 
-### 13. SmolDocling
+### 18. SmolDocling
 - **Desenvolvedor**: HuggingFace + IBM (colaboração)
 - **Tipo**: Modelo vision ultra-compacto para document conversion
 - **Tamanho**: 256M parâmetros (5-10x menor que concorrentes)
