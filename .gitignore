@@ -2,3 +2,10 @@
 data/raw/
 data/interim/
 data/processed/
+
+# Python environments
+.venv/
+
+# Local caches
+.cache/
+.local/

@@ -1,0 +1,18 @@
+# OCR phase 1 direct dependencies.
+#
+# Install inside the project venv:
+#   .venv\Scripts\python.exe -m pip install -r requirements-ocr.txt
+
+Pillow==12.2.0
+opencv-python==4.13.0.92
+opencv-contrib-python==4.10.0.84
+pytesseract==0.3.13
+numpy==2.2.6
+pandas==2.3.3
+
+paddleocr==3.5.0
+paddlepaddle==3.3.1
+
+python-doctr==1.0.1
+torch==2.5.1
+torchvision==0.20.1

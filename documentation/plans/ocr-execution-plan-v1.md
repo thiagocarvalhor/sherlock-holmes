@@ -100,6 +100,8 @@ Critério:
 
 - priorizar seleção reproduzível
 - registrar os caminhos dos arquivos escolhidos
+- considerar apenas arquivos `.jpg` nesta rodada
+- ignorar arquivos auxiliares do sistema operacional, como `Thumbs.db`
 - evitar troca manual de imagens entre rodadas
 - manter um arquivo de referência com as amostras do `smoke test` e do `benchmark inicial`
 
@@ -113,11 +115,24 @@ Arquivos sugeridos:
 
 - `documentation/plans/ocr-smoke-sample-v1.csv`
 - `documentation/plans/ocr-benchmark-sample-v1.csv`
+- `documentation/plans/ocr-sampling-criteria-v1.md`
+- `scripts/generate_ocr_sample_manifests.py`
 
 Observação:
 
 - os arquivos originais do dataset permanecem em `data/raw` e não devem ser versionados
 - os manifests das amostras devem ser versionados, pois descrevem quais arquivos foram usados em cada rodada
+- o script gerador também deve ser versionado para permitir recriar os manifests
+
+Status atual:
+
+- etapa executada
+- dataset confirmado em `data/raw/dataset`
+- arquivos `Thumbs.db` identificados e excluídos da amostragem
+- manifests gerados:
+  - `documentation/plans/ocr-smoke-sample-v1.csv`, com `30` imagens
+  - `documentation/plans/ocr-benchmark-sample-v1.csv`, com `200` imagens
+- critério de amostragem documentado em `documentation/plans/ocr-sampling-criteria-v1.md`
 
 ### 2. Definir as ferramentas da rodada 1
 
@@ -194,12 +209,27 @@ Cada rodada deve registrar as informações mínimas do ambiente de execução:
 - versão do Tesseract e idiomas disponíveis
 - versão/modelo usado pelo PaddleOCR
 - versão/modelo usado pelo docTR
+- versão do Pillow e do OpenCV usados no pré-processamento
 - uso de CPU ou GPU
 - observações de instalação relevantes
 
 Artefato sugerido:
 
 - `documentation/reports/ocr-run-001-environment.md`
+
+Status atual:
+
+- ambiente virtual local criado em `.venv`, com prompt `sherlock-holmes`
+- Python do ambiente: `3.10.0`
+- dependências diretas registradas em `requirements-ocr.txt`
+- `Pillow`, `OpenCV`, `pytesseract`, `PaddleOCR`, `paddlepaddle`, `docTR`, `torch` e `torchvision` instalados no `.venv`
+- `docTR` validado em CPU com `torch==2.5.1` e `torchvision==0.20.1`
+- `PaddleOCR` validado em CPU com `PP-OCRv4`
+- `PaddleOCR` com configuração default `PP-OCRv5` falhou nesta máquina com erro nativo oneDNN/MKLDNN; por isso, a rodada inicial deve usar `PP-OCRv4`
+- `Tesseract` instalado em `C:\Program Files\Tesseract-OCR\tesseract.exe`
+- `Tesseract` validado em CPU com idioma `eng`
+- idiomas Tesseract disponíveis nesta instalação: `eng`, `osd`
+- detalhes registrados em `documentation/reports/ocr-run-001-environment.md`
 
 ### 3. Definir os presets de pré-processamento
 
@@ -211,24 +241,38 @@ Artefato sugerido:
 
 Nesta fase, o objetivo não é encontrar o melhor pipeline de pré-processamento possível, mas verificar se transformações simples geram ganho real nas ferramentas avaliadas.
 
+Ferramentas de suporte contempladas:
+
+- `Pillow`
+  - abertura, conversão e salvamento de imagens
+  - conversão para grayscale
+  - ajuste simples de contraste
+  - suporte aos presets `basic`, `binarized` e `deskew_binarized`
+
+- `OpenCV`
+  - binarização com método `Otsu`
+  - correção de inclinação (`deskew`)
+  - operações futuras de denoising, bordas e contornos, se necessárias
+  - suporte aos presets `binarized` e `deskew_binarized`
+
 ##### 3.1. Presets propostos para a rodada 1
 
 - `none`
   - imagem original, sem alteração
 
 - `basic`
-  - conversão para grayscale
-  - ajuste simples de contraste com fator inicial `1.5`
+  - conversão para grayscale com `Pillow`
+  - ajuste simples de contraste com `Pillow` e fator inicial `1.5`
 
 - `binarized`
-  - grayscale
-  - threshold/binarização com método `Otsu`
+  - grayscale com `Pillow`
+  - threshold/binarização com `OpenCV` e método `Otsu`
 
 - `deskew_binarized`
-  - grayscale
-  - correção de inclinação com OpenCV
+  - grayscale com `Pillow`
+  - correção de inclinação com `OpenCV`
   - limite de correção de rotação entre `-15` e `15` graus
-  - threshold/binarização com método `Otsu`
+  - threshold/binarização com `OpenCV` e método `Otsu`
 
 ##### 3.2. Objetivo dos presets
 
@@ -279,6 +323,13 @@ Objetivo desta ordem:
 - detectar erros cedo com o menor número possível de variáveis
 - evitar depurar OCR e pré-processamento ao mesmo tempo logo na primeira execução
 - facilitar leitura comparativa do ganho incremental de cada preset
+
+Status atual:
+
+- presets implementados em `src/sherlock_holmes/preprocessing/presets.py`
+- `none`, `basic`, `binarized` e `deskew_binarized` disponíveis no runner
+- `basic` foi validado tecnicamente em smoke dev com `docTR` sem pesos pré-treinados
+- os demais presets ainda não foram rodados no smoke completo
 
 ### 4. Padronizar a saída dos experimentos
 
@@ -387,6 +438,17 @@ Artefatos pequenos e importantes para auditoria devem ser salvos em `documentati
 - campos mínimos obrigatórios registrados
 - convenção inicial de armazenamento documentada
 
+Status atual:
+
+- runner criado em `scripts/run_ocr_smoke.py`
+- adapters OCR criados em `src/sherlock_holmes/ocr/extractors.py`
+- saída por documento salva como `JSON`
+- resumo por execução salvo como `summary.csv`
+- resultados locais salvos em `data/processed/ocr/<run_id>/<tool>/<preset>/...`
+- imagens pré-processadas locais salvas em `data/interim/ocr/<run_id>/<preset>/...`
+- `data/processed`, `data/interim`, `.venv` e `.cache` estão ignorados no Git
+- `.local` também está ignorado no Git para armazenar downloads locais, como o instalador do Tesseract
+
 ##### 4.8. Como avaliar o sucesso de cada run
 
 A avaliação de cada execução deve considerar três níveis complementares:
@@ -490,6 +552,19 @@ Uma combinação de ferramenta e preset é considerada apta para o benchmark ini
 - resultados brutos do smoke test
 - registro das combinações aprovadas e reprovadas
 - notas curtas sobre problemas encontrados e ajustes necessários
+
+Status atual:
+
+- smoke completo de `30` imagens ainda não foi executado
+- smoke dev de `1` imagem foi executado para validar instalação e fluxo
+- `Tesseract + none` teve sucesso real em `1` imagem após instalação, com `text_length=1606`
+- `docTR + none` teve sucesso real em `1` imagem, com `text_length=1502`
+- `PaddleOCR + none` teve sucesso real em `1` imagem usando `PP-OCRv4`, com `text_length=1109`
+- antes da instalação, `Tesseract + none` gerou erro esperado por ausência do executável `tesseract`
+- `docTR` exige `DOCTR_MULTIPROCESSING_DISABLE=TRUE` neste ambiente para evitar erro de permissão no `ThreadPool`
+- caches de modelos foram direcionados para `.cache/`
+- relatório do smoke dev registrado em `documentation/reports/ocr-run-001-smoke-dev.md`
+- próximo passo operacional: rodar smoke completo de `30` imagens para `Tesseract + none`, `docTR + none` e `PaddleOCR + none`
 
 ### 6. Rodar o benchmark inicial
 
