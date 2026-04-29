@@ -454,6 +454,8 @@ Status atual:
 - `.local` também está ignorado no Git para armazenar downloads locais, como o instalador do Tesseract
 - notebook de revisão visual criado em `notebooks/ocr-result-review.ipynb`
 - `ipykernel` adicionado em `requirements-ocr.txt` para executar o notebook no ambiente `.venv`
+- kernel Jupyter `sherlock-holmes` registrado apontando para `.venv/Scripts/python.exe`
+- notebook ajustado para revisar por padrão apenas os runs canônicos do smoke dev, evitando misturar tentativas intermediárias de setup/cache com os resultados válidos
 
 ##### 4.8. Como avaliar o sucesso de cada run
 
@@ -597,7 +599,17 @@ Status atual:
 - caches de modelos foram direcionados para `.cache/`
 - relatório do smoke dev registrado em `documentation/reports/ocr-run-001-smoke-dev.md`
 - notebook de visualização criado em `notebooks/ocr-result-review.ipynb` para inspecionar imagem, saída OCR e métricas lado a lado
-- próximo passo operacional: revisar os resultados do smoke dev no notebook e, depois, rodar smoke completo de `30` imagens para `Tesseract + none`, `docTR + none` e `PaddleOCR + none`
+- resultados canônicos do smoke dev revisados no notebook:
+  - `Tesseract + none`: `success_rate=1.0`, `errors=0`, `elapsed_seconds=2.460369`, `text_length=1606`, `word_count=261`
+  - `docTR + none`: `success_rate=1.0`, `errors=0`, `elapsed_seconds=20.469273`, `text_length=1502`, `word_count=239`
+  - `PaddleOCR + none`: `success_rate=1.0`, `errors=0`, `elapsed_seconds=51.659296`, `text_length=1109`, `word_count=159`
+- interpretação preliminar do smoke dev:
+  - as três combinações estão tecnicamente aptas para avançar para o smoke completo com preset `none`
+  - `Tesseract + none` apresentou melhor sinal quantitativo inicial, com menor tempo e maior volume de texto
+  - `docTR + none` apresentou volume de texto próximo ao Tesseract, mas com tempo maior
+  - `PaddleOCR + none` executou com sucesso usando `PP-OCRv4`, mas foi mais lento e extraiu menos texto nesta imagem
+  - a revisão qualitativa inicial não reprova nenhuma das três combinações, mas ainda não substitui avaliação em amostra maior
+- próximo passo operacional: rodar smoke completo de `30` imagens para `Tesseract + none`, `docTR + none` e `PaddleOCR + none`
 
 ### 6. Rodar o benchmark inicial
 
