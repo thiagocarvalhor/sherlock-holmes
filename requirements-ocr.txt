@@ -9,6 +9,7 @@ opencv-contrib-python==4.10.0.84
 pytesseract==0.3.13
 numpy==2.2.6
 pandas==2.3.3
+ipykernel==6.29.5
 
 paddleocr==3.5.0
 paddlepaddle==3.3.1

@@ -432,6 +432,10 @@ Artefatos pequenos e importantes para auditoria devem ser salvos em `documentati
 - configuração de ambiente
 - referência aos manifests das amostras usadas
 
+Artefatos de apoio para inspeção visual devem ser mantidos em `notebooks`, por exemplo:
+
+- `notebooks/ocr-result-review.ipynb`
+
 ##### 4.7. Resultado esperado desta etapa
 
 - formato de saída único definido
@@ -448,6 +452,8 @@ Status atual:
 - imagens pré-processadas locais salvas em `data/interim/ocr/<run_id>/<preset>/...`
 - `data/processed`, `data/interim`, `.venv` e `.cache` estão ignorados no Git
 - `.local` também está ignorado no Git para armazenar downloads locais, como o instalador do Tesseract
+- notebook de revisão visual criado em `notebooks/ocr-result-review.ipynb`
+- `ipykernel` adicionado em `requirements-ocr.txt` para executar o notebook no ambiente `.venv`
 
 ##### 4.8. Como avaliar o sucesso de cada run
 
@@ -489,6 +495,29 @@ As notas manuais devem ser registradas em artefato próprio, por exemplo:
 
 - `documentation/reports/ocr-run-001-manual-review.csv`
 
+##### 4.10. Notebook de revisão visual
+
+Antes do smoke test completo e do benchmark inicial, os resultados já gerados devem ser inspecionados em notebook para validar a utilidade real do texto extraído.
+
+O notebook deve permitir:
+
+- visualizar a imagem original
+- visualizar a imagem pré-processada quando houver preset diferente de `none`
+- ler o texto extraído no campo `text` dos arquivos `JSON`
+- comparar ferramentas diferentes no mesmo documento
+- comparar métricas técnicas como `status`, `elapsed_seconds`, `text_length` e `word_count`
+- registrar avaliação humana simples, por exemplo `good`, `partial`, `bad` ou `failed`
+
+Artefato criado:
+
+- `notebooks/ocr-result-review.ipynb`
+
+Objetivo desta inclusão:
+
+- evitar aprovar uma ferramenta apenas porque ela gerou texto
+- verificar se o texto extraído parece útil para leitura humana e fases futuras do projeto
+- transformar a validação do smoke test em uma avaliação técnica e qualitativa
+
 ### 5. Rodar o smoke test
 
 - executar as ferramentas em uma amostra pequena
@@ -529,6 +558,7 @@ Segunda rodada:
 - geração dos arquivos de saída no formato padronizado
 - tempo de execução em faixa razoável
 - presença de texto extraído em quantidade minimamente útil
+- inspeção visual no notebook para verificar se o texto parece útil
 - ausência de falhas recorrentes por categoria
 
 ##### 5.5. Critérios para aprovação no smoke test
@@ -538,6 +568,7 @@ Uma combinação de ferramenta e preset é considerada apta para o benchmark ini
 - executa sem falha sistemática
 - gera saída estruturada para a maior parte da amostra
 - produz texto minimamente utilizável
+- tem resultados revisados no notebook antes de avançar para benchmark
 - não apresenta tempo de execução inviável para a rodada seguinte
 
 ##### 5.6. Possíveis saídas desta etapa
@@ -550,6 +581,7 @@ Uma combinação de ferramenta e preset é considerada apta para o benchmark ini
 ##### 5.7. Artefatos esperados desta etapa
 
 - resultados brutos do smoke test
+- revisão visual dos resultados no notebook
 - registro das combinações aprovadas e reprovadas
 - notas curtas sobre problemas encontrados e ajustes necessários
 
@@ -564,7 +596,8 @@ Status atual:
 - `docTR` exige `DOCTR_MULTIPROCESSING_DISABLE=TRUE` neste ambiente para evitar erro de permissão no `ThreadPool`
 - caches de modelos foram direcionados para `.cache/`
 - relatório do smoke dev registrado em `documentation/reports/ocr-run-001-smoke-dev.md`
-- próximo passo operacional: rodar smoke completo de `30` imagens para `Tesseract + none`, `docTR + none` e `PaddleOCR + none`
+- notebook de visualização criado em `notebooks/ocr-result-review.ipynb` para inspecionar imagem, saída OCR e métricas lado a lado
+- próximo passo operacional: revisar os resultados do smoke dev no notebook e, depois, rodar smoke completo de `30` imagens para `Tesseract + none`, `docTR + none` e `PaddleOCR + none`
 
 ### 6. Rodar o benchmark inicial
 
