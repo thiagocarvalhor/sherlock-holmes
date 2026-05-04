@@ -611,6 +611,25 @@ Status atual:
   - a revisão qualitativa inicial não reprova nenhuma das três combinações, mas ainda não substitui avaliação em amostra maior
 - próximo passo operacional: rodar smoke completo de `30` imagens para `Tesseract + none`, `docTR + none` e `PaddleOCR + none`
 
+Atualizacao apos retomada da execucao:
+
+- smoke completo de `30` imagens executado para `Tesseract + none`
+- smoke completo de `30` imagens executado para `docTR + none`
+- smoke completo de `30` imagens executado para `PaddleOCR + none`
+- runs gerados:
+  - `ocr-smoke-001-tesseract-none`
+  - `ocr-smoke-001-doctr-none`
+  - `ocr-smoke-001-paddleocr-none`
+- resultados quantitativos:
+  - `Tesseract + none`: `30/30` sucessos, `0` erros, `1` texto vazio, tempo medio `1.303s`, texto medio `1303.7`
+  - `docTR + none`: `30/30` sucessos, `0` erros, `0` textos vazios, tempo medio `6.350s`, texto medio `1345.5`
+  - `PaddleOCR + none`: `30/30` sucessos, `0` erros, `0` textos vazios, tempo medio `32.133s`, texto medio `1166.2`
+- relatorio registrado em `documentation/reports/ocr-run-001-smoke-none.md`
+- status operacional:
+  - as tres combinacoes com preset `none` estao tecnicamente aptas para revisao qualitativa no notebook
+  - antes de repetir os demais presets, revisar qualitativamente os resultados do `none`
+  - observar especialmente o caso `Tesseract + none` com texto vazio em `data/raw/dataset/ADVE/2050834062.jpg`
+
 ### 6. Rodar o benchmark inicial
 
 - executar todas as combinações escolhidas de ferramenta e preset
