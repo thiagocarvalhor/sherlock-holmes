@@ -39,6 +39,7 @@ Manifest usado:
 - A execucao de `paddleocr` emitiu aviso sobre ausencia de `ccache`; nao bloqueou a rodada.
 - O PowerShell continuou emitindo aviso de politica de execucao ao tentar carregar o perfil local; esse aviso nao bloqueou os comandos.
 - A execucao gerou arquivos `__pycache__`; o `.gitignore` foi atualizado para ignorar `__pycache__/` e `*.py[cod]`.
+- O notebook `notebooks/ocr-result-review.ipynb` foi ajustado para revisao generica por `REVIEW_RUN_IDS`, em vez de ficar preso aos runs do smoke dev.
 
 ## Artefatos Locais
 
@@ -67,3 +68,13 @@ Revisar qualitativamente os resultados no notebook `notebooks/ocr-result-review.
 - o caso vazio de `tesseract` em `ADVE/2050834062.jpg`
 - comparacao de ordem de leitura entre `tesseract`, `doctr` e `paddleocr`
 - decisao sobre repetir o smoke completo com os presets `basic`, `binarized` e `deskew_binarized`
+
+Para focar esta rodada no notebook, configurar:
+
+```python
+REVIEW_RUN_IDS = [
+    "ocr-smoke-001-tesseract-none",
+    "ocr-smoke-001-doctr-none",
+    "ocr-smoke-001-paddleocr-none",
+]
+```

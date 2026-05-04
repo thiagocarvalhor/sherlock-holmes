@@ -625,6 +625,7 @@ Atualizacao apos retomada da execucao:
   - `docTR + none`: `30/30` sucessos, `0` erros, `0` textos vazios, tempo medio `6.350s`, texto medio `1345.5`
   - `PaddleOCR + none`: `30/30` sucessos, `0` erros, `0` textos vazios, tempo medio `32.133s`, texto medio `1166.2`
 - relatorio registrado em `documentation/reports/ocr-run-001-smoke-none.md`
+- notebook `notebooks/ocr-result-review.ipynb` ajustado para revisao generica por `REVIEW_RUN_IDS`
 - status operacional:
   - as tres combinacoes com preset `none` estao tecnicamente aptas para revisao qualitativa no notebook
   - antes de repetir os demais presets, revisar qualitativamente os resultados do `none`
