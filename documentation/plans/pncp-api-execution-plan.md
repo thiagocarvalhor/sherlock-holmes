@@ -264,6 +264,41 @@ Validação posterior com `cnpjOrgao`:
 - linhas `70`, `71`, `72` e `83`: status `204` na janela testada
 - interpretação: para a linha `67`, o campo `cnpj` do manifesto funcionou como `cnpjOrgao`; para as demais, o contrato pode estar fora da janela de publicação testada ou o CNPJ pode não ser o órgão contratante
 
+#### Validação manual no Postman
+
+A chamada da linha `67` também foi reproduzida manualmente no Postman:
+
+```text
+GET https://pncp.gov.br/api/consulta/v1/contratos?dataInicial=20250920&dataFinal=20251219&pagina=1&tamanhoPagina=10&cnpjOrgao=39485438000142
+```
+
+Parâmetros:
+
+- `dataInicial=20250920`
+- `dataFinal=20251219`
+- `pagina=1`
+- `tamanhoPagina=10`
+- `cnpjOrgao=39485438000142`
+
+Resultado esperado:
+
+- status HTTP `200`
+- `totalRegistros=22`
+- `totalPaginas=3`
+- registros retornados com `orgaoEntidade.cnpj=39485438000142`
+
+Problema observado no Postman:
+
+- se o valor de `cnpjOrgao` contiver quebra de linha ou espaço final, a API retorna `422`
+- o erro aparece como `CNPJ do Órgão/Entidade inválido`
+- no Postman, o símbolo `↵` no fim do valor indica quebra de linha
+
+Regra prática:
+
+- digitar `cnpjOrgao` manualmente ou garantir que o valor esteja sem máscara, espaço ou quebra de linha
+- usar apenas números, por exemplo `39485438000142`
+- ao usar a tabela `Params`, deixar a URL base sem query string manual
+
 ### 4. Localizar contratos da planilha via API
 
 Objetivo:
@@ -501,6 +536,12 @@ Ao final desta fase, os seguintes artefatos devem estar disponíveis:
 
 ## Próximo Passo Operacional
 
-Implementar a leitura da aba `CONSOLIDADO` de `exemplo_1.xlsx` e gerar o manifesto intermediário filtrável.
+Investigar as demais linhas da amostra inicial (`70`, `71`, `72` e `83`) usando a estratégia com `cnpjOrgao`.
 
-Em seguida, selecionar cerca de `5` linhas com `FONTE = PNCP` para o primeiro smoke test da API.
+Para cada linha:
+
+- confirmar se o CNPJ do manifesto é o CNPJ do órgão contratante
+- testar janelas alternativas de `dataPublicacaoPncp`
+- verificar se há link PNCP, número de controle ou outro identificador disponível na fonte manual
+- registrar se o endpoint retorna `200`, `204`, `422` ou timeout
+- quando houver match, registrar `numeroControlePNCP`, `numeroControlePncpCompra`, valor, vigência e documento associado
