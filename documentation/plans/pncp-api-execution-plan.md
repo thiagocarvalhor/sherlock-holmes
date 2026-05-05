@@ -124,7 +124,9 @@ Status atual:
 - dados começam na linha `6`
 - leitura inicial indicou `347` linhas de dados
 - leitura inicial indicou `25` linhas com menção a `PNCP`
-- manifesto intermediário ainda não foi gerado
+- script gerador criado em `scripts/generate_pncp_manual_manifest.py`
+- manifesto intermediário gerado localmente em `data/interim/pncp/manual_manifest.csv`, com `345` linhas úteis
+- amostra inicial de smoke gerada em `documentation/plans/pncp-api-smoke-sample.csv`, com `5` linhas marcadas como `PNCP`
 
 ### 2. Definir a amostra de smoke da API
 
@@ -161,7 +163,8 @@ Artefato sugerido:
 
 Status atual:
 
-- amostra ainda não foi selecionada
+- amostra inicial selecionada em `documentation/plans/pncp-api-smoke-sample.csv`
+- amostra contém `5` registros originados de linhas com `FONTE = PNCP`
 
 ### 3. Implementar cliente mínimo da API
 
@@ -200,7 +203,13 @@ GET /v1/contratacoes/publicacao
 
 Status atual:
 
-- cliente ainda não implementado
+- cliente mínimo implementado em `scripts/run_pncp_api_smoke.py`
+- runner usa `GET /v1/contratos`
+- runner salva resposta bruta em `data/raw/pncp/<run_id>/...`
+- runner salva resumo e candidatos em `data/processed/pncp/<run_id>/...`
+- runner aceita `--source-row`, `--date-window-days`, `--tamanho-pagina`, `--limit` e `--dry-run`
+- dry-run validado
+- chamada real à API validada com status `200` em amostra controlada
 
 ### 4. Localizar contratos da planilha via API
 
@@ -241,7 +250,13 @@ Artefatos locais sugeridos:
 
 Status atual:
 
-- etapa ainda não executada
+- etapa parcialmente executada
+- primeira amostra de `5` linhas foi testada
+- algumas chamadas a `/v1/contratos` responderam com status `200`
+- algumas janelas apresentaram timeout mesmo com `tamanhoPagina=10`
+- nenhum candidato forte foi encontrado na primeira página das consultas testadas
+- relatório inicial registrado em `documentation/reports/pncp-api-smoke-initial.md`
+- interpretação inicial: a busca por `/v1/contratos` sem `cnpjOrgao` ou identificador PNCP é ampla demais para matching confiável
 
 ### 5. Comparar planilha manual e API
 
@@ -278,7 +293,9 @@ Artefato sugerido:
 
 Status atual:
 
-- etapa ainda não executada
+- etapa ainda não executada de forma conclusiva
+- primeira rodada não encontrou candidatos fortes para comparação campo a campo
+- antes da comparação detalhada, o manifesto precisa ser enriquecido com CNPJ do órgão contratante, URL PNCP ou identificador PNCP
 
 ### 6. Buscar documentos e anexos relacionados
 
