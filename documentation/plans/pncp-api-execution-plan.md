@@ -211,6 +211,49 @@ Status atual:
 - dry-run validado
 - chamada real à API validada com status `200` em amostra controlada
 
+#### Registro inicial de execução
+
+Comandos validados:
+
+```bash
+python scripts/generate_pncp_manual_manifest.py
+python scripts/run_pncp_api_smoke.py --dry-run --run-id pncp-api-smoke-dry-run
+python scripts/run_pncp_api_smoke.py --limit 1 --run-id pncp-api-smoke-live-limit1-window
+python scripts/run_pncp_api_smoke.py --run-id pncp-api-smoke-live-sample5-v2
+python scripts/run_pncp_api_smoke.py --date-window-days 1 --run-id pncp-api-smoke-live-sample5-window1
+```
+
+Primeira tentativa real:
+
+- `--limit 1` com janela anual estourou timeout de `30s`
+- após reduzir a janela e o tamanho da página, a API retornou status `200`
+
+Execução com `5` linhas e janela de `45` dias:
+
+- linhas `67`, `70` e `83`: status `200`
+- linhas `71` e `72`: timeout de `30s`
+- nenhum candidato forte encontrado
+
+Execução com `5` linhas e janela de `1` dia:
+
+- linhas `67`, `70` e `72`: status `200`
+- linhas `71` e `83`: timeout de `30s`
+- nenhum candidato forte encontrado
+
+Aprendizados:
+
+- o cliente mínimo consegue chamar a API pública e salvar respostas brutas
+- `/v1/contratos` sem filtro por `cnpjOrgao` retorna volumes muito altos
+- janelas curtas ainda podem retornar dezenas de milhares de registros
+- o CNPJ da planilha parece ser majoritariamente CNPJ do fornecedor, não do órgão contratante
+- o filtro `cnpjOrgao` do endpoint exige CNPJ do órgão
+- localizar contratos só por data de vigência, número de contrato e CNPJ da planilha ainda não é suficiente
+- o scoring foi ajustado para não considerar anos soltos, como `2025`, como evidência de match
+
+Decisão técnica inicial:
+
+- antes de expandir paginação ou volume, enriquecer o manifesto com CNPJ do órgão contratante, URL PNCP ou identificador PNCP
+
 ### 4. Localizar contratos da planilha via API
 
 Objetivo:
@@ -255,7 +298,6 @@ Status atual:
 - algumas chamadas a `/v1/contratos` responderam com status `200`
 - algumas janelas apresentaram timeout mesmo com `tamanhoPagina=10`
 - nenhum candidato forte foi encontrado na primeira página das consultas testadas
-- relatório inicial registrado em `documentation/reports/pncp-api-smoke-initial.md`
 - interpretação inicial: a busca por `/v1/contratos` sem `cnpjOrgao` ou identificador PNCP é ampla demais para matching confiável
 
 ### 5. Comparar planilha manual e API
