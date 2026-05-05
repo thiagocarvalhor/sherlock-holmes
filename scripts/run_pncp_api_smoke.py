@@ -129,12 +129,16 @@ def build_contract_query(
         data_inicial = datetime(year, 1, 1)
         data_final = datetime(year, 12, 31)
 
-    return {
+    params: dict[str, str | int] = {
         "dataInicial": data_inicial.strftime("%Y%m%d"),
         "dataFinal": data_final.strftime("%Y%m%d"),
         "pagina": 1,
         "tamanhoPagina": tamanho_pagina,
     }
+    cnpj_orgao = compact_digits(row.get("cnpj", ""))
+    if cnpj_orgao:
+        params["cnpjOrgao"] = cnpj_orgao
+    return params
 
 
 def request_json(base_url: str, endpoint: str, params: dict[str, str | int], timeout: int) -> tuple[int, Any, str]:

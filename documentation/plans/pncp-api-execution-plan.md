@@ -245,14 +245,24 @@ Aprendizados:
 - o cliente mínimo consegue chamar a API pública e salvar respostas brutas
 - `/v1/contratos` sem filtro por `cnpjOrgao` retorna volumes muito altos
 - janelas curtas ainda podem retornar dezenas de milhares de registros
-- o CNPJ da planilha parece ser majoritariamente CNPJ do fornecedor, não do órgão contratante
 - o filtro `cnpjOrgao` do endpoint exige CNPJ do órgão
-- localizar contratos só por data de vigência, número de contrato e CNPJ da planilha ainda não é suficiente
+- usar o CNPJ da planilha como `cnpjOrgao` tornou a busca muito mais precisa na linha `67`
+- localizar contratos só por data de vigência e número de contrato não é suficiente
 - o scoring foi ajustado para não considerar anos soltos, como `2025`, como evidência de match
 
 Decisão técnica inicial:
 
-- antes de expandir paginação ou volume, enriquecer o manifesto com CNPJ do órgão contratante, URL PNCP ou identificador PNCP
+- usar o campo `cnpj` do manifesto como `cnpjOrgao` quando ele representar o órgão contratante
+- validar caso a caso se o CNPJ do manifesto é do órgão ou do fornecedor
+- antes de expandir paginação ou volume, enriquecer o manifesto com URL PNCP, identificador PNCP ou confirmação do CNPJ do órgão
+
+Validação posterior com `cnpjOrgao`:
+
+- linha `67`: status `200`, `totalRegistros=22`, `totalPaginas=3`, `candidates_count=10`
+- melhor candidato da linha `67`: `numeroControlePNCP=39485438000142-2-000018/2025`
+- o candidato encontrado bate com Belford Roxo/RJ, vigência `2025-11-04` a `2026-11-03`, valor global `52801942.27` e objeto de limpeza urbana/manejo de resíduos
+- linhas `70`, `71`, `72` e `83`: status `204` na janela testada
+- interpretação: para a linha `67`, o campo `cnpj` do manifesto funcionou como `cnpjOrgao`; para as demais, o contrato pode estar fora da janela de publicação testada ou o CNPJ pode não ser o órgão contratante
 
 ### 4. Localizar contratos da planilha via API
 
@@ -297,8 +307,8 @@ Status atual:
 - primeira amostra de `5` linhas foi testada
 - algumas chamadas a `/v1/contratos` responderam com status `200`
 - algumas janelas apresentaram timeout mesmo com `tamanhoPagina=10`
-- nenhum candidato forte foi encontrado na primeira página das consultas testadas
 - interpretação inicial: a busca por `/v1/contratos` sem `cnpjOrgao` ou identificador PNCP é ampla demais para matching confiável
+- interpretação atualizada: quando o CNPJ do manifesto corresponde ao `cnpjOrgao`, a busca fica precisa e já encontrou um match forte na linha `67`
 
 ### 5. Comparar planilha manual e API
 
@@ -335,9 +345,10 @@ Artefato sugerido:
 
 Status atual:
 
-- etapa ainda não executada de forma conclusiva
-- primeira rodada não encontrou candidatos fortes para comparação campo a campo
-- antes da comparação detalhada, o manifesto precisa ser enriquecido com CNPJ do órgão contratante, URL PNCP ou identificador PNCP
+- etapa parcialmente executada para a linha `67`
+- a linha `67` encontrou candidato forte com `numeroControlePNCP=39485438000142-2-000018/2025`
+- campos compatíveis na linha `67`: município/UF, número aproximado do contrato, vigência, valor global e objeto
+- para as demais linhas da amostra, ainda falta ajustar janela de publicação ou confirmar se o CNPJ do manifesto é o CNPJ do órgão
 
 ### 6. Buscar documentos e anexos relacionados
 
