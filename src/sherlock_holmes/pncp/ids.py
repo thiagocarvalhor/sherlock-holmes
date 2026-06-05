@@ -5,7 +5,6 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-
 NUMERO_CONTROLE_PNCP_RE = re.compile(r"^(\d{14})-(\d+)-(\d+)/(\d{4})$")
 
 

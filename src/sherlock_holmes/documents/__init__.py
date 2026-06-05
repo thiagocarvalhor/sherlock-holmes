@@ -1,13 +1,13 @@
 """Document inspection and direct text extraction helpers."""
 
 from sherlock_holmes.documents.inspection import (
-    DocumentInspection,
     DirectTextExtraction,
+    DocumentInspection,
     ExtractedZipMember,
     ZipMember,
     detect_document_type,
-    extract_zip_members,
     extract_text_direct,
+    extract_zip_members,
     list_zip_members,
     write_text_extraction_result,
 )
@@ -20,7 +20,6 @@ from sherlock_holmes.documents.text_quality import (
     assess_text_quality,
     normalize_extracted_text,
 )
-
 
 __all__ = [
     "DirectTextExtraction",

@@ -12,6 +12,7 @@ documentation/projetos-similares/
 # Python generated files
 __pycache__/
 *.py[cod]
+*.egg-info/
 
 # Local caches
 .cache/

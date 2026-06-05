@@ -5,7 +5,6 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-
 CONTROL_CHARS_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
 SPACE_RE = re.compile(r"[ \t]+")
 LINEBREAK_RE = re.compile(r"\n{3,}")

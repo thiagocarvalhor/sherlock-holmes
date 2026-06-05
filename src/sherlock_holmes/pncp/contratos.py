@@ -9,7 +9,6 @@ from typing import Any
 from sherlock_holmes.pncp.dates import format_pncp_date, validate_pncp_date_range
 from sherlock_holmes.pncp.ids import compact_digits, resolve_pncp_contract_id
 
-
 CONSULTA_BASE_URL = "https://pncp.gov.br/api/consulta"
 PNCP_BASE_URL = "https://pncp.gov.br/api/pncp"
 PNCP_FILE_BASE_URL = "https://pncp.gov.br/pncp-api"

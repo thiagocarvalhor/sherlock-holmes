@@ -1,8 +1,8 @@
 """Helpers for PNCP public API exploration."""
 
 from sherlock_holmes.pncp.arquivos import (
-    PncpDownloadedDocument,
     PncpDocumentReference,
+    PncpDownloadedDocument,
     contract_file_references,
     document_reference_from_pncp_file,
     document_references_from_pncp_files,
@@ -42,7 +42,6 @@ from sherlock_holmes.pncp.licitacoes import (
     search_licitacoes,
     search_licitacoes_url,
 )
-
 
 __all__ = [
     "PNCP_MAX_DATE_RANGE_DAYS",

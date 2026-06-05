@@ -1,5 +1,13 @@
 """Validation, evidence, and comparison helpers."""
 
+from sherlock_holmes.validation.comparison import (
+    COMPARISON_STATUSES,
+    RECORD_COMPARISON_STATUSES,
+    FieldComparison,
+    RecordComparison,
+    compare_field_values,
+    compare_records,
+)
 from sherlock_holmes.validation.evidence import (
     CONFIDENCE_LEVELS,
     SOURCE_TYPES,
@@ -10,15 +18,6 @@ from sherlock_holmes.validation.evidence import (
     evidence_from_official_api,
     write_evidence_records,
 )
-from sherlock_holmes.validation.comparison import (
-    COMPARISON_STATUSES,
-    RECORD_COMPARISON_STATUSES,
-    FieldComparison,
-    RecordComparison,
-    compare_field_values,
-    compare_records,
-)
-
 
 __all__ = [
     "CONFIDENCE_LEVELS",

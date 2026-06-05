@@ -5,7 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 
-
 PNCP_MAX_DATE_RANGE_DAYS = 365
 
 

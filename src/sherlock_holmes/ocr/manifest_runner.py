@@ -10,7 +10,6 @@ from typing import Any
 from sherlock_holmes.ocr.extractors import OcrExtractor
 from sherlock_holmes.preprocessing.presets import apply_preset
 
-
 TOOLS = ("tesseract", "paddleocr", "doctr")
 
 

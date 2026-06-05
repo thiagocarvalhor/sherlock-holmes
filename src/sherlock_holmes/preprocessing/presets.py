@@ -7,7 +7,6 @@ import cv2
 import numpy as np
 from PIL import Image, ImageEnhance, ImageOps
 
-
 PRESETS = ("none", "basic", "binarized", "deskew_binarized")
 
 

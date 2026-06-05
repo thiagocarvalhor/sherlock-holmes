@@ -11,7 +11,6 @@ from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-
 CONSULTA_BASE_URL = "https://pncp.gov.br/api/consulta"
 PNCP_BASE_URL = "https://pncp.gov.br/api/pncp"
 PNCP_FILE_BASE_URL = "https://pncp.gov.br/pncp-api"

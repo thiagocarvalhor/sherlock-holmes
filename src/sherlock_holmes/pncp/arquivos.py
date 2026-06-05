@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any
 from urllib.request import Request, urlopen
 
-
 USER_AGENT = "sherlock-holmes-pncp-documents/0.1"
 
 

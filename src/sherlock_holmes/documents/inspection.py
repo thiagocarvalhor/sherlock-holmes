@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
+import json
 import zipfile
 from dataclasses import dataclass
-import json
 from pathlib import Path
-
 
 PDF_SIGNATURE = b"%PDF"
 ZIP_SIGNATURE = b"PK\x03\x04"
@@ -192,11 +191,11 @@ def write_text_extraction_result(
 ) -> Path:
     """Persist a direct text extraction result as JSON."""
 
+    from sherlock_holmes.documents.ocr_fallback import decide_ocr_fallback
     from sherlock_holmes.documents.text_quality import (
         assess_text_quality,
         normalize_extracted_text,
     )
-    from sherlock_holmes.documents.ocr_fallback import decide_ocr_fallback
 
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)

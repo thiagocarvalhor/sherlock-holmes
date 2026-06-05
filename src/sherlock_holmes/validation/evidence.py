@@ -11,7 +11,6 @@ from typing import Any
 from sherlock_holmes.documents import DirectTextExtraction
 from sherlock_holmes.pncp.arquivos import PncpDocumentReference
 
-
 SOURCE_TYPES = {
     "official_api",
     "official_document",

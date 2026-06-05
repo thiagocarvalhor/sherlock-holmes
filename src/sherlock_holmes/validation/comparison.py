@@ -9,7 +9,6 @@ from typing import Any
 
 from sherlock_holmes.validation.evidence import EvidenceRecord
 
-
 COMPARISON_STATUSES = {
     "match",
     "partial_match",
