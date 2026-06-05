@@ -192,16 +192,33 @@ def write_text_extraction_result(
 ) -> Path:
     """Persist a direct text extraction result as JSON."""
 
+    from sherlock_holmes.documents.text_quality import (
+        assess_text_quality,
+        normalize_extracted_text,
+    )
+
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    normalized_text = normalize_extracted_text(extraction.text)
+    quality = assess_text_quality(extraction.text)
     payload = {
         "path": extraction.path,
         "file_type": extraction.file_type,
         "status": extraction.status,
         "text": extraction.text,
+        "normalized_text": normalized_text,
         "text_length": extraction.text_length,
         "page_count": extraction.page_count,
         "notes": extraction.notes,
+        "quality": {
+            "quality": quality.quality,
+            "text_length": quality.text_length,
+            "word_count": quality.word_count,
+            "line_count": quality.line_count,
+            "mojibake_marker_count": quality.mojibake_marker_count,
+            "should_consider_ocr": quality.should_consider_ocr,
+            "notes": quality.notes,
+        },
     }
     with output_path.open("w", encoding="utf-8") as file:
         json.dump(payload, file, ensure_ascii=False, indent=2)
