@@ -22,6 +22,16 @@ from sherlock_holmes.pncp.ids import (
     parse_numero_controle_pncp,
     resolve_pncp_contract_id,
 )
+from sherlock_holmes.pncp.licitacoes import (
+    get_licitacao,
+    get_licitacao_url,
+    list_licitacao_arquivos,
+    list_licitacao_arquivos_url,
+    list_licitacao_itens,
+    list_licitacao_itens_url,
+    search_licitacoes,
+    search_licitacoes_url,
+)
 
 
 __all__ = [
@@ -32,13 +42,21 @@ __all__ = [
     "format_pncp_date",
     "get_contrato",
     "get_contrato_url",
+    "get_licitacao",
+    "get_licitacao_url",
     "list_contrato_arquivos",
     "list_contrato_arquivos_url",
+    "list_licitacao_arquivos",
+    "list_licitacao_arquivos_url",
+    "list_licitacao_itens",
+    "list_licitacao_itens_url",
     "normalize_cnpj",
     "parse_numero_controle_pncp",
     "parse_pncp_date",
     "resolve_pncp_contract_id",
     "search_contratos",
     "search_contratos_url",
+    "search_licitacoes",
+    "search_licitacoes_url",
     "validate_pncp_date_range",
 ]
