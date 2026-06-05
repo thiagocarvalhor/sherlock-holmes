@@ -1,10 +1,10 @@
-"""Field-by-field comparison helpers."""
+"""Field-by-field and record-level comparison helpers."""
 
 from __future__ import annotations
 
 import re
 import unicodedata
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from sherlock_holmes.validation.evidence import EvidenceRecord
@@ -18,6 +18,27 @@ COMPARISON_STATUSES = {
     "missing_in_official",
     "unresolved",
 }
+
+RECORD_COMPARISON_STATUSES = {
+    "match",
+    "partial_match",
+    "divergent",
+    "inconclusive",
+}
+
+_CRITICAL_FIELDS = {"valor_contrato", "numero_contrato"}
+
+_FIELD_MAPPING: list[tuple[str, str, str, str]] = [
+    # (manual_key, pncp_path, nested_key, value_type)
+    ("cnpj",            "orgaoEntidade",  "cnpj",          "cnpj"),
+    ("municipio",       "unidadeOrgao",   "municipioNome", "text"),
+    ("uf",              "unidadeOrgao",   "ufSigla",       "text"),
+    ("objeto_contrato", "",               "objetoContrato","text"),
+    ("numero_contrato", "",               "numeroContratoEmpenho", "text"),
+    ("valor_contrato",  "",               "valorGlobal",   "number"),
+    ("vigencia_inicio", "",               "dataVigenciaInicio", "date"),
+    ("vigencia_fim",    "",               "dataVigenciaFim",    "date"),
+]
 
 
 @dataclass(frozen=True)
@@ -127,3 +148,89 @@ def _normalized_text(value: Any) -> str:
     normalized = unicodedata.normalize("NFKD", str(value or ""))
     without_accents = "".join(char for char in normalized if not unicodedata.combining(char))
     return " ".join(re.sub(r"\s+", " ", without_accents.casefold()).split())
+
+
+def _nested_get(record: dict[str, Any], parent_key: str, child_key: str) -> Any:
+    if parent_key:
+        parent = record.get(parent_key) or {}
+        return parent.get(child_key) if isinstance(parent, dict) else None
+    return record.get(child_key)
+
+
+@dataclass
+class RecordComparison:
+    """Comparison between one manual record and one PNCP contract record."""
+
+    source_row: str
+    numero_controle_pncp: str
+    fields: list[FieldComparison] = field(default_factory=list)
+    overall_score: float = 0.0
+    status: str = "inconclusive"
+    notes: str = ""
+
+
+def compare_records(
+    *,
+    source_row: str,
+    manual_record: dict[str, Any],
+    pncp_record: dict[str, Any],
+    manual_evidence: EvidenceRecord,
+    official_evidence: EvidenceRecord,
+) -> RecordComparison:
+    """Compare all mapped fields between a manual record and a PNCP contract."""
+
+    numero_controle_pncp = pncp_record.get("numeroControlePNCP", "")
+    comparisons: list[FieldComparison] = []
+
+    for manual_key, parent_key, pncp_key, value_type in _FIELD_MAPPING:
+        manual_value = manual_record.get(manual_key)
+        official_value = _nested_get(pncp_record, parent_key, pncp_key)
+        comparisons.append(
+            compare_field_values(
+                field_name=manual_key,
+                manual_value=manual_value,
+                official_value=official_value,
+                manual_evidence=manual_evidence,
+                official_evidence=official_evidence,
+                value_type=value_type,
+            )
+        )
+
+    comparable = [
+        c for c in comparisons
+        if c.status not in {"unresolved", "missing_in_manual", "missing_in_official"}
+    ]
+
+    if not comparable:
+        return RecordComparison(
+            source_row=source_row,
+            numero_controle_pncp=numero_controle_pncp,
+            fields=comparisons,
+            overall_score=0.0,
+            status="inconclusive",
+            notes="No comparable fields found.",
+        )
+
+    overall_score = sum(c.similarity_score for c in comparable) / len(comparable)
+
+    critical_divergent = any(
+        c.field_name in _CRITICAL_FIELDS and c.status == "divergent"
+        for c in comparable
+    )
+
+    if critical_divergent:
+        status = "divergent"
+    elif overall_score >= 0.9:
+        status = "match"
+    elif overall_score >= 0.4:
+        status = "partial_match"
+    else:
+        status = "divergent"
+
+    return RecordComparison(
+        source_row=source_row,
+        numero_controle_pncp=numero_controle_pncp,
+        fields=comparisons,
+        overall_score=round(overall_score, 4),
+        status=status,
+    )
