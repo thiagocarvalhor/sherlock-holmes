@@ -3,137 +3,26 @@
 from __future__ import annotations
 
 import sys
-from datetime import date
 from pathlib import Path
-from typing import Any
 
-import pandas as pd
 import streamlit as st
 
-
 ROOT_DIR = Path(__file__).resolve().parents[1]
-SRC_DIR = ROOT_DIR / "src"
-if str(SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(SRC_DIR))
+if str(ROOT_DIR / "scripts") not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR / "scripts"))
 
-from sherlock_holmes.pncp.client import (  # noqa: E402
-    PncpApiError,
-    compact_digits,
+from app.pncp import (  # noqa: E402
+    PRESET_ORGAOS,
+    cached_contract_files,
+    cached_contract_search,
     contract_detail_url,
     contract_file_download_url,
-    fetch_contract_files,
-    fetch_contracts_by_publication,
     filter_records_by_terms,
-    normalize_text,
+    record_label,
+    records_to_dataframe,
+    suggested_terms,
 )
-
-
-KEYWORD_SUGGESTIONS = {
-    "limpeza": [
-        "limpeza urbana",
-        "limpeza pública",
-        "resíduos sólidos",
-        "varrição",
-        "coleta",
-        "triagem",
-        "destinação",
-        "serviços indivisíveis",
-    ],
-    "residuos": [
-        "resíduos sólidos",
-        "coleta",
-        "triagem",
-        "recicláveis",
-        "destinação",
-        "ecoponto",
-    ],
-    "obras": [
-        "obras civis",
-        "pavimentação",
-        "drenagem",
-        "contenção",
-        "engenharia",
-        "reparos",
-    ],
-    "ti": [
-        "tecnologia da informação",
-        "software",
-        "licenças",
-        "sistema",
-        "nuvem",
-        "suporte técnico",
-    ],
-}
-
-PRESET_ORGAOS = {
-    "SMSUB São Paulo": {"cnpj": "49269236000117", "unidade": "925004"},
-    "Prefeitura de Belo Horizonte": {"cnpj": "18715383000140", "unidade": ""},
-}
-
-TABLE_COLUMNS = [
-    "numeroControlePNCP",
-    "numeroContratoEmpenho",
-    "processo",
-    "nomeRazaoSocialFornecedor",
-    "niFornecedor",
-    "dataAssinatura",
-    "dataVigenciaInicio",
-    "dataVigenciaFim",
-    "valorGlobal",
-    "objetoContrato",
-]
-
-
-def normalize_topic_key(value: str) -> str:
-    return normalize_text(value)
-
-
-def suggested_terms(topic: str) -> list[str]:
-    topic_key = normalize_topic_key(topic)
-    terms: list[str] = []
-    for key, suggestions in KEYWORD_SUGGESTIONS.items():
-        if key in topic_key:
-            terms.extend(suggestions)
-    return list(dict.fromkeys(terms))
-
-
-def records_to_dataframe(records: list[dict[str, Any]]) -> pd.DataFrame:
-    rows = []
-    for record in records:
-        rows.append({column: record.get(column) for column in TABLE_COLUMNS})
-    return pd.DataFrame(rows, columns=TABLE_COLUMNS)
-
-
-def record_label(record: dict[str, Any]) -> str:
-    number = record.get("numeroControlePNCP") or "sem PNCP"
-    supplier = record.get("nomeRazaoSocialFornecedor") or "fornecedor não informado"
-    value = float(record.get("valorGlobal") or 0)
-    return f"{number} | {supplier} | R$ {value:,.2f}"
-
-
-@st.cache_data(show_spinner=False, ttl=900)
-def cached_contract_search(
-    year: int,
-    cnpj_orgao: str,
-    codigo_unidade: str,
-    page_size: int,
-    max_pages: int,
-) -> dict[str, Any]:
-    result = fetch_contracts_by_publication(
-        start_date=date(year, 1, 1),
-        end_date=date(year, 12, 31),
-        cnpj_orgao=cnpj_orgao,
-        codigo_unidade=codigo_unidade,
-        page_size=page_size,
-        max_pages=max_pages,
-    )
-    return {"url": result.url, "payload": result.payload}
-
-
-@st.cache_data(show_spinner=False, ttl=900)
-def cached_contract_files(cnpj_orgao: str, year: int, sequencial: int) -> dict[str, Any]:
-    result = fetch_contract_files(cnpj_orgao, year, sequencial)
-    return {"url": result.url, "payload": result.payload}
+from sherlock_holmes.pncp.client import PncpApiError, compact_digits  # noqa: E402
 
 
 def main() -> None:
@@ -159,6 +48,9 @@ def main() -> None:
         terms = selected_terms + [term.strip() for term in custom_terms.split(",") if term.strip()]
 
         search = st.button("Buscar contratos", type="primary")
+
+        st.divider()
+        st.page_link("pages/comparacao_manual_pncp.py", label="Comparação Manual vs PNCP")
 
     if not compact_digits(cnpj_orgao):
         st.info("Informe o CNPJ do órgão para começar.")
