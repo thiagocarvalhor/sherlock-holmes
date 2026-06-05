@@ -223,6 +223,35 @@ Regra prática:
 - registrar corpo da resposta de erro sempre que disponível
 - persistir metadados da chamada, incluindo URL, parâmetros e status HTTP
 
+### Instabilidade observada
+
+Em `2026-05-26`, chamadas mínimas ao endpoint `/v1/contratos` feitas pelo Postman retornaram `504 Gateway Time-out`.
+
+Exemplo testado:
+
+```text
+GET https://pncp.gov.br/api/consulta/v1/contratos?dataInicial=20251104&dataFinal=20251104&pagina=1&tamanhoPagina=1&cnpjOrgao=39485438000142
+```
+
+Resposta recebida:
+
+```html
+<html>
+<body>
+    <h1>504 Gateway Time-out</h1>
+    The server didn't respond in time.
+</body>
+</html>
+```
+
+Interpretação:
+
+- a consulta estava pequena e bem formada
+- o erro não indica parâmetro inválido, pois nesse caso seriam esperados `400` ou `422`
+- o caso deve ser tratado como instabilidade temporária do serviço/gateway PNCP
+- antes de alterar a estratégia de consulta, retestar o endpoint em outro momento
+- o cliente futuro deve registrar `504` e prever retry/backoff com limite de tentativas
+
 ## Endpoints Principais
 
 ### Consultar Contratações por Data de Publicação
@@ -531,6 +560,36 @@ Fluxo provável:
 6. aplicar extração textual direta ou OCR conforme necessário
 
 ## Estratégia Inicial de Implementação
+
+### Decisão de organização do código
+
+Por enquanto, a prioridade é fazer o fluxo de consulta da API funcionar de forma simples e verificável.
+
+O script atual:
+
+```text
+scripts/run_pncp_api_smoke.py
+```
+
+deve continuar concentrando a lógica do smoke test enquanto a estratégia de consulta, matching e tratamento de respostas ainda estiver sendo validada.
+
+Quando o fluxo estiver mais estável, a lógica reutilizável pode ser extraída para um módulo próprio dentro do pacote Python do projeto:
+
+```text
+src/sherlock_holmes/pncp/
+  __init__.py
+  client.py
+  manifest.py
+  matching.py
+```
+
+Responsabilidades previstas:
+
+- `client.py`: chamadas HTTP para a API PNCP, montagem de URL, timeout, status HTTP e tratamento de erros
+- `manifest.py`: leitura da amostra/manual, filtros por `source_row`, preparação de parâmetros e distinção futura entre CNPJ de órgão e CNPJ de fornecedor
+- `matching.py`: normalização de texto/CNPJ/número de contrato, scoring de candidatos e escolha dos melhores matches
+
+Essa extração não é prioridade imediata. A decisão atual é validar primeiro a consulta real contra a API, especialmente os casos em que o CNPJ da planilha pode representar órgão contratante ou fornecedor.
 
 ### Fase 1: Manifesto manual
 

@@ -1,0 +1,4 @@
+category,sample_index,relative_path,filename,extension,size_bytes,selection_rank
+Contract,1,data/interim/ocr/aditivo-subrogacao-ecourbis/pages/page-001.png,page-001.png,.png,2853890,1
+Contract,2,data/interim/ocr/aditivo-subrogacao-ecourbis/pages/page-002.png,page-002.png,.png,4115862,2
+Contract,3,data/interim/ocr/aditivo-subrogacao-ecourbis/pages/page-003.png,page-003.png,.png,1920283,3
