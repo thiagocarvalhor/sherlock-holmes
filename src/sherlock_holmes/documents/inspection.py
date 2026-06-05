@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import zipfile
 from dataclasses import dataclass
+import json
 from pathlib import Path
 
 
@@ -34,6 +35,25 @@ class DirectTextExtraction:
     text_length: int
     page_count: int | None = None
     notes: str = ""
+
+
+@dataclass(frozen=True)
+class ZipMember:
+    """Metadata for a member inside a ZIP archive."""
+
+    filename: str
+    size_bytes: int
+    compressed_size_bytes: int
+    is_dir: bool
+
+
+@dataclass(frozen=True)
+class ExtractedZipMember:
+    """A ZIP member extracted to a controlled local path."""
+
+    filename: str
+    local_path: str
+    size_bytes: int
 
 
 def detect_document_type(path: Path) -> DocumentInspection:
@@ -107,6 +127,85 @@ def extract_text_direct(path: Path, *, max_pages: int | None = None) -> DirectTe
         text_length=0,
         notes="Direct text extraction is not supported for this file type.",
     )
+
+
+def list_zip_members(path: Path) -> list[ZipMember]:
+    """List members of a ZIP archive without extracting them."""
+
+    with zipfile.ZipFile(path) as archive:
+        return [
+            ZipMember(
+                filename=info.filename,
+                size_bytes=info.file_size,
+                compressed_size_bytes=info.compress_size,
+                is_dir=info.is_dir(),
+            )
+            for info in archive.infolist()
+        ]
+
+
+def extract_zip_members(
+    path: Path,
+    *,
+    output_dir: Path,
+    allowed_extensions: set[str] | None = None,
+) -> list[ExtractedZipMember]:
+    """Extract ZIP members to output_dir, rejecting unsafe member paths."""
+
+    path = Path(path)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    extracted: list[ExtractedZipMember] = []
+    allowed = {ext.lower() for ext in allowed_extensions} if allowed_extensions else None
+
+    with zipfile.ZipFile(path) as archive:
+        for info in archive.infolist():
+            if info.is_dir():
+                continue
+
+            member_path = Path(info.filename)
+            if member_path.is_absolute() or ".." in member_path.parts:
+                raise ValueError(f"Unsafe ZIP member path: {info.filename}")
+
+            if allowed is not None and member_path.suffix.lower() not in allowed:
+                continue
+
+            target_path = output_dir / member_path.name
+            with archive.open(info) as source, target_path.open("wb") as target:
+                target.write(source.read())
+
+            extracted.append(
+                ExtractedZipMember(
+                    filename=info.filename,
+                    local_path=target_path.as_posix(),
+                    size_bytes=info.file_size,
+                )
+            )
+
+    return extracted
+
+
+def write_text_extraction_result(
+    extraction: DirectTextExtraction,
+    *,
+    output_path: Path,
+) -> Path:
+    """Persist a direct text extraction result as JSON."""
+
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "path": extraction.path,
+        "file_type": extraction.file_type,
+        "status": extraction.status,
+        "text": extraction.text,
+        "text_length": extraction.text_length,
+        "page_count": extraction.page_count,
+        "notes": extraction.notes,
+    }
+    with output_path.open("w", encoding="utf-8") as file:
+        json.dump(payload, file, ensure_ascii=False, indent=2)
+    return output_path
 
 
 def _extract_pdf_text(
