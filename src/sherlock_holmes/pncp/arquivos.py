@@ -3,7 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
+from urllib.request import Request, urlopen
+
+
+USER_AGENT = "sherlock-holmes-pncp-documents/0.1"
 
 
 @dataclass(frozen=True)
@@ -20,6 +26,21 @@ class PncpDocumentReference:
     uri: str
     published_at: str
     raw: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class PncpDownloadedDocument:
+    """Metadata for a locally downloaded PNCP document."""
+
+    source: str
+    resource_type: str
+    resource_id: str
+    url: str
+    local_path: str
+    content_type: str
+    bytes_written: int
+    downloaded_at: str
+    reference: PncpDocumentReference
 
 
 def document_reference_from_pncp_file(
@@ -43,6 +64,70 @@ def document_reference_from_pncp_file(
         uri=str(file_record.get("uri") or ""),
         published_at=str(file_record.get("dataPublicacaoPncp") or ""),
         raw=file_record,
+    )
+
+
+def safe_document_filename(
+    title: str,
+    *,
+    sequence: int | None = None,
+    default_extension: str = "",
+) -> str:
+    """Return a filesystem-safe filename for a PNCP document."""
+
+    clean_title = "".join(
+        char if char.isalnum() or char in {"-", "_", "."} else "_"
+        for char in str(title or "").strip()
+    ).strip("._")
+    compact_title = "_".join(part for part in clean_title.split("_") if part)
+    name = compact_title or "documento"
+
+    if sequence is not None:
+        name = f"{sequence:03d}_{name}"
+
+    extension = default_extension if default_extension.startswith(".") else f".{default_extension}"
+    if extension != "." and extension and not name.lower().endswith(extension.lower()):
+        name = f"{name}{extension}"
+    return name
+
+
+def download_document_reference(
+    reference: PncpDocumentReference,
+    *,
+    output_dir: Path,
+    timeout: int = 60,
+    filename: str | None = None,
+) -> PncpDownloadedDocument:
+    """Download one PNCP document reference to a local directory."""
+
+    source_url = reference.url or reference.uri
+    if not source_url:
+        raise ValueError("Document reference has no URL or URI to download.")
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    request = Request(source_url, headers={"User-Agent": USER_AGENT})
+    with urlopen(request, timeout=timeout) as response:  # noqa: S310 - public PNCP URL.
+        content = response.read()
+        content_type = response.headers.get("Content-Type", "")
+
+    output_name = filename or safe_document_filename(
+        reference.title or reference.document_type,
+        sequence=reference.sequence,
+        default_extension=_extension_from_response(content_type, content),
+    )
+    output_path = output_dir / output_name
+    output_path.write_bytes(content)
+
+    return PncpDownloadedDocument(
+        source=reference.source,
+        resource_type=reference.resource_type,
+        resource_id=reference.resource_id,
+        url=source_url,
+        local_path=output_path.as_posix(),
+        content_type=content_type,
+        bytes_written=len(content),
+        downloaded_at=datetime.now(timezone.utc).isoformat(),
+        reference=reference,
     )
 
 
@@ -144,3 +229,29 @@ def _optional_int(value: Any) -> int | None:
 
 def _resource_id(orgao_cnpj: str, ano: int, sequencial: int) -> str:
     return f"{orgao_cnpj}/{ano}/{sequencial}"
+
+
+def _extension_from_content_type(content_type: str) -> str:
+    lowered = content_type.lower()
+    if "pdf" in lowered:
+        return ".pdf"
+    if "zip" in lowered:
+        return ".zip"
+    if "json" in lowered:
+        return ".json"
+    if "html" in lowered:
+        return ".html"
+    if "text" in lowered:
+        return ".txt"
+    return ""
+
+
+def _extension_from_response(content_type: str, content: bytes) -> str:
+    extension = _extension_from_content_type(content_type)
+    if extension:
+        return extension
+    if content.startswith(b"%PDF"):
+        return ".pdf"
+    if content.startswith(b"PK\x03\x04"):
+        return ".zip"
+    return ""
