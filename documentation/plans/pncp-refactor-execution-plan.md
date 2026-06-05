@@ -273,6 +273,7 @@ Arquivos criados:
 Arquivo atualizado:
 
 - `src/sherlock_holmes/pncp/__init__.py`
+- `scripts/run_pncp_api_smoke.py`
 
 Validacoes executadas:
 
@@ -280,6 +281,7 @@ Validacoes executadas:
 - smoke PNCP em modo `dry-run`;
 - smoke PNCP real para `source_row=67`, com HTTP `200`;
 - checagem direta de parsing de `numeroControlePNCP` e montagem de URLs.
+- smoke PNCP paginado com `--max-pages 3`, retornando `39485438000142-2-000018/2025` como top candidate.
 
 Relatorio:
 
@@ -287,4 +289,4 @@ Relatorio:
 
 ## Proximo Passo
 
-Avaliar a migracao gradual de `scripts/run_pncp_api_smoke.py` para as novas funcoes em `src/sherlock_holmes/pncp/contratos.py` e melhorar paginacao/scoring do smoke.
+Iniciar a segunda entrega PNCP: licitacoes/compras e arquivos associados, mantendo o smoke de contratos como base de validacao.

@@ -15,6 +15,7 @@ Foram criados os seguintes modulos:
 Tambem foi atualizado:
 
 - `src/sherlock_holmes/pncp/__init__.py`
+- `scripts/run_pncp_api_smoke.py`
 
 ## Funcoes Criadas
 
@@ -136,8 +137,40 @@ O projeto agora possui modulos especificos para:
 
 Os scripts existentes continuam funcionando, e a chamada real controlada ao PNCP retornou HTTP `200`.
 
+## Atualizacao: Paginacao e Scoring do Smoke
+
+Apos a criacao dos modulos iniciais, o script `scripts/run_pncp_api_smoke.py` foi ajustado para:
+
+- aceitar `--max-pages`;
+- buscar multiplas paginas de contratos;
+- usar `search_contratos_url` da nova camada `pncp.contratos` quando a URL base padrao for usada;
+- remover candidatos duplicados por `numeroControlePNCP`;
+- pontuar melhor correspondencia de valor e vigencia.
+
+Validacao:
+
+```powershell
+.venv\Scripts\python.exe scripts\run_pncp_api_smoke.py --source-row 67 --max-pages 3 --run-id pncp-refactor-scoring-live-row67
+```
+
+Resultado:
+
+- HTTP `200`;
+- `totalRegistros=22`;
+- `totalPaginas=3`;
+- `candidates_count=20`;
+- `top_score=23`;
+- `top_numero_controle_pncp=39485438000142-2-000018/2025`;
+- `top_numero_contrato_empenho=02SEMSEP2025/790/791`.
+
+Interpretacao:
+
+- a paginacao permitiu recuperar todos os registros da janela testada;
+- a deduplicacao reduziu candidatos repetidos;
+- o scoring passou a ranquear como top candidate o contrato esperado para a linha `67`.
+
 ## Proximos Passos
 
-1. Avaliar se `scripts/run_pncp_api_smoke.py` deve passar a usar `src/sherlock_holmes/pncp/contratos.py`.
-2. Melhorar paginacao e scoring do smoke para recuperar e ranquear melhor candidatos como `39485438000142-2-000018/2025`.
-3. Iniciar a segunda entrega PNCP: licitacoes/compras e arquivos associados.
+1. Iniciar a segunda entrega PNCP: licitacoes/compras e arquivos associados.
+2. Avaliar extracao de detalhes e arquivos do contrato top candidate.
+3. Preparar a futura camada de matching/comparacao usando o resultado do smoke.

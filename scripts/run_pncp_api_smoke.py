@@ -6,6 +6,7 @@ import argparse
 import csv
 import json
 import re
+import sys
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -20,6 +21,12 @@ DEFAULT_SAMPLE = ROOT_DIR / "documentation" / "plans" / "pncp-api-smoke-sample.c
 DEFAULT_RAW_ROOT = ROOT_DIR / "data" / "raw" / "pncp"
 DEFAULT_PROCESSED_ROOT = ROOT_DIR / "data" / "processed" / "pncp"
 DEFAULT_BASE_URL = "https://pncp.gov.br/api/consulta"
+
+SRC_DIR = ROOT_DIR / "src"
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
+
+from sherlock_holmes.pncp.contratos import search_contratos_url  # noqa: E402
 
 SUMMARY_FIELDNAMES = [
     "source_row",
@@ -54,6 +61,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--source-row", action="append", default=[])
     parser.add_argument("--timeout", type=int, default=30)
     parser.add_argument("--tamanho-pagina", type=int, default=10)
+    parser.add_argument("--max-pages", type=int, default=3)
     parser.add_argument(
         "--date-window-days",
         type=int,
@@ -161,6 +169,92 @@ def request_json(base_url: str, endpoint: str, params: dict[str, str | int], tim
         return exc.code, parsed_body, url
 
 
+def request_contract_page(
+    *,
+    base_url: str,
+    params: dict[str, str | int],
+    timeout: int,
+) -> tuple[int, Any, str]:
+    if base_url.rstrip("/") != DEFAULT_BASE_URL:
+        return request_json(base_url, "/v1/contratos", params, timeout)
+
+    url = search_contratos_url(
+        data_inicial=str(params["dataInicial"]),
+        data_final=str(params["dataFinal"]),
+        cnpj_orgao=str(params.get("cnpjOrgao", "")),
+        pagina=int(params["pagina"]),
+        tamanho_pagina=int(params["tamanhoPagina"]),
+    )
+    return request_json_from_url(url, timeout)
+
+
+def request_json_from_url(url: str, timeout: int) -> tuple[int, Any, str]:
+    request = Request(
+        url,
+        headers={"Accept": "application/json", "User-Agent": "sherlock-holmes-pncp-smoke/0.1"},
+    )
+
+    try:
+        with urlopen(request, timeout=timeout) as response:  # noqa: S310 - fixed public API URL.
+            body = response.read()
+            if not body:
+                return response.status, None, url
+            return response.status, json.loads(body.decode("utf-8")), url
+    except HTTPError as exc:
+        body = exc.read()
+        parsed_body: Any
+        try:
+            parsed_body = json.loads(body.decode("utf-8")) if body else None
+        except json.JSONDecodeError:
+            parsed_body = body.decode("utf-8", errors="replace")
+        return exc.code, parsed_body, url
+
+
+def fetch_contract_pages(
+    *,
+    base_url: str,
+    params: dict[str, str | int],
+    timeout: int,
+    max_pages: int,
+) -> tuple[int, Any, str]:
+    merged_records: list[dict[str, Any]] = []
+    first_url = ""
+    last_payload: dict[str, Any] = {}
+    last_status = 0
+
+    for page in range(1, max_pages + 1):
+        page_params = {**params, "pagina": page}
+        status, payload, query_url = request_contract_page(
+            base_url=base_url,
+            params=page_params,
+            timeout=timeout,
+        )
+        last_status = status
+        if not first_url:
+            first_url = query_url
+
+        if not isinstance(payload, dict):
+            return status, payload, first_url
+
+        last_payload = payload
+        merged_records.extend(response_records(payload))
+
+        total_pages = int(payload.get("totalPaginas") or page)
+        if page >= total_pages:
+            break
+
+    return (
+        last_status,
+        {
+            **last_payload,
+            "data": merged_records,
+            "totalRegistros": last_payload.get("totalRegistros", len(merged_records)),
+            "paginasConsultadas": min(max_pages, int(last_payload.get("totalPaginas") or 1)),
+        },
+        first_url,
+    )
+
+
 def response_records(payload: Any) -> list[dict[str, Any]]:
     if isinstance(payload, dict) and isinstance(payload.get("data"), list):
         return [item for item in payload["data"] if isinstance(item, dict)]
@@ -171,6 +265,17 @@ def response_records(payload: Any) -> list[dict[str, Any]]:
 
 def json_text(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True)
+
+
+def parse_decimal_text(value: str) -> float | None:
+    text = (value or "").strip()
+    if not text:
+        return None
+    normalized = text.replace(".", "").replace(",", ".") if "," in text else text
+    try:
+        return float(normalized)
+    except ValueError:
+        return None
 
 
 def score_candidate(row: dict[str, str], candidate: dict[str, Any]) -> int:
@@ -205,20 +310,32 @@ def score_candidate(row: dict[str, str], candidate: dict[str, Any]) -> int:
     if empresa and empresa in candidate_blob:
         score += 3
 
-    valor = row.get("valor_contrato", "")
-    if valor and valor in candidate_blob:
+    manual_value = parse_decimal_text(row.get("valor_contrato", ""))
+    candidate_value = candidate.get("valorGlobal") or candidate.get("valorInicial")
+    if manual_value is not None and isinstance(candidate_value, (int, float)):
+        if abs(float(candidate_value) - manual_value) < 0.01:
+            score += 4
+    elif row.get("valor_contrato", "") and row["valor_contrato"] in candidate_blob:
         score += 2
+
+    if row.get("vigencia_inicio") and row["vigencia_inicio"] == candidate.get("dataVigenciaInicio"):
+        score += 3
+    if row.get("vigencia_fim") and row["vigencia_fim"] == candidate.get("dataVigenciaFim"):
+        score += 3
 
     return score
 
 
 def pick_candidates(row: dict[str, str], payload: Any) -> list[dict[str, Any]]:
-    scored: list[dict[str, Any]] = []
+    scored_by_id: dict[str, dict[str, Any]] = {}
     for candidate in response_records(payload):
         score = score_candidate(row, candidate)
         if score > 0:
-            scored.append({"score": score, "record": candidate})
-    return sorted(scored, key=lambda item: item["score"], reverse=True)
+            key = str(candidate.get("numeroControlePNCP") or json_text(candidate))
+            current = scored_by_id.get(key)
+            if current is None or score > int(current["score"]):
+                scored_by_id[key] = {"score": score, "record": candidate}
+    return sorted(scored_by_id.values(), key=lambda item: item["score"], reverse=True)
 
 
 def write_json(path: Path, payload: Any) -> None:
@@ -262,14 +379,14 @@ def run() -> None:
 
         try:
             if args.dry_run:
-                payload = {"dry_run": True, "params": params}
+                payload = {"dry_run": True, "params": params, "max_pages": args.max_pages}
                 status = "dry-run"
             else:
-                status, payload, query_url = request_json(
-                    args.base_url,
-                    "/v1/contratos",
-                    params,
-                    args.timeout,
+                status, payload, query_url = fetch_contract_pages(
+                    base_url=args.base_url,
+                    params=params,
+                    timeout=args.timeout,
+                    max_pages=args.max_pages,
                 )
                 candidates = pick_candidates(row, payload)
         except (URLError, TimeoutError, json.JSONDecodeError) as exc:
