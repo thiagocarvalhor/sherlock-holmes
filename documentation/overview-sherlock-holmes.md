@@ -1,24 +1,139 @@
-# Overview do Repositório Sherlock Holmes
+# Overview do Repositorio Sherlock Holmes
 
-## Visão Geral
+## Visao Geral
 
-O repositório `sherlock-holmes` é um projeto de investigação e validação técnica para trabalhar com contratos públicos, documentos oficiais e extração de informações.
+O `sherlock-holmes` e um projeto de investigacao tecnica para localizar, validar e comparar contratos publicos a partir de fontes oficiais, fontes manuais e documentos associados.
 
-Na prática, ele está organizado em duas frentes principais:
+O novo posicionamento do projeto e:
 
-1. **PNCP**
-   - consultar a API pública do Portal Nacional de Contratações Públicas;
-   - reencontrar contratos que já aparecem em uma planilha manual;
-   - comparar dados manuais com dados oficiais retornados pela API;
-   - preparar o caminho para baixar ou referenciar documentos oficiais.
+```text
+PNCP primeiro.
+Documentos depois.
+OCR apenas quando necessario.
+Evidencia sempre.
+```
 
-2. **OCR**
-   - testar ferramentas de reconhecimento óptico de caracteres em documentos escaneados;
-   - comparar ferramentas como `Tesseract`, `PaddleOCR` e `docTR`;
-   - medir estabilidade, tempo de execução e quantidade de texto extraído;
-   - avaliar se o texto extraído é útil para etapas futuras de classificação e extração de campos.
+Na pratica, o Sherlock Holmes deve evoluir para um pipeline auditavel capaz de:
 
-O projeto ainda tem caráter experimental. Ele não é, por enquanto, um pipeline final de produção. A prioridade atual é gerar evidências confiáveis para decidir quais caminhos técnicos seguir.
+- receber uma planilha manual ou demanda de investigacao;
+- buscar contratos, licitacoes, orgaos, fornecedores e documentos no PNCP;
+- comparar dados manuais com dados oficiais;
+- identificar divergencias, ausencias e pontos que exigem revisao;
+- preservar fontes, URLs, metadados e nivel de confianca;
+- acionar parsing documental ou OCR somente quando os dados estruturados nao forem suficientes.
+
+O projeto ainda nao e um sistema final de producao. Ele esta em fase de validacao, organizacao de arquitetura e construcao incremental de evidencias.
+
+## Papel de Cada Camada
+
+### PNCP Como Fonte Primaria
+
+O PNCP deve ser tratado como a primeira fonte de verdade operacional do projeto sempre que oferecer dados estruturados suficientes.
+
+Essa camada deve responder perguntas como:
+
+- o contrato existe no PNCP?
+- qual e o numero de controle PNCP?
+- qual orgao contratou?
+- qual fornecedor aparece nos dados oficiais?
+- quais valores, vigencias e objetos estao registrados?
+- quais documentos ou anexos estao vinculados?
+- quais licitacoes, itens, atas, termos ou PCA se relacionam ao caso?
+
+### Fonte Manual Como Entrada de Investigacao
+
+Planilhas e bases manuais nao devem ser descartadas. Elas sao entradas importantes para investigacao, mas precisam ser comparadas com fontes oficiais.
+
+Exemplos de campos manuais:
+
+- municipio;
+- UF;
+- CNPJ;
+- fornecedor;
+- numero do contrato;
+- vigencia;
+- valor;
+- objeto;
+- URL ou fonte indicada.
+
+O objetivo nao e assumir que a planilha esta certa ou errada. O objetivo e produzir uma comparacao rastreavel.
+
+### Documentos Oficiais Como Evidencia Complementar
+
+Quando a API nao trouxer todos os campos necessarios, o proximo passo deve ser consultar documentos oficiais vinculados ao contrato ou licitacao.
+
+Exemplos:
+
+- contrato em PDF;
+- termo aditivo;
+- edital;
+- termo de referencia;
+- ata;
+- anexos;
+- instrumentos de cobranca.
+
+Antes de usar OCR, o projeto deve tentar extrair texto diretamente do documento quando houver camada textual disponivel.
+
+### OCR Como Fallback
+
+OCR continua sendo relevante, mas nao deve ser o centro do projeto.
+
+Ele deve ser acionado quando:
+
+- o campo necessario nao aparece na API;
+- a informacao esta apenas em documento oficial;
+- o documento e escaneado ou imagem;
+- o PDF nao tem texto extraivel;
+- uma divergencia exige consulta ao documento original.
+
+O resultado de OCR deve ser registrado como evidencia com confianca menor ate passar por revisao humana ou validacao adicional.
+
+### Evidencia e Confianca
+
+Toda informacao relevante deve carregar uma origem clara.
+
+Tipos de origem esperados:
+
+- `official_api`: dado estruturado retornado pelo PNCP;
+- `official_document`: dado extraido de documento oficial;
+- `manual_spreadsheet`: dado vindo de planilha ou fonte manual;
+- `ocr_extracted`: dado extraido por OCR;
+- `llm_extracted`: dado inferido ou estruturado com auxilio de LLM;
+- `human_reviewed`: dado revisado manualmente;
+- `unresolved`: dado ainda sem confirmacao suficiente.
+
+Niveis de confianca sugeridos:
+
+- `high`: dado oficial estruturado;
+- `medium`: dado extraido de documento oficial;
+- `low`: dado extraido automaticamente sem revisao;
+- `reviewed`: dado validado por pessoa;
+- `unknown`: origem ou qualidade insuficiente.
+
+## Diferenciacao do Sherlock Holmes
+
+O Sherlock Holmes nao deve ser apenas mais um cliente da API do PNCP.
+
+Projetos similares ajudam a delimitar o espaco:
+
+- Licinexus MCP facilita acesso conversacional e estruturado a dados do PNCP e BrasilAPI.
+- LicitaNow mostra dashboards e rankings sobre contratacoes publicas.
+- n8n-nodes-pncp-aec aponta caminhos para automacao e alertas recorrentes.
+- DeOlho inspira principios de transparencia, evidencia obrigatoria e responsabilidade.
+
+A diferenciacao do Sherlock Holmes deve estar nesta combinacao:
+
+```text
+busca oficial
++ comparacao com fonte manual
++ rastreabilidade por campo
++ evidencia preservada
++ divergencias auditaveis
++ fallback documental
++ revisao humana
+```
+
+Em vez de apenas encontrar dados, o projeto deve explicar de onde cada dado veio, o quanto ele e confiavel e como ele se compara com outra fonte.
 
 ## Estrutura Principal
 
@@ -44,78 +159,123 @@ sherlock-holmes/
 `-- AGENTS.md
 ```
 
-## Código Fonte
+## Codigo Fonte
 
-O código reutilizável fica em `src/sherlock_holmes`.
+O codigo reutilizavel fica em `src/sherlock_holmes`.
 
 ### `src/sherlock_holmes/pncp`
 
-Contém o cliente mínimo para conversar com APIs públicas do PNCP.
+Contem a camada atual de comunicacao com APIs publicas do PNCP.
 
-Arquivo principal:
+Arquivo principal atual:
 
 - `client.py`
 
-Responsabilidades:
+Responsabilidades atuais:
 
 - montar URLs da API;
 - normalizar CNPJ e textos;
-- executar requisições HTTP;
-- buscar contratos por data de publicação;
+- executar requisicoes HTTP;
+- buscar contratos por data de publicacao;
 - buscar metadados de arquivos anexados a contratos;
 - gerar URLs diretas para detalhes e downloads;
 - filtrar contratos por termos no objeto contratual.
 
-Esse módulo é usado principalmente pelo app Streamlit em `scripts/pncp_streamlit_app.py`.
+Evolucao esperada:
+
+```text
+src/sherlock_holmes/pncp/
+|-- client.py
+|-- contratos.py
+|-- licitacoes.py
+|-- arquivos.py
+|-- atas.py
+|-- orgaos.py
+|-- fornecedores.py
+|-- pca.py
+`-- schemas.py
+```
+
+Funcoes prioritarias para evolucao:
+
+- `search_contratos`;
+- `get_contrato`;
+- `list_contrato_arquivos`;
+- `list_contrato_termos`;
+- `search_licitacoes`;
+- `get_licitacao`;
+- `list_licitacao_itens`;
+- `list_licitacao_arquivos`;
+- `get_fornecedor_contratos`.
 
 ### `src/sherlock_holmes/ocr`
 
-Contém a camada de OCR.
+Contem a camada de OCR existente.
 
 Arquivos principais:
 
-- `extractors.py`
-- `manifest_runner.py`
+- `extractors.py`;
+- `manifest_runner.py`.
 
-O `extractors.py` define uma interface comum para três ferramentas:
+O `extractors.py` define uma interface comum para:
 
-- `tesseract`
-- `paddleocr`
-- `doctr`
+- `tesseract`;
+- `paddleocr`;
+- `doctr`.
 
-Cada ferramenta retorna um objeto padronizado com:
+Cada ferramenta retorna:
 
-- texto extraído;
-- saída bruta;
-- confiança média, quando disponível.
+- texto extraido;
+- saida bruta;
+- confianca media, quando disponivel.
 
-O `manifest_runner.py` executa OCR em lote a partir de um manifesto CSV. Ele aplica pré-processamento, roda a ferramenta escolhida, salva um JSON por documento e gera um `summary.csv` com métricas consolidadas.
+O `manifest_runner.py` executa OCR em lote a partir de um manifesto CSV, aplica pre-processamento, salva JSON por documento e gera um `summary.csv` com metricas consolidadas.
+
+Essa camada deve continuar existindo, mas conectada ao fluxo documental do projeto.
 
 ### `src/sherlock_holmes/preprocessing`
 
-Contém os presets de pré-processamento de imagem.
+Contem presets de pre-processamento de imagem.
 
 Arquivo principal:
 
-- `presets.py`
+- `presets.py`.
 
-Presets disponíveis:
+Presets disponiveis:
 
 - `none`: usa a imagem original;
 - `basic`: converte para escala de cinza e aumenta contraste;
 - `binarized`: converte para escala de cinza e aplica threshold de Otsu;
-- `deskew_binarized`: tenta corrigir inclinação e depois binariza.
+- `deskew_binarized`: tenta corrigir inclinacao e depois binariza.
 
 Esses presets permitem comparar se tratamentos simples melhoram ou pioram o OCR.
 
+### Camadas Futuras Esperadas
+
+O roadmap sugere novas camadas:
+
+```text
+src/sherlock_holmes/enrichment/
+|-- brasilapi.py
+
+src/sherlock_holmes/validation/
+|-- matcher.py
+|-- comparer.py
+`-- evidence.py
+```
+
+`enrichment` deve enriquecer CNPJ de orgaos e fornecedores com dados publicos.
+
+`validation` deve concentrar matching, comparacao campo a campo, divergencias e evidencias.
+
 ## Scripts
 
-A pasta `scripts` contém comandos operacionais e utilitários.
+A pasta `scripts` contem comandos operacionais e utilitarios.
 
 ### PNCP
 
 - `generate_pncp_manual_manifest.py`
-  - gera um manifesto intermediário a partir da planilha manual em `documentation/source`.
+  - gera um manifesto intermediario a partir da planilha manual em `documentation/source`.
 
 - `run_pncp_api_smoke.py`
   - executa consultas pequenas na API do PNCP;
@@ -124,46 +284,76 @@ A pasta `scripts` contém comandos operacionais e utilitários.
 
 - `pncp_streamlit_app.py`
   - abre uma interface Streamlit para explorar contratos do PNCP;
-  - permite filtrar por órgão, ano, tema e palavras-chave;
+  - permite filtrar por orgao, ano, tema e palavras-chave;
   - lista contratos e arquivos associados.
 
 ### OCR
 
 - `generate_ocr_sample_manifests.py`
-  - cria amostras versionáveis para smoke test e benchmark.
+  - cria amostras versionaveis para smoke test e benchmark.
 
 - `run_ocr_smoke.py`
   - roda OCR em uma amostra pequena;
-  - útil para validar instalação, compatibilidade e saída.
+  - util para validar instalacao, compatibilidade e saida.
 
 - `run_ocr_manifest.py`
   - roda OCR em qualquer manifesto CSV informado.
 
 - `convert_pdf_to_ocr_images.py`
-  - converte páginas de PDF em imagens para posterior OCR.
+  - converte paginas de PDF em imagens para posterior OCR.
 
 - `collect_ocr_text.py`
-  - consolida textos extraídos por OCR.
+  - consolida textos extraidos por OCR.
 
-## Documentação
+## Fluxo Conceitual Alvo
 
-A pasta `documentation` é parte central do projeto. Ela registra contexto, planejamento e decisões.
+```text
+Planilha manual / demanda de investigacao
+        |
+        v
+Normalizacao da entrada
+        |
+        v
+Busca no PNCP
+        |
+        v
+Contratos, licitacoes, orgaos, fornecedores e documentos candidatos
+        |
+        v
+Comparacao com fonte manual
+        |
+        v
+Registro de matches, divergencias e lacunas
+        |
+        v
+Consulta a documentos/anexos quando necessario
+        |
+        v
+Extracao direta de texto ou OCR como fallback
+        |
+        v
+Relatorios auditaveis com evidencia e confianca
+```
+
+## Documentacao
+
+A pasta `documentation` e parte central do projeto. Ela registra contexto, planejamento e decisoes.
 
 ### `documentation/context`
 
-Guarda análises de contexto técnico.
+Guarda analises de contexto tecnico.
 
 Exemplos:
 
 - `tools-analysis.md`
-  - levantamento de ferramentas de OCR, PDF, layout e extração.
+  - levantamento de ferramentas de OCR, PDF, layout e extracao.
 
 - `pncp-api-consultas.md`
   - notas sobre a API de consultas do PNCP.
 
 ### `documentation/plans`
 
-Guarda planos de execução e manifests pequenos versionáveis.
+Guarda planos de execucao e manifests pequenos versionaveis.
 
 Exemplos importantes:
 
@@ -171,7 +361,7 @@ Exemplos importantes:
   - plano da rodada inicial de OCR.
 
 - `pncp-api-execution-plan.md`
-  - plano da validação inicial da API PNCP.
+  - plano da validacao inicial da API PNCP.
 
 - `ocr-smoke-sample-v1.csv`
   - amostra reduzida para smoke test OCR.
@@ -180,37 +370,43 @@ Exemplos importantes:
   - amostra maior para benchmark OCR.
 
 - `pncp-api-smoke-sample.csv`
-  - amostra pequena para validação da API PNCP.
+  - amostra pequena para validacao da API PNCP.
 
 ### `documentation/reports`
 
-Guarda relatórios de execução, ambiente e resultados.
+Guarda relatorios de execucao, ambiente, resultados e decisoes.
 
 Exemplos:
 
-- `ocr-run-001-environment.md`
-- `ocr-run-001-smoke-dev.md`
-- `ocr-run-001-smoke-none.md`
-- `pncp-streamlit-explorer.md`
-- `ocr-pdf-conversion-setup.md`
+- `ocr-run-001-environment.md`;
+- `ocr-run-001-smoke-dev.md`;
+- `ocr-run-001-smoke-none.md`;
+- `pncp-streamlit-explorer.md`;
+- `ocr-pdf-conversion-setup.md`.
 
-Esses arquivos contam o histórico real do que já foi executado, quais problemas apareceram e quais decisões foram tomadas.
+Esses arquivos contam o historico real do que ja foi executado, quais problemas apareceram e quais decisoes foram tomadas.
 
 ### `documentation/source`
 
-Guarda fontes manuais ou documentos de referência.
+Guarda fontes manuais ou documentos de referencia.
 
 Exemplos:
 
-- PDFs da documentação do PNCP;
+- PDFs da documentacao do PNCP;
 - planilhas de exemplo;
 - arquivos usados como base para gerar manifests.
 
+### `documentation/projetos-similares`
+
+Pasta local ignorada pelo Git para guardar referencias externas, analises e planos exploratorios.
+
+Ela serve para pesquisa e comparacao, nao como documentacao oficial versionada do projeto.
+
 ## Dados Locais
 
-A pasta `data` é usada para dados de execução, mas está ignorada pelo Git.
+A pasta `data` e usada para dados de execucao, mas esta ignorada pelo Git.
 
-Convenção geral:
+Convencao geral:
 
 ```text
 data/raw/
@@ -221,32 +417,32 @@ data/processed/
 Uso esperado:
 
 - `data/raw`: dados brutos baixados ou recebidos;
-- `data/interim`: arquivos intermediários, como imagens pré-processadas;
-- `data/processed`: resultados finais de uma execução local, como JSONs e CSVs consolidados.
+- `data/interim`: arquivos intermediarios, como imagens pre-processadas;
+- `data/processed`: resultados finais de uma execucao local, como JSONs e CSVs consolidados.
 
-Como esses arquivos podem ser grandes ou sensíveis, eles não devem ser versionados por padrão.
+Como esses arquivos podem ser grandes ou sensiveis, eles nao devem ser versionados por padrao.
 
 ## Notebooks
 
-A pasta `notebooks` contém apoio para inspeção manual.
+A pasta `notebooks` contem apoio para inspecao manual.
 
 Arquivo atual:
 
-- `ocr-result-review.ipynb`
+- `ocr-result-review.ipynb`.
 
 Ele serve para revisar visualmente:
 
 - imagem original;
-- imagem pré-processada;
-- texto extraído;
-- métricas de execução;
-- comparação entre ferramentas.
+- imagem pre-processada;
+- texto extraido;
+- metricas de execucao;
+- comparacao entre ferramentas.
 
-Essa revisão é importante porque uma ferramenta pode gerar muito texto, mas ainda assim produzir uma saída pouco útil.
+Essa revisao e importante porque uma ferramenta pode gerar muito texto, mas ainda assim produzir uma saida pouco util.
 
-## Dependências
+## Dependencias
 
-O projeto separa dependências por frente de trabalho.
+O projeto separa dependencias por frente de trabalho.
 
 ### OCR
 
@@ -258,17 +454,17 @@ requirements-ocr.txt
 
 Inclui bibliotecas como:
 
-- `Pillow`
-- `opencv-python`
-- `pytesseract`
-- `paddleocr`
-- `paddlepaddle`
-- `python-doctr`
-- `torch`
-- `torchvision`
-- `pandas`
-- `ipykernel`
-- `pypdfium2`
+- `Pillow`;
+- `opencv-python`;
+- `pytesseract`;
+- `paddleocr`;
+- `paddlepaddle`;
+- `python-doctr`;
+- `torch`;
+- `torchvision`;
+- `pandas`;
+- `ipykernel`;
+- `pypdfium2`.
 
 ### Streamlit
 
@@ -280,10 +476,10 @@ requirements-streamlit.txt
 
 Inclui:
 
-- `streamlit`
-- `pandas`
+- `streamlit`;
+- `pandas`.
 
-## Comandos Úteis
+## Comandos Uteis
 
 Os comandos Python devem usar o ambiente virtual local:
 
@@ -291,25 +487,25 @@ Os comandos Python devem usar o ambiente virtual local:
 .venv\Scripts\python.exe
 ```
 
-### Rodar smoke da API PNCP
+### Rodar Smoke da API PNCP
 
 ```powershell
 .venv\Scripts\python.exe scripts\run_pncp_api_smoke.py --limit 1 --run-id pncp-api-smoke-local
 ```
 
-### Rodar OCR em smoke test
+### Rodar OCR em Smoke Test
 
 ```powershell
 .venv\Scripts\python.exe scripts\run_ocr_smoke.py --tool tesseract --preset none --run-id ocr-smoke-local
 ```
 
-### Rodar OCR usando manifesto específico
+### Rodar OCR Usando Manifesto Especifico
 
 ```powershell
 .venv\Scripts\python.exe scripts\run_ocr_manifest.py --tool tesseract --preset none --manifest documentation\plans\ocr-smoke-sample-v1.csv --run-id ocr-manifest-local
 ```
 
-### Abrir o explorador PNCP em Streamlit
+### Abrir o Explorador PNCP em Streamlit
 
 ```powershell
 .venv\Scripts\python.exe -m streamlit run scripts\pncp_streamlit_app.py
@@ -317,63 +513,91 @@ Os comandos Python devem usar o ambiente virtual local:
 
 ## Estado Atual do Projeto
 
-### Frente OCR
-
-O projeto já possui:
-
-- ambiente OCR configurado;
-- runners para smoke test e execução por manifesto;
-- adapters para `Tesseract`, `PaddleOCR` e `docTR`;
-- presets de pré-processamento;
-- manifests de amostra;
-- notebook de revisão;
-- relatórios de ambiente e smoke test.
-
-Resultados já registrados indicam que, com preset `none`, as três ferramentas executaram com sucesso no smoke completo de 30 imagens:
-
-- `Tesseract + none`
-- `docTR + none`
-- `PaddleOCR + none`
-
-O próximo passo recomendado nessa frente é revisar qualitativamente os resultados do preset `none` antes de expandir a matriz para os demais presets.
-
 ### Frente PNCP
 
-O projeto já possui:
+O projeto ja possui:
 
-- plano de validação da API;
+- plano de validacao da API;
 - amostra de smoke;
 - script para consultar a API;
-- cliente reutilizável em `src`;
-- app Streamlit para exploração;
-- primeiras validações com retorno real da API.
+- cliente reutilizavel em `src`;
+- app Streamlit para exploracao;
+- primeiras validacoes com retorno real da API.
 
-O aprendizado principal até agora é que buscar contratos no PNCP sem filtros fortes pode retornar volume alto demais. Quando o CNPJ do manifesto corresponde ao `cnpjOrgao`, a busca fica muito mais precisa.
+Aprendizado principal ate agora:
 
-O próximo passo recomendado nessa frente é investigar as demais linhas da amostra inicial, confirmando se o CNPJ disponível representa o órgão contratante ou outra entidade.
+- buscar contratos no PNCP sem filtros fortes pode retornar volume alto demais;
+- quando o CNPJ do manifesto corresponde ao `cnpjOrgao`, a busca fica muito mais precisa;
+- para varias linhas ainda e preciso confirmar se o CNPJ disponivel representa o orgao contratante ou outra entidade.
+
+Proximo passo tecnico:
+
+- estudar melhor a estrutura do Licinexus MCP;
+- priorizar funcoes PNCP;
+- reestruturar `src/sherlock_holmes/pncp` em modulos menores;
+- preparar matching manual versus oficial.
+
+### Frente OCR
+
+O projeto ja possui:
+
+- ambiente OCR configurado;
+- runners para smoke test e execucao por manifesto;
+- adapters para `Tesseract`, `PaddleOCR` e `docTR`;
+- presets de pre-processamento;
+- manifests de amostra;
+- notebook de revisao;
+- relatorios de ambiente e smoke test.
+
+Resultados ja registrados indicam que, com preset `none`, as tres ferramentas executaram com sucesso no smoke completo de 30 imagens:
+
+- `Tesseract + none`;
+- `docTR + none`;
+- `PaddleOCR + none`.
+
+Proximo passo nessa frente:
+
+- revisar qualitativamente os resultados do preset `none`;
+- depois conectar OCR ao fluxo de documentos/anexos, em vez de trata-lo como trilha isolada.
+
+## Ordem Recomendada de Execucao
+
+1. Consolidar esta narrativa no overview e em um relatorio de decisao.
+2. Estudar o Licinexus MCP como referencia tecnica para PNCP.
+3. Reestruturar a camada PNCP em Python.
+4. Adicionar enriquecimento de CNPJ via BrasilAPI.
+5. Criar matching e comparacao manual versus oficial.
+6. Criar modelo de evidencia e confianca.
+7. Integrar documentos e OCR como fallback.
+8. Evoluir Streamlit para investigacao e revisao.
+9. Gerar relatorios auditaveis.
+10. Avaliar MCP, LLM e automacao somente depois da base auditavel.
 
 ## Cuidados Importantes
 
-- Não versionar dados grandes ou locais em `data/raw`, `data/interim`, `data/processed`, `.cache`, `.venv` ou `.local`.
-- Registrar decisões relevantes em `documentation/reports`.
+- Nao versionar dados grandes ou locais em `data/raw`, `data/interim`, `data/processed`, `.cache`, `.venv`, `.local` ou `documentation/projetos-similares`.
+- Registrar decisoes relevantes em `documentation/reports`.
 - Atualizar planos em `documentation/plans` quando o escopo ou status operacional mudar.
-- Não aprovar uma ferramenta de OCR apenas por métrica automática; a revisão qualitativa continua necessária.
-- Preservar a planilha e os PDFs originais em `documentation/source`.
-- Não fazer commits automaticamente sem confirmação.
+- Nao aprovar ferramenta de OCR apenas por metrica automatica; revisao qualitativa continua necessaria.
+- Preservar planilhas e PDFs originais em `documentation/source`.
+- Separar dado oficial, dado manual, dado extraido e dado revisado.
+- Nao apresentar divergencia como acusacao automatica.
+- Nao fazer commits automaticamente sem confirmacao.
 
 ## Leitura Recomendada Para Novos Contribuidores
 
 Para entender o projeto rapidamente, leia nesta ordem:
 
 1. `AGENTS.md`
-2. `documentation/plans/pncp-api-execution-plan.md`
-3. `documentation/plans/ocr-execution-plan-v1.md`
-4. `documentation/reports/ocr-run-001-environment.md`
-5. `documentation/reports/ocr-run-001-smoke-none.md`
-6. `src/sherlock_holmes/pncp/client.py`
-7. `src/sherlock_holmes/ocr/extractors.py`
-8. `src/sherlock_holmes/preprocessing/presets.py`
+2. `documentation/overview-sherlock-holmes.md`
+3. `documentation/plans/pncp-api-execution-plan.md`
+4. `documentation/plans/ocr-execution-plan-v1.md`
+5. `documentation/reports/ocr-run-001-environment.md`
+6. `documentation/reports/ocr-run-001-smoke-none.md`
+7. `src/sherlock_holmes/pncp/client.py`
+8. `src/sherlock_holmes/ocr/extractors.py`
+9. `src/sherlock_holmes/preprocessing/presets.py`
 
 ## Resumo em Uma Frase
 
-O Sherlock Holmes é um laboratório técnico para descobrir, validar e documentar a melhor forma de localizar contratos públicos, acessar seus documentos oficiais e extrair texto útil deles com APIs, parsing e OCR.
+O Sherlock Holmes e um pipeline tecnico e auditavel para localizar contratos publicos, comparar fontes manuais com dados oficiais, preservar evidencias e acionar documentos ou OCR apenas quando os dados estruturados nao forem suficientes.
