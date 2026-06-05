@@ -4,12 +4,8 @@ from __future__ import annotations
 
 import csv
 import json
-import sys
 from dataclasses import asdict
 from pathlib import Path
-
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
 
 from sherlock_holmes.validation import (
     RecordComparison,
@@ -17,6 +13,8 @@ from sherlock_holmes.validation import (
     evidence_from_manual_spreadsheet,
     evidence_from_official_api,
 )
+
+ROOT = Path(__file__).resolve().parents[1]
 
 RAW_DIR = ROOT / "data/raw/pncp/pncp-refactor-live-row67/contracts"
 SOURCE_JSON = RAW_DIR / "source_row_67.json"

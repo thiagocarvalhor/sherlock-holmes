@@ -6,7 +6,6 @@ import re
 from pathlib import Path
 from typing import Any
 
-
 ROOT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_DIR = ROOT_DIR / "data" / "processed" / "ocr-text"
 

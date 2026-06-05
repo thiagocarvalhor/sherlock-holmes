@@ -6,7 +6,6 @@ import argparse
 import csv
 import json
 import re
-import sys
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -15,18 +14,13 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
+from sherlock_holmes.pncp.contratos import search_contratos_url
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_SAMPLE = ROOT_DIR / "documentation" / "plans" / "pncp-api-smoke-sample.csv"
 DEFAULT_RAW_ROOT = ROOT_DIR / "data" / "raw" / "pncp"
 DEFAULT_PROCESSED_ROOT = ROOT_DIR / "data" / "processed" / "pncp"
 DEFAULT_BASE_URL = "https://pncp.gov.br/api/consulta"
-
-SRC_DIR = ROOT_DIR / "src"
-if str(SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(SRC_DIR))
-
-from sherlock_holmes.pncp.contratos import search_contratos_url  # noqa: E402
 
 SUMMARY_FIELDNAMES = [
     "source_row",

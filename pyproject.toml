@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sherlock-holmes"
+version = "0.1.0"
+description = "Pipeline investigativo e auditavel: PNCP como nucleo, documentos e OCR como fallback."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Proprietary" }
+
+# Nucleo usa apenas stdlib + extracao de texto de PDF (lazy).
+dependencies = [
+    "pypdfium2==5.7.1",
+]
+
+[project.optional-dependencies]
+webapp = [
+    "streamlit==1.45.1",
+    "pandas==2.2.3",
+]
+ocr = [
+    "Pillow==12.2.0",
+    "opencv-python==4.13.0.92",
+    "opencv-contrib-python==4.10.0.84",
+    "pytesseract==0.3.13",
+    "numpy==2.2.6",
+    "pandas==2.2.3",
+    "ipykernel==6.29.5",
+    "paddleocr==3.5.0",
+    "paddlepaddle==3.3.1",
+    "python-doctr==1.0.1",
+    "torch==2.5.1",
+    "torchvision==0.20.1",
+]
+dev = [
+    "pytest>=8",
+    "ruff>=0.6",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["sherlock_holmes*"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+src = ["src", "scripts", "tests"]
+extend-exclude = ["notebooks", "*.ipynb"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "B", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

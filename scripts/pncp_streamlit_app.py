@@ -2,16 +2,10 @@
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
 import streamlit as st
 
-ROOT_DIR = Path(__file__).resolve().parents[1]
-if str(ROOT_DIR / "scripts") not in sys.path:
-    sys.path.insert(0, str(ROOT_DIR / "scripts"))
-
-from app.pncp import (  # noqa: E402
+from sherlock_holmes.pncp.client import PncpApiError, compact_digits
+from sherlock_holmes.webapp.pncp import (
     PRESET_ORGAOS,
     cached_contract_files,
     cached_contract_search,
@@ -22,7 +16,6 @@ from app.pncp import (  # noqa: E402
     records_to_dataframe,
     suggested_terms,
 )
-from sherlock_holmes.pncp.client import PncpApiError, compact_digits  # noqa: E402
 
 
 def main() -> None:

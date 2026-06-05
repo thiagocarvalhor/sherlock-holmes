@@ -4,23 +4,18 @@ import argparse
 import csv
 import json
 import os
-import sys
 import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from sherlock_holmes.ocr.extractors import OcrExtractor
+from sherlock_holmes.preprocessing.presets import PRESETS, apply_preset
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
-SRC_DIR = ROOT_DIR / "src"
 DEFAULT_MANIFEST = ROOT_DIR / "documentation" / "plans" / "ocr-smoke-sample-v1.csv"
 DEFAULT_OUTPUT_ROOT = ROOT_DIR / "data" / "processed" / "ocr"
 DEFAULT_INTERIM_ROOT = ROOT_DIR / "data" / "interim" / "ocr"
-
-sys.path.insert(0, str(SRC_DIR))
-
-from sherlock_holmes.ocr.extractors import OcrExtractor  # noqa: E402
-from sherlock_holmes.preprocessing.presets import PRESETS, apply_preset  # noqa: E402
 
 
 TOOLS = ("tesseract", "paddleocr", "doctr")

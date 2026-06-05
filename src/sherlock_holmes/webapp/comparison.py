@@ -3,21 +3,15 @@
 from __future__ import annotations
 
 import json
-import re
-import sys
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
 
+from sherlock_holmes.pncp.client import contract_detail_url
+from sherlock_holmes.pncp.ids import parse_numero_controle_pncp
 
-ROOT_DIR = Path(__file__).resolve().parents[2]
-SRC_DIR = ROOT_DIR / "src"
-if str(SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(SRC_DIR))
-
-from sherlock_holmes.pncp.client import contract_detail_url  # noqa: E402
-
+ROOT_DIR = Path(__file__).resolve().parents[3]
 DEFAULT_COMPARISON_JSON = (
     ROOT_DIR / "data/processed/comparison/row67/record_comparison.json"
 )
@@ -27,21 +21,13 @@ def load_comparison(path: Path) -> list[dict]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def parse_numero_controle_pncp(numero: str) -> tuple[str, int, int] | None:
-    """Extract (cnpj, ano, sequencial) from '39485438000142-2-000019/2025'."""
-    match = re.fullmatch(r"(\d{14})-\d+-(\d+)/(\d{4})", numero.strip())
-    if not match:
-        return None
-    cnpj, sequencial, ano = match.group(1), int(match.group(2)), int(match.group(3))
-    return cnpj, ano, sequencial
-
-
 def candidate_detail_url(numero_controle: str) -> str | None:
-    parsed = parse_numero_controle_pncp(numero_controle)
-    if not parsed:
+    """Build a PNCP detail URL from a numeroControlePNCP, or None if invalid."""
+    try:
+        resource = parse_numero_controle_pncp(numero_controle)
+    except ValueError:
         return None
-    cnpj, ano, sequencial = parsed
-    return contract_detail_url(cnpj, ano, sequencial)
+    return contract_detail_url(resource.orgao_cnpj, resource.ano, resource.sequencial)
 
 
 def build_candidates_df(records: list[dict]) -> pd.DataFrame:

@@ -5,24 +5,19 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import sys
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
 
-
-ROOT_DIR = Path(__file__).resolve().parents[1]
-SRC_DIR = ROOT_DIR / "src"
-if str(SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(SRC_DIR))
-
-from sherlock_holmes.documents import (  # noqa: E402
+from sherlock_holmes.documents import (
     detect_document_type,
     extract_text_direct,
     extract_zip_members,
     list_zip_members,
     write_text_extraction_result,
 )
+
+ROOT_DIR = Path(__file__).resolve().parents[1]
 
 
 DEFAULT_INTERIM_ROOT = ROOT_DIR / "data" / "interim" / "pncp" / "documents"

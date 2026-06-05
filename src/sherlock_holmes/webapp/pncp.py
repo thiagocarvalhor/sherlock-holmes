@@ -2,21 +2,13 @@
 
 from __future__ import annotations
 
-import sys
 from datetime import date
-from pathlib import Path
 from typing import Any
 
 import pandas as pd
 import streamlit as st
 
-
-ROOT_DIR = Path(__file__).resolve().parents[2]
-SRC_DIR = ROOT_DIR / "src"
-if str(SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(SRC_DIR))
-
-from sherlock_holmes.pncp.client import (  # noqa: E402
+from sherlock_holmes.pncp.client import (
     contract_detail_url,
     contract_file_download_url,
     fetch_contract_files,

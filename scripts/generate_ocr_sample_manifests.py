@@ -6,7 +6,6 @@ import csv
 import hashlib
 from pathlib import Path
 
-
 ROOT_DIR = Path(__file__).resolve().parents[1]
 DATASET_DIR = ROOT_DIR / "data" / "raw" / "dataset"
 OUTPUT_DIR = ROOT_DIR / "documentation" / "plans"
@@ -42,7 +41,7 @@ FIELDNAMES = [
 
 def selection_key(path: Path) -> str:
     relative_path = path.relative_to(ROOT_DIR).as_posix()
-    payload = f"{SELECTION_SEED}:{relative_path}".encode("utf-8")
+    payload = f"{SELECTION_SEED}:{relative_path}".encode()
     return hashlib.sha256(payload).hexdigest()
 
 

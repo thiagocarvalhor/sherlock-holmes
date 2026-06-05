@@ -6,12 +6,11 @@ import argparse
 import csv
 import re
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
-from zipfile import ZipFile
 from xml.etree import ElementTree as ET
-
+from zipfile import ZipFile
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_WORKBOOK = ROOT_DIR / "documentation" / "source" / "exemplo_1.xlsx"

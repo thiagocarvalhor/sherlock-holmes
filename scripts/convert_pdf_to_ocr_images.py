@@ -9,7 +9,6 @@ from pathlib import Path
 
 import pypdfium2 as pdfium
 
-
 ROOT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_PDF = (
     ROOT_DIR

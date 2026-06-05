@@ -2,16 +2,11 @@
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import streamlit as st
 
-ROOT_DIR = Path(__file__).resolve().parents[2]
-if str(ROOT_DIR / "scripts") not in sys.path:
-    sys.path.insert(0, str(ROOT_DIR / "scripts"))
-
-from app.comparison import (  # noqa: E402
+from sherlock_holmes.webapp.comparison import (
     DEFAULT_COMPARISON_JSON,
     build_candidates_df,
     build_fields_df,
@@ -19,8 +14,7 @@ from app.comparison import (  # noqa: E402
     load_comparison,
     manual_info,
 )
-from app.ui import STATUS_LABELS, color_status  # noqa: E402
-
+from sherlock_holmes.webapp.ui import STATUS_LABELS, color_status
 
 st.set_page_config(page_title="Comparação Manual vs PNCP", layout="wide")
 st.title("Comparação Manual vs PNCP")

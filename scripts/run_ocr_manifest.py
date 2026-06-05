@@ -1,20 +1,15 @@
 from __future__ import annotations
 
 import argparse
-import sys
 from datetime import datetime
 from pathlib import Path
 
+from sherlock_holmes.ocr.manifest_runner import TOOLS, run_ocr_manifest
+from sherlock_holmes.preprocessing.presets import PRESETS
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
-SRC_DIR = ROOT_DIR / "src"
 DEFAULT_OUTPUT_ROOT = ROOT_DIR / "data" / "processed" / "ocr"
 DEFAULT_INTERIM_ROOT = ROOT_DIR / "data" / "interim" / "ocr"
-
-sys.path.insert(0, str(SRC_DIR))
-
-from sherlock_holmes.ocr.manifest_runner import TOOLS, run_ocr_manifest  # noqa: E402
-from sherlock_holmes.preprocessing.presets import PRESETS  # noqa: E402
 
 
 def parse_args() -> argparse.Namespace:
