@@ -51,7 +51,7 @@ A logica vive no pacote (`investigation.py`), nao na UI. A UI apenas chama
 ## Validacoes Executadas
 
 - `ruff check .` — **All checks passed**;
-- `pytest` — **38 testes verdes** (5 novos de investigation);
+- `pytest` — **40 testes verdes** (5 de investigation + 2 de render do app);
 - investigacao ao vivo da linha 67 (chamada real ao PNCP):
   - 22 candidatos avaliados;
   - melhor: `39485438000142-2-000019/2025`;
@@ -63,6 +63,14 @@ A logica vive no pacote (`investigation.py`), nao na UI. A UI apenas chama
 ```bash
 .venv/Scripts/python.exe -m streamlit run scripts/pncp_streamlit_app.py
 ```
+
+## Correcao pos-entrega
+
+Sliders das duas abas tinham label+parametros identicos, gerando IDs
+duplicados (`StreamlitDuplicateElementId`) ao renderizar ambas no mesmo run.
+Corrigido com `key=` unico por widget (`comp_*`, `busca_*`). Adicionado
+`tests/test_app_render.py` (usa `AppTest`; `importorskip` para pular no CI leve)
+que executa o script e garante render sem excecao.
 
 ## Notas
 

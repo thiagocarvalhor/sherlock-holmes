@@ -57,11 +57,15 @@ def render_comparacao_tab() -> None:
 
     with st.sidebar:
         st.markdown("### Comparação")
-        csv_path = st.text_input("Planilha manual (CSV)", value=str(DEFAULT_MANUAL_CSV))
+        csv_path = st.text_input(
+            "Planilha manual (CSV)", value=str(DEFAULT_MANUAL_CSV), key="comp_csv"
+        )
         with st.expander("Parâmetros da busca"):
-            window_days = st.slider("Janela de dias (± vigência início)", 0, 180, 45, step=5)
-            page_size = st.slider("Tamanho da página", 10, 500, 500, step=10)
-            max_pages = st.slider("Máximo de páginas", 1, 50, 20)
+            window_days = st.slider(
+                "Janela de dias (± vigência início)", 0, 180, 45, step=5, key="comp_window"
+            )
+            page_size = st.slider("Tamanho da página", 10, 500, 500, step=10, key="comp_page_size")
+            max_pages = st.slider("Máximo de páginas", 1, 50, 20, key="comp_max_pages")
 
     path = Path(csv_path)
     if not path.exists():
@@ -79,10 +83,12 @@ def render_comparacao_tab() -> None:
         r = by_row[key]
         return f"Linha {key} · {r.get('municipio', '')}/{r.get('uf', '')} · {r.get('objeto_contrato', '')[:40]}"
 
-    selected_key = st.selectbox("Linha da planilha", list(by_row), format_func=_row_label)
+    selected_key = st.selectbox(
+        "Linha da planilha", list(by_row), format_func=_row_label, key="comp_row"
+    )
     manual_row = by_row[selected_key]
 
-    if st.button("🔎 Investigar no PNCP", type="primary"):
+    if st.button("🔎 Investigar no PNCP", type="primary", key="comp_investigar"):
         st.session_state["investigation_key"] = selected_key
 
     if st.session_state.get("investigation_key") != selected_key:
@@ -158,7 +164,7 @@ def _render_all_candidates(result: InvestigationResult) -> None:
         st.dataframe(styled, use_container_width=True, hide_index=True)
 
         numeros = [c.numero_controle_pncp for c in result.comparisons]
-        chosen = st.selectbox("Inspecionar candidato", numeros)
+        chosen = st.selectbox("Inspecionar candidato", numeros, key="comp_inspect")
         chosen_cmp = next(c for c in result.comparisons if c.numero_controle_pncp == chosen)
         rows_html = "".join(
             field_row_html(f.field_name, f.manual_value, f.official_value, f.status)
@@ -176,23 +182,27 @@ def render_busca_tab() -> None:
 
     with st.sidebar:
         st.markdown("### Busca")
-        preset = st.selectbox("Órgão", ["Manual", *PRESET_ORGAOS.keys()])
+        preset = st.selectbox("Órgão", ["Manual", *PRESET_ORGAOS.keys()], key="busca_preset")
         default_cnpj = PRESET_ORGAOS.get(preset, {}).get("cnpj", "")
         default_unidade = PRESET_ORGAOS.get(preset, {}).get("unidade", "")
 
-        cnpj_orgao = st.text_input("CNPJ do órgão", value=default_cnpj)
-        codigo_unidade = st.text_input("Código da unidade", value=default_unidade)
-        year = st.number_input("Ano", min_value=2021, max_value=2100, value=2025, step=1)
-        page_size = st.slider("Tamanho da página", min_value=10, max_value=500, value=500, step=10)
-        max_pages = st.slider("Máximo de páginas", min_value=1, max_value=100, value=20)
+        cnpj_orgao = st.text_input("CNPJ do órgão", value=default_cnpj, key="busca_cnpj")
+        codigo_unidade = st.text_input("Código da unidade", value=default_unidade, key="busca_unidade")
+        year = st.number_input("Ano", min_value=2021, max_value=2100, value=2025, step=1, key="busca_year")
+        page_size = st.slider(
+            "Tamanho da página", min_value=10, max_value=500, value=500, step=10, key="busca_page_size"
+        )
+        max_pages = st.slider("Máximo de páginas", min_value=1, max_value=100, value=20, key="busca_max_pages")
 
-        topic = st.text_input("Tema para filtrar", value="limpeza")
+        topic = st.text_input("Tema para filtrar", value="limpeza", key="busca_topic")
         suggestions = suggested_terms(topic)
-        selected_terms = st.multiselect("Palavras sugeridas", suggestions, default=suggestions)
-        custom_terms = st.text_input("Palavras extras separadas por vírgula")
+        selected_terms = st.multiselect(
+            "Palavras sugeridas", suggestions, default=suggestions, key="busca_terms"
+        )
+        custom_terms = st.text_input("Palavras extras separadas por vírgula", key="busca_custom")
         terms = selected_terms + [t.strip() for t in custom_terms.split(",") if t.strip()]
 
-        search = st.button("Buscar contratos", type="primary")
+        search = st.button("Buscar contratos", type="primary", key="busca_search")
 
     if not compact_digits(cnpj_orgao):
         st.info("Informe o CNPJ do órgão para começar.")
@@ -252,7 +262,7 @@ def render_busca_tab() -> None:
 
     with st.container(border=True):
         st.markdown("**Arquivos do contrato**")
-        selected = st.selectbox("Contrato", filtered_records, format_func=record_label)
+        selected = st.selectbox("Contrato", filtered_records, format_func=record_label, key="busca_contract")
         cnpj = selected["orgaoEntidade"]["cnpj"]
         contract_year = int(selected["anoContrato"])
         sequencial = int(selected["sequencialContrato"])
