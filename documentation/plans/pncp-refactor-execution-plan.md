@@ -260,8 +260,31 @@ Mitigacao:
 
 ## Status
 
-Pendente.
+Concluida.
+
+## Resultado da Entrega
+
+Arquivos criados:
+
+- `src/sherlock_holmes/pncp/ids.py`
+- `src/sherlock_holmes/pncp/dates.py`
+- `src/sherlock_holmes/pncp/contratos.py`
+
+Arquivo atualizado:
+
+- `src/sherlock_holmes/pncp/__init__.py`
+
+Validacoes executadas:
+
+- compilacao da camada PNCP com `compileall`;
+- smoke PNCP em modo `dry-run`;
+- smoke PNCP real para `source_row=67`, com HTTP `200`;
+- checagem direta de parsing de `numeroControlePNCP` e montagem de URLs.
+
+Relatorio:
+
+- `documentation/reports/pncp-refactor-001.md`
 
 ## Proximo Passo
 
-Implementar `ids.py`, `dates.py` e `contratos.py` mantendo compatibilidade com a camada atual.
+Avaliar a migracao gradual de `scripts/run_pncp_api_smoke.py` para as novas funcoes em `src/sherlock_holmes/pncp/contratos.py` e melhorar paginacao/scoring do smoke.
