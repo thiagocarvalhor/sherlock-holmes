@@ -1,8 +1,4 @@
-"""Smoke test: the Streamlit app renders without raising (e.g. duplicate IDs).
-
-Requires streamlit (the `webapp` extra). Skipped where streamlit is absent,
-such as the lean CI environment that installs only the `dev` extra.
-"""
+"""Smoke tests for the Streamlit app shell."""
 
 from __future__ import annotations
 
@@ -23,9 +19,8 @@ def test_app_renders_without_exception():
     assert not at.exception, f"App raised on render: {list(at.exception)}"
 
 
-def test_app_has_two_tabs():
+def test_app_has_document_first_sections():
     at = AppTest.from_file(str(APP), default_timeout=30)
     at.run()
-    labels = [t.label for t in at.tabs]
-    assert any("Comparação" in label for label in labels)
-    assert any("Busca" in label for label in labels)
+    headers = [header.value for header in at.header]
+    assert headers == ["Documentos PNCP", "Comparacao manual"]

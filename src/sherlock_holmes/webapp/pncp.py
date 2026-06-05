@@ -55,6 +55,7 @@ KEYWORD_SUGGESTIONS: dict[str, list[str]] = {
 }
 
 PRESET_ORGAOS: dict[str, dict[str, str]] = {
+    "Prefeitura de Belford Roxo": {"cnpj": "39485438000142", "unidade": ""},
     "SMSUB São Paulo": {"cnpj": "49269236000117", "unidade": "925004"},
     "Prefeitura de Belo Horizonte": {"cnpj": "18715383000140", "unidade": ""},
 }
