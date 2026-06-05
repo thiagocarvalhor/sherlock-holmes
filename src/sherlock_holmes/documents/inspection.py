@@ -196,11 +196,13 @@ def write_text_extraction_result(
         assess_text_quality,
         normalize_extracted_text,
     )
+    from sherlock_holmes.documents.ocr_fallback import decide_ocr_fallback
 
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     normalized_text = normalize_extracted_text(extraction.text)
     quality = assess_text_quality(extraction.text)
+    ocr_fallback = decide_ocr_fallback(extraction, quality=quality)
     payload = {
         "path": extraction.path,
         "file_type": extraction.file_type,
@@ -218,6 +220,13 @@ def write_text_extraction_result(
             "mojibake_marker_count": quality.mojibake_marker_count,
             "should_consider_ocr": quality.should_consider_ocr,
             "notes": quality.notes,
+        },
+        "ocr_fallback": {
+            "status": ocr_fallback.status,
+            "should_run_ocr": ocr_fallback.should_run_ocr,
+            "reason": ocr_fallback.reason,
+            "extraction_status": ocr_fallback.extraction_status,
+            "text_quality": ocr_fallback.text_quality,
         },
     }
     with output_path.open("w", encoding="utf-8") as file:
