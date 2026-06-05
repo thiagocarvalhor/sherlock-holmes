@@ -1,5 +1,12 @@
 """Helpers for PNCP public API exploration."""
 
+from sherlock_holmes.pncp.arquivos import (
+    PncpDocumentReference,
+    contract_file_references,
+    document_reference_from_pncp_file,
+    document_references_from_pncp_files,
+    procurement_file_references,
+)
 from sherlock_holmes.pncp.contratos import (
     get_contrato,
     get_contrato_url,
@@ -36,9 +43,13 @@ from sherlock_holmes.pncp.licitacoes import (
 
 __all__ = [
     "PNCP_MAX_DATE_RANGE_DAYS",
+    "PncpDocumentReference",
     "PncpResourceId",
     "compact_digits",
+    "contract_file_references",
     "default_date_range",
+    "document_reference_from_pncp_file",
+    "document_references_from_pncp_files",
     "format_pncp_date",
     "get_contrato",
     "get_contrato_url",
@@ -53,6 +64,7 @@ __all__ = [
     "normalize_cnpj",
     "parse_numero_controle_pncp",
     "parse_pncp_date",
+    "procurement_file_references",
     "resolve_pncp_contract_id",
     "search_contratos",
     "search_contratos_url",
