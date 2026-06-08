@@ -6,7 +6,10 @@ import pytest
 
 pytest.importorskip("streamlit")
 
+from sherlock_holmes.enrichment import record_from_payload  # noqa: E402
 from sherlock_holmes.webapp.views import (  # noqa: E402
+    _cnpj_enrichment_targets,
+    _cnpj_record_summary,
     _contract_candidates_dataframe,
     _rank_contract_candidates,
 )
@@ -45,6 +48,13 @@ OTHER = {
     "dataVigenciaFim": "2026-08-05",
 }
 
+ENRICHMENT_CONTRACT = {
+    "numeroControlePNCP": "39485438000142-2-000019/2025",
+    "orgaoEntidade": {"cnpj": "39485438000142"},
+    "nomeRazaoSocialFornecedor": "EMPRESA TESTE LTDA",
+    "niFornecedor": "12.345.678/0001-95",
+}
+
 
 def test_rank_contract_candidates_preserves_manual_selection_without_reference_row():
     candidates = _rank_contract_candidates([OTHER, WINNER], manual_row=None)
@@ -69,3 +79,36 @@ def test_contract_candidates_dataframe_exposes_explanation_columns():
     assert list(dataframe.columns[:4]) == ["rank", "score", "status", "matches"]
     assert dataframe.iloc[0]["rank"] == 1
     assert dataframe.iloc[0]["status"] == "partial_match"
+
+
+def test_cnpj_enrichment_targets_include_orgao_and_supplier_cnpjs():
+    targets = _cnpj_enrichment_targets(ENRICHMENT_CONTRACT)
+    assert targets == [
+        {"role": "orgao", "label": "Orgao contratante", "cnpj": "39485438000142"},
+        {"role": "fornecedor", "label": "EMPRESA TESTE LTDA", "cnpj": "12345678000195"},
+    ]
+
+
+def test_cnpj_enrichment_targets_skip_non_cnpj_supplier_identifier():
+    contract = {**ENRICHMENT_CONTRACT, "niFornecedor": "123.456.789-10"}
+    targets = _cnpj_enrichment_targets(contract)
+    assert targets == [{"role": "orgao", "label": "Orgao contratante", "cnpj": "39485438000142"}]
+
+
+def test_cnpj_record_summary_formats_main_fields():
+    record = record_from_payload(
+        {
+            "cnpj": "12345678000195",
+            "razao_social": "EMPRESA TESTE LTDA",
+            "descricao_situacao_cadastral": "ATIVA",
+            "municipio": "SAO PAULO",
+            "uf": "SP",
+            "socios": [{"nome_socio": "SOCIO TESTE"}],
+        },
+        source_url="https://brasilapi.com.br/api/cnpj/v1/12345678000195",
+        collected_at="2026-06-07T12:00:00+00:00",
+    )
+    summary = _cnpj_record_summary(record)
+    assert summary["razao_social"] == "EMPRESA TESTE LTDA"
+    assert summary["municipio_uf"] == "SAO PAULO/SP"
+    assert summary["socios_count"] == 1

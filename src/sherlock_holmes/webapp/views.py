@@ -9,6 +9,7 @@ from typing import Any
 import pandas as pd
 import streamlit as st
 
+from sherlock_holmes.enrichment import BrasilApiCnpjRecord, BrasilApiError, fetch_cnpj
 from sherlock_holmes.investigation import (
     InvestigationResult,
     investigate_row,
@@ -63,6 +64,13 @@ def cached_investigate_row(
         page_size=page_size,
         max_pages=max_pages,
     )
+
+
+@st.cache_data(show_spinner=False, ttl=900)
+def cached_cnpj_enrichment(cnpj: str) -> BrasilApiCnpjRecord:
+    """Cached wrapper around BrasilAPI CNPJ enrichment."""
+
+    return fetch_cnpj(cnpj)
 
 
 def render_app() -> None:
@@ -198,6 +206,7 @@ def render_document_search_section() -> None:
         str(selected.get("numeroControlePNCP", "")),
     )
     _render_contract_documents(selected)
+    _render_cnpj_enrichment(selected)
 
 
 def _render_priority_controls() -> tuple[dict[str, Any] | None, str | None]:
@@ -374,6 +383,117 @@ def _render_contract_documents(contract: dict[str, Any]) -> None:
     action_cols = st.columns([3, 1])
     action_cols[0].caption(_document_label(selected_file))
     action_cols[1].link_button("Abrir arquivo", download_url)
+
+
+def _render_cnpj_enrichment(contract: dict[str, Any]) -> None:
+    st.subheader("Enriquecimento cadastral")
+    targets = _cnpj_enrichment_targets(contract)
+    if not targets:
+        st.info("Nenhum CNPJ de orgao ou fornecedor disponivel para enriquecimento.")
+        return
+
+    target_index = st.selectbox(
+        "CNPJ para enriquecer",
+        range(len(targets)),
+        format_func=lambda index: f"{targets[index]['label']} | {targets[index]['cnpj']}",
+        key="cnpj_enrichment_target",
+    )
+    target = targets[int(target_index)]
+    context = (target["role"], target["cnpj"], str(contract.get("numeroControlePNCP", "")))
+
+    if st.button("Consultar BrasilAPI", type="secondary", key="cnpj_enrichment_fetch"):
+        try:
+            with st.spinner("Consultando CNPJ na BrasilAPI..."):
+                st.session_state["cnpj_enrichment_record"] = cached_cnpj_enrichment(target["cnpj"])
+                st.session_state["cnpj_enrichment_context"] = context
+        except (BrasilApiError, ValueError) as exc:
+            st.error(str(exc))
+            return
+        except OSError as exc:
+            st.error(f"Erro de conexao com a BrasilAPI: {exc}")
+            return
+
+    record = st.session_state.get("cnpj_enrichment_record")
+    record_context = st.session_state.get("cnpj_enrichment_context")
+    if record and record_context == context:
+        _render_cnpj_record(record)
+    else:
+        st.caption("A consulta e sob demanda para preservar controle de coleta e evitar chamadas repetidas.")
+
+
+def _render_cnpj_record(record: BrasilApiCnpjRecord) -> None:
+    summary = _cnpj_record_summary(record)
+    st.markdown(f"**Razao social:** {summary['razao_social'] or '-'}")
+    metric_cols = st.columns(4)
+    metric_cols[0].metric("Situacao", summary["situacao_cadastral"] or "-")
+    metric_cols[1].metric("Municipio/UF", summary["municipio_uf"] or "-")
+    metric_cols[2].metric("Socios", summary["socios_count"])
+    metric_cols[3].metric("Capital social", summary["capital_social"] if summary["capital_social"] is not None else "-")
+
+    st.dataframe(pd.DataFrame([summary]), use_container_width=True, hide_index=True)
+    st.caption(f"Fonte: {record.source_url}")
+    st.caption(f"Coletado em: {record.collected_at}")
+    with st.expander("Payload bruto BrasilAPI"):
+        st.json(record.raw_payload)
+
+
+def _cnpj_enrichment_targets(contract: dict[str, Any]) -> list[dict[str, str]]:
+    targets: list[dict[str, str]] = []
+    seen: set[str] = set()
+
+    orgao = contract.get("orgaoEntidade") or {}
+    _append_cnpj_target(
+        targets,
+        seen,
+        role="orgao",
+        label="Orgao contratante",
+        cnpj=str(orgao.get("cnpj") or contract.get("cnpjOrgao") or ""),
+    )
+
+    supplier_name = str(contract.get("nomeRazaoSocialFornecedor") or "Fornecedor")
+    _append_cnpj_target(
+        targets,
+        seen,
+        role="fornecedor",
+        label=supplier_name,
+        cnpj=str(contract.get("niFornecedor") or ""),
+    )
+
+    return targets
+
+
+def _append_cnpj_target(
+    targets: list[dict[str, str]],
+    seen: set[str],
+    *,
+    role: str,
+    label: str,
+    cnpj: str,
+) -> None:
+    digits = compact_digits(cnpj)
+    if len(digits) != 14 or digits in seen:
+        return
+    targets.append({"role": role, "label": label, "cnpj": digits})
+    seen.add(digits)
+
+
+def _cnpj_record_summary(record: BrasilApiCnpjRecord) -> dict[str, Any]:
+    standardized = record.standardized()
+    municipio = str(standardized.get("municipio") or "")
+    uf = str(standardized.get("uf") or "")
+    municipio_uf = f"{municipio}/{uf}" if municipio or uf else ""
+    return {
+        "cnpj": standardized["cnpj"],
+        "razao_social": standardized["razao_social"],
+        "nome_fantasia": standardized["nome_fantasia"],
+        "situacao_cadastral": standardized["situacao_cadastral"],
+        "municipio_uf": municipio_uf,
+        "cnae_fiscal": standardized["cnae_fiscal"],
+        "cnae_fiscal_descricao": standardized["cnae_fiscal_descricao"],
+        "data_inicio_atividade": standardized["data_inicio_atividade"],
+        "capital_social": standardized["capital_social"],
+        "socios_count": standardized["socios_count"],
+    }
 
 
 def render_comparison_section() -> None:
