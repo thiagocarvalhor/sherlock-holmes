@@ -26,6 +26,14 @@ def load_document_references(path: str | Path) -> list[dict[str, Any]]:
     return [_document_row(record) for record in records]
 
 
+def load_cnpj_enrichments(path: str | Path) -> list[dict[str, Any]]:
+    """Load BrasilAPI CNPJ enrichment records from a JSON file."""
+
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    records = _cnpj_payload_records(payload)
+    return [_cnpj_enrichment_row(record) for record in records]
+
+
 def summarize_comparisons(comparisons: list[dict[str, Any]]) -> dict[str, Any]:
     """Summarize ranked comparison results."""
 
@@ -65,6 +73,7 @@ def build_audit_report(
     comparisons: list[dict[str, Any]],
     *,
     official_documents: list[Any] | None = None,
+    cnpj_enrichments: list[Any] | None = None,
     title: str = "Relatorio Auditavel de Comparacao",
     generated_at: str | None = None,
 ) -> dict[str, Any]:
@@ -80,7 +89,10 @@ def build_audit_report(
         if field.get("status") in {"partial_match", "divergent", "missing_in_official", "missing_in_manual"}
     ]
     documents = _document_rows(official_documents or [])
+    enrichments = _cnpj_enrichment_rows(cnpj_enrichments or [])
     summary["official_documents_count"] = len(documents)
+    summary["cnpj_enrichments_count"] = len(enrichments)
+    summary["enriched_cnpjs"] = sorted(enrichment["cnpj"] for enrichment in enrichments if enrichment["cnpj"])
     summary["documents_review_required"] = bool(documents and review_fields)
 
     return {
@@ -91,6 +103,7 @@ def build_audit_report(
         "best_candidate_fields": [_field_row(field) for field in best_fields],
         "review_fields": [_field_row(field) for field in review_fields],
         "official_documents": documents,
+        "cnpj_enrichments": enrichments,
     }
 
 
@@ -111,6 +124,7 @@ def render_audit_report_markdown(report: dict[str, Any]) -> str:
         f"- Status: `{summary['best_status']}`",
         f"- Candidatos duplicados: `{summary['duplicate_candidates_count']}`",
         f"- Documentos oficiais vinculados: `{summary.get('official_documents_count', 0)}`",
+        f"- CNPJs enriquecidos: `{summary.get('cnpj_enrichments_count', 0)}`",
         f"- Proxima acao recomendada: {summary['recommended_next_action']}",
         "",
         "## Candidatos",
@@ -179,6 +193,22 @@ def render_audit_report_markdown(report: dict[str, Any]) -> str:
     else:
         lines.append("Nenhum documento oficial vinculado ao relatorio.")
 
+    lines.extend(["", "## Enriquecimento CNPJ", ""])
+    if report.get("cnpj_enrichments"):
+        lines.extend(
+            [
+                "| cnpj | papel | razao social | situacao | municipio/UF | CNAE | socios | fonte |",
+                "|------|-------|--------------|----------|--------------|------|--------|-------|",
+            ]
+        )
+        for enrichment in report["cnpj_enrichments"]:
+            lines.append(
+                "| {cnpj} | {role} | {razao_social} | {situacao_cadastral} | {location} | "
+                "{cnae} | {socios_count} | {source_url} |".format(**_markdown_cnpj_enrichment(enrichment))
+            )
+    else:
+        lines.append("Nenhum enriquecimento CNPJ vinculado ao relatorio.")
+
     return "\n".join(lines) + "\n"
 
 
@@ -204,6 +234,7 @@ def build_batch_audit_report(
             "rows_count": len(rows),
             "total_candidates": sum(row["candidates_count"] for row in rows),
             "total_official_documents": sum(row["official_documents_count"] for row in rows),
+            "total_cnpj_enrichments": sum(row["cnpj_enrichments_count"] for row in rows),
             "status_counts": status_counts,
             "review_rows_count": len(review_rows),
             "duplicate_candidates_total": sum(row["duplicate_candidates_count"] for row in rows),
@@ -226,19 +257,21 @@ def render_batch_audit_report_markdown(report: dict[str, Any]) -> str:
         f"- Linhas consolidadas: `{summary['rows_count']}`",
         f"- Candidatos avaliados: `{summary['total_candidates']}`",
         f"- Documentos oficiais vinculados: `{summary.get('total_official_documents', 0)}`",
+        f"- CNPJs enriquecidos: `{summary.get('total_cnpj_enrichments', 0)}`",
         f"- Linhas para revisao: `{summary['review_rows_count']}`",
         f"- Duplicatas detectadas: `{summary['duplicate_candidates_total']}`",
         "",
         "## Linhas",
         "",
-        "| linha | melhor candidato | score | status | revisar campos | docs oficiais | candidatos |",
-        "|-------|------------------|-------|--------|----------------|---------------|------------|",
+        "| linha | melhor candidato | score | status | revisar campos | docs oficiais | CNPJs | candidatos |",
+        "|-------|------------------|-------|--------|----------------|---------------|-------|------------|",
     ]
 
     for row in report["rows"]:
         lines.append(
             "| {source_row} | {best_candidate} | {best_score:.4f} | {best_status} | "
-            "{review_fields_count} | {official_documents_count} | {candidates_count} |".format(**row)
+            "{review_fields_count} | {official_documents_count} | {cnpj_enrichments_count} | "
+            "{candidates_count} |".format(**row)
         )
 
     lines.extend(["", "## Linhas Para Revisao", ""])
@@ -339,6 +372,8 @@ def _batch_row(report: dict[str, Any], rank: int) -> dict[str, Any]:
         "divergent_fields_count": int(summary.get("divergent_fields_count") or 0),
         "duplicate_candidates_count": int(summary.get("duplicate_candidates_count") or 0),
         "official_documents_count": int(summary.get("official_documents_count") or 0),
+        "cnpj_enrichments_count": int(summary.get("cnpj_enrichments_count") or 0),
+        "enriched_cnpjs": [str(cnpj) for cnpj in summary.get("enriched_cnpjs", [])],
         "documents_review_required": bool(summary.get("documents_review_required") or False),
         "recommended_next_action": str(summary.get("recommended_next_action") or ""),
     }
@@ -408,6 +443,120 @@ def _document_row(record: Any) -> dict[str, Any]:
     }
 
 
+def _cnpj_payload_records(payload: Any) -> list[Any]:
+    if isinstance(payload, list):
+        return payload
+    if isinstance(payload, dict):
+        for key in ("cnpj_enrichments", "enrichments", "records", "data"):
+            records = payload.get(key)
+            if isinstance(records, list):
+                return records
+        if _has_cnpj_enrichment_keys(payload):
+            return [payload]
+    raise ValueError("CNPJ enrichments must be a JSON list or an object containing an enrichment list.")
+
+
+def _cnpj_enrichment_rows(records: list[Any]) -> list[dict[str, Any]]:
+    return [_cnpj_enrichment_row(record) for record in records]
+
+
+def _cnpj_enrichment_row(record: Any) -> dict[str, Any]:
+    data = _object_dict(record)
+    value = _object_dict(data.get("value"))
+    metadata = _object_dict(data.get("metadata"))
+    raw_payload = _object_dict(data.get("raw_payload"))
+    standardized = _object_dict(data.get("standardized"))
+
+    return {
+        "role": _pick_enrichment_value(data, metadata, "role", "target_role", "label", "context"),
+        "cnpj": _pick_enrichment_value(data, value, metadata, standardized, raw_payload, "cnpj"),
+        "razao_social": _pick_enrichment_value(
+            data,
+            value,
+            standardized,
+            raw_payload,
+            "razao_social",
+            "razaoSocial",
+        ),
+        "nome_fantasia": _pick_enrichment_value(data, value, standardized, raw_payload, "nome_fantasia"),
+        "cnae_fiscal": _pick_enrichment_value(data, value, standardized, raw_payload, "cnae_fiscal"),
+        "cnae_fiscal_descricao": _pick_enrichment_value(
+            data,
+            value,
+            standardized,
+            raw_payload,
+            "cnae_fiscal_descricao",
+        ),
+        "municipio": _pick_enrichment_value(data, value, standardized, raw_payload, "municipio"),
+        "uf": _pick_enrichment_value(data, value, standardized, raw_payload, "uf"),
+        "situacao_cadastral": _pick_enrichment_value(
+            data,
+            value,
+            standardized,
+            raw_payload,
+            "situacao_cadastral",
+            "descricao_situacao_cadastral",
+        ),
+        "data_inicio_atividade": _pick_enrichment_value(
+            data,
+            value,
+            standardized,
+            raw_payload,
+            "data_inicio_atividade",
+        ),
+        "capital_social": _optional_float(
+            _pick_enrichment_value(data, value, standardized, raw_payload, "capital_social")
+        ),
+        "socios_count": _socios_count(data, value, standardized, raw_payload),
+        "source_url": _pick_enrichment_value(data, metadata, "source_url", "sourceUrl"),
+        "collected_at": _pick_enrichment_value(data, metadata, "collected_at", "collectedAt"),
+    }
+
+
+def _has_cnpj_enrichment_keys(record: dict[str, Any]) -> bool:
+    enrichment_keys = {
+        "cnpj",
+        "razao_social",
+        "nome_fantasia",
+        "source_url",
+        "raw_payload",
+        "value",
+        "metadata",
+    }
+    return any(key in record for key in enrichment_keys)
+
+
+def _pick_enrichment_value(*sources_and_keys: Any) -> str:
+    first_key_index = next(
+        (index for index, item in enumerate(sources_and_keys) if isinstance(item, str)),
+        len(sources_and_keys),
+    )
+    sources = sources_and_keys[:first_key_index]
+    keys = sources_and_keys[first_key_index:]
+    for source in sources:
+        if not isinstance(source, dict):
+            continue
+        for key in keys:
+            value = source.get(key)
+            if value is not None and value != "":
+                return str(value)
+    return ""
+
+
+def _socios_count(*sources: dict[str, Any]) -> int:
+    for source in sources:
+        socios_count = source.get("socios_count")
+        if socios_count is not None and socios_count != "":
+            try:
+                return int(float(str(socios_count)))
+            except ValueError:
+                return 0
+        socios = source.get("socios")
+        if isinstance(socios, list):
+            return len(socios)
+    return 0
+
+
 def _has_document_reference_keys(record: dict[str, Any]) -> bool:
     document_keys = {
         "title",
@@ -443,6 +592,19 @@ def _object_dict(value: Any) -> dict[str, Any]:
             "uri",
             "published_at",
             "local_path",
+            "cnpj",
+            "razao_social",
+            "nome_fantasia",
+            "cnae_fiscal",
+            "cnae_fiscal_descricao",
+            "municipio",
+            "uf",
+            "situacao_cadastral",
+            "data_inicio_atividade",
+            "capital_social",
+            "socios",
+            "source_url",
+            "collected_at",
         )
         if hasattr(value, key)
     }
@@ -466,6 +628,15 @@ def _optional_int(value: Any) -> int | None:
         return None
 
 
+def _optional_float(value: Any) -> float | None:
+    if value is None or value == "":
+        return None
+    try:
+        return float(str(value).replace(",", "."))
+    except ValueError:
+        return None
+
+
 def _markdown_field(field: dict[str, Any]) -> dict[str, Any]:
     cleaned = dict(field)
     for key in ("manual_value", "official_value", "notes"):
@@ -478,6 +649,28 @@ def _markdown_document(document: dict[str, Any]) -> dict[str, Any]:
     source_ref = cleaned.get("url") or cleaned.get("uri") or cleaned.get("local_path") or ""
     cleaned["source_ref"] = _markdown_cell(str(source_ref))
     for key in ("resource_id", "document_type", "title", "published_at", "sequence"):
+        cleaned[key] = _markdown_cell(str(cleaned.get(key) or ""))
+    return cleaned
+
+
+def _markdown_cnpj_enrichment(enrichment: dict[str, Any]) -> dict[str, Any]:
+    cleaned = dict(enrichment)
+    municipio = str(cleaned.get("municipio") or "")
+    uf = str(cleaned.get("uf") or "")
+    cnae = str(cleaned.get("cnae_fiscal") or "")
+    cnae_description = str(cleaned.get("cnae_fiscal_descricao") or "")
+    cleaned["location"] = "/".join(part for part in (municipio, uf) if part)
+    cleaned["cnae"] = " - ".join(part for part in (cnae, cnae_description) if part)
+    for key in (
+        "cnpj",
+        "role",
+        "razao_social",
+        "situacao_cadastral",
+        "location",
+        "cnae",
+        "socios_count",
+        "source_url",
+    ):
         cleaned[key] = _markdown_cell(str(cleaned.get(key) or ""))
     return cleaned
 

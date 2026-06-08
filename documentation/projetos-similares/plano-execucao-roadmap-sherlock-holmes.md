@@ -36,7 +36,7 @@ Legenda:
   - [x] Client BrasilAPI CNPJ.
   - [x] Normalizacao de CNPJ, campos padronizados, payload bruto e evidencia.
   - [x] Integrar enriquecimento inicial na UI Streamlit.
-  - [ ] Integrar enriquecimento em relatorios auditaveis.
+  - [x] Integrar enriquecimento em relatorios auditaveis.
 - [x] Fase 5: criar camada de matching e comparacao, primeira versao.
   - [x] Comparacao campo a campo com evidencias dos dois lados.
   - [x] Comparacao de registros completos.
@@ -57,7 +57,7 @@ Legenda:
   - [x] Saida JSON e Markdown para a linha `67`.
   - [x] Relatorio multi-linha, primeira versao.
   - [x] Incluir documentos oficiais vinculados no relatorio unitario e consolidado.
-  - [ ] Incluir enriquecimento CNPJ quando disponivel.
+  - [x] Incluir enriquecimento CNPJ quando disponivel.
   - [ ] Incluir documentos que exigem revisao/OCR.
 - [ ] Fase 10: avaliar MCP, LLM e automacao.
 
@@ -113,6 +113,7 @@ Legenda:
 - [x] Criar primeira versao de relatorio auditavel em `documentation/reports/audit-report-001.md`.
 - [x] Criar relatorio auditavel multi-linha em `documentation/reports/audit-batch-report-001.md`.
 - [x] Incluir documentos oficiais vinculados nos relatorios auditaveis em `documentation/reports/audit-report-documents-001.md`.
+- [x] Incluir enriquecimento CNPJ nos relatorios auditaveis em `documentation/reports/audit-report-cnpj-enrichment-001.md`.
 
 ## 2. Pergunta Inicial: Precisamos Conhecer Melhor os Projetos Similares?
 
@@ -341,7 +342,7 @@ src/sherlock_holmes/enrichment/
 - [x] Normalizar CNPJ antes da consulta.
 - [x] Salvar payload bruto quando usado em execucoes.
 - [x] Padronizar campos principais.
-- [~] Integrar enriquecimento nos fluxos de comparacao.
+- [x] Integrar enriquecimento nos fluxos de comparacao e relatorio.
 
 ### Campos uteis
 
@@ -367,7 +368,6 @@ O modulo `sherlock_holmes.enrichment.brasilapi` cria URL oficial da BrasilAPI, n
 
 Pendencias de refinamento:
 
-- gerar relatorios de fornecedores enriquecidos;
 - avaliar cache/persistencia para evitar chamadas repetidas.
 
 ## 10. Fase 5: Criar Camada de Matching e Comparacao
@@ -526,7 +526,7 @@ Gerar saidas claras para revisao tecnica.
 - [x] candidatos por linha manual;
 - [x] comparacao campo a campo;
 - [x] divergencias;
-- [ ] fornecedores enriquecidos;
+- [x] fornecedores enriquecidos;
 - [x] documentos oficiais vinculados;
 - [ ] documentos que exigem revisao/OCR;
 - [ ] documentos processados por OCR;
@@ -540,11 +540,10 @@ Cada execucao relevante deve gerar artefatos em CSV/JSON/Markdown suficientes pa
 
 Em andamento.
 
-A primeira entrega criou `sherlock_holmes.reporting.audit` e `scripts/generate_audit_report.py`, gerando JSON e Markdown a partir do resultado de comparacao da linha `67`. A camada tambem ja aceita referencias de documentos oficiais previamente coletadas e soma esses documentos no relatorio consolidado.
+A primeira entrega criou `sherlock_holmes.reporting.audit` e `scripts/generate_audit_report.py`, gerando JSON e Markdown a partir do resultado de comparacao da linha `67`. A camada tambem ja aceita referencias de documentos oficiais e enriquecimentos CNPJ previamente coletados, somando esses registros no relatorio consolidado.
 
 Pendencias:
 
-- incluir enriquecimento CNPJ quando disponivel;
 - incluir documentos que exigem revisao/OCR.
 
 ## 15. Fase 10: Avaliar MCP, LLM e Automacao
