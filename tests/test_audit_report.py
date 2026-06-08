@@ -8,6 +8,7 @@ from sherlock_holmes.reporting import (
     build_audit_report,
     build_batch_audit_report,
     load_comparison_results,
+    load_document_references,
     render_audit_report_markdown,
     render_batch_audit_report_markdown,
     summarize_comparisons,
@@ -49,6 +50,19 @@ def _comparison(numero: str, score: float, status: str) -> dict:
     }
 
 
+def _document_reference() -> dict:
+    return {
+        "source": "pncp",
+        "resource_type": "contract",
+        "resource_id": "39485438000142/2025/19",
+        "title": "Contrato limpeza urbana",
+        "document_type": "Contrato",
+        "sequence": 1,
+        "url": "https://pncp.gov.br/documentos/contrato.pdf",
+        "published_at": "2025-11-03",
+    }
+
+
 def test_summarize_comparisons_identifies_best_candidate():
     summary = summarize_comparisons([
         _comparison("39485438000142-2-000003/2025", 0.35, "divergent"),
@@ -71,20 +85,29 @@ def test_build_audit_report_contains_ranked_candidates_and_review_fields():
             _comparison("39485438000142-2-000003/2025", 0.35, "divergent"),
             _comparison("39485438000142-2-000019/2025", 0.85, "partial_match"),
         ],
+        official_documents=[_document_reference()],
         generated_at="2026-06-07T12:00:00+00:00",
     )
     assert report["summary"]["best_candidate"] == "39485438000142-2-000019/2025"
+    assert report["summary"]["official_documents_count"] == 1
+    assert report["summary"]["documents_review_required"] is True
     assert report["candidates"][0]["rank"] == 1
     assert report["candidates"][0]["overall_score"] == 0.85
     assert report["review_fields"][0]["field_name"] == "objeto_contrato"
+    assert report["official_documents"][0]["title"] == "Contrato limpeza urbana"
 
 
 def test_render_audit_report_markdown_includes_core_sections():
-    report = build_audit_report([_comparison("39485438000142-2-000019/2025", 0.85, "partial_match")])
+    report = build_audit_report(
+        [_comparison("39485438000142-2-000019/2025", 0.85, "partial_match")],
+        official_documents=[_document_reference()],
+    )
     markdown = render_audit_report_markdown(report)
     assert "# Relatorio Auditavel de Comparacao" in markdown
     assert "## Candidatos" in markdown
     assert "## Melhor Candidato - Campo a Campo" in markdown
+    assert "## Documentos Oficiais Vinculados" in markdown
+    assert "Contrato limpeza urbana" in markdown
     assert "39485438000142-2-000019/2025" in markdown
 
 
@@ -106,13 +129,27 @@ def test_load_comparison_results_reads_json_list(tmp_path):
     assert load_comparison_results(path)[0]["numero_controle_pncp"] == "n"
 
 
+def test_load_document_references_reads_nested_payload(tmp_path):
+    path = tmp_path / "documents.json"
+    path.write_text(json.dumps({"documents": [_document_reference()]}), encoding="utf-8")
+    loaded = load_document_references(path)
+    assert loaded[0]["resource_id"] == "39485438000142/2025/19"
+    assert loaded[0]["sequence"] == 1
+    assert loaded[0]["url"] == "https://pncp.gov.br/documentos/contrato.pdf"
+
+
 def test_build_batch_audit_report_summarizes_multiple_rows():
-    row67 = build_audit_report([_comparison("39485438000142-2-000019/2025", 0.85, "partial_match")])
+    row67 = build_audit_report(
+        [_comparison("39485438000142-2-000019/2025", 0.85, "partial_match")],
+        official_documents=[_document_reference()],
+    )
     row68 = build_audit_report([_comparison("00000000000000-2-000001/2025", 1.0, "match")])
     batch = build_batch_audit_report([row67, row68], generated_at="2026-06-07T12:00:00+00:00")
     assert batch["summary"]["rows_count"] == 2
     assert batch["summary"]["total_candidates"] == 2
+    assert batch["summary"]["total_official_documents"] == 1
     assert batch["summary"]["review_rows_count"] == 2
+    assert batch["rows"][0]["official_documents_count"] == 1
     assert batch["rows"][0]["source_row"] == "67"
 
 

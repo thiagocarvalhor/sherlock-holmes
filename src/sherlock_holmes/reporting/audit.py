@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import asdict, is_dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -15,6 +16,14 @@ def load_comparison_results(path: str | Path) -> list[dict[str, Any]]:
     if not isinstance(payload, list):
         raise ValueError("Comparison results must be a JSON list.")
     return [item for item in payload if isinstance(item, dict)]
+
+
+def load_document_references(path: str | Path) -> list[dict[str, Any]]:
+    """Load PNCP document references from a JSON file."""
+
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    records = _document_payload_records(payload)
+    return [_document_row(record) for record in records]
 
 
 def summarize_comparisons(comparisons: list[dict[str, Any]]) -> dict[str, Any]:
@@ -55,6 +64,7 @@ def summarize_comparisons(comparisons: list[dict[str, Any]]) -> dict[str, Any]:
 def build_audit_report(
     comparisons: list[dict[str, Any]],
     *,
+    official_documents: list[Any] | None = None,
     title: str = "Relatorio Auditavel de Comparacao",
     generated_at: str | None = None,
 ) -> dict[str, Any]:
@@ -69,6 +79,9 @@ def build_audit_report(
         for field in best_fields
         if field.get("status") in {"partial_match", "divergent", "missing_in_official", "missing_in_manual"}
     ]
+    documents = _document_rows(official_documents or [])
+    summary["official_documents_count"] = len(documents)
+    summary["documents_review_required"] = bool(documents and review_fields)
 
     return {
         "title": title,
@@ -77,6 +90,7 @@ def build_audit_report(
         "candidates": [_candidate_row(candidate, index) for index, candidate in enumerate(ranked, start=1)],
         "best_candidate_fields": [_field_row(field) for field in best_fields],
         "review_fields": [_field_row(field) for field in review_fields],
+        "official_documents": documents,
     }
 
 
@@ -96,6 +110,7 @@ def render_audit_report_markdown(report: dict[str, Any]) -> str:
         f"- Score: `{summary['best_score']:.4f}`",
         f"- Status: `{summary['best_status']}`",
         f"- Candidatos duplicados: `{summary['duplicate_candidates_count']}`",
+        f"- Documentos oficiais vinculados: `{summary.get('official_documents_count', 0)}`",
         f"- Proxima acao recomendada: {summary['recommended_next_action']}",
         "",
         "## Candidatos",
@@ -148,6 +163,22 @@ def render_audit_report_markdown(report: dict[str, Any]) -> str:
     else:
         lines.append("Nenhum campo pendente de revisao.")
 
+    lines.extend(["", "## Documentos Oficiais Vinculados", ""])
+    if report.get("official_documents"):
+        lines.extend(
+            [
+                "| recurso | tipo | titulo | sequencia | publicado em | origem |",
+                "|---------|------|--------|------------|--------------|--------|",
+            ]
+        )
+        for document in report["official_documents"]:
+            lines.append(
+                "| {resource_id} | {document_type} | {title} | {sequence} | "
+                "{published_at} | {source_ref} |".format(**_markdown_document(document))
+            )
+    else:
+        lines.append("Nenhum documento oficial vinculado ao relatorio.")
+
     return "\n".join(lines) + "\n"
 
 
@@ -172,6 +203,7 @@ def build_batch_audit_report(
         "summary": {
             "rows_count": len(rows),
             "total_candidates": sum(row["candidates_count"] for row in rows),
+            "total_official_documents": sum(row["official_documents_count"] for row in rows),
             "status_counts": status_counts,
             "review_rows_count": len(review_rows),
             "duplicate_candidates_total": sum(row["duplicate_candidates_count"] for row in rows),
@@ -193,19 +225,20 @@ def render_batch_audit_report_markdown(report: dict[str, Any]) -> str:
         f"- Gerado em: `{report['generated_at']}`",
         f"- Linhas consolidadas: `{summary['rows_count']}`",
         f"- Candidatos avaliados: `{summary['total_candidates']}`",
+        f"- Documentos oficiais vinculados: `{summary.get('total_official_documents', 0)}`",
         f"- Linhas para revisao: `{summary['review_rows_count']}`",
         f"- Duplicatas detectadas: `{summary['duplicate_candidates_total']}`",
         "",
         "## Linhas",
         "",
-        "| linha | melhor candidato | score | status | revisar campos | candidatos |",
-        "|-------|------------------|-------|--------|----------------|------------|",
+        "| linha | melhor candidato | score | status | revisar campos | docs oficiais | candidatos |",
+        "|-------|------------------|-------|--------|----------------|---------------|------------|",
     ]
 
     for row in report["rows"]:
         lines.append(
             "| {source_row} | {best_candidate} | {best_score:.4f} | {best_status} | "
-            "{review_fields_count} | {candidates_count} |".format(**row)
+            "{review_fields_count} | {official_documents_count} | {candidates_count} |".format(**row)
         )
 
     lines.extend(["", "## Linhas Para Revisao", ""])
@@ -305,6 +338,8 @@ def _batch_row(report: dict[str, Any], rank: int) -> dict[str, Any]:
         "review_fields_count": int(summary.get("review_fields_count") or 0),
         "divergent_fields_count": int(summary.get("divergent_fields_count") or 0),
         "duplicate_candidates_count": int(summary.get("duplicate_candidates_count") or 0),
+        "official_documents_count": int(summary.get("official_documents_count") or 0),
+        "documents_review_required": bool(summary.get("documents_review_required") or False),
         "recommended_next_action": str(summary.get("recommended_next_action") or ""),
     }
 
@@ -332,9 +367,117 @@ def _field_row(field: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _document_payload_records(payload: Any) -> list[Any]:
+    if isinstance(payload, list):
+        return payload
+    if isinstance(payload, dict):
+        for key in ("official_documents", "documents", "document_references", "data"):
+            records = payload.get(key)
+            if isinstance(records, list):
+                return records
+        if _has_document_reference_keys(payload):
+            return [payload]
+    raise ValueError("Document references must be a JSON list or an object containing a document list.")
+
+
+def _document_rows(records: list[Any]) -> list[dict[str, Any]]:
+    return [_document_row(record) for record in records]
+
+
+def _document_row(record: Any) -> dict[str, Any]:
+    data = _object_dict(record)
+    reference = _object_dict(data.get("reference"))
+
+    return {
+        "source": _pick_document_value(data, reference, "source"),
+        "resource_type": _pick_document_value(data, reference, "resource_type", "resourceType"),
+        "resource_id": _pick_document_value(data, reference, "resource_id", "resourceId"),
+        "numero_controle_pncp": _pick_document_value(
+            data,
+            reference,
+            "numero_controle_pncp",
+            "numeroControlePNCP",
+        ),
+        "title": _pick_document_value(data, reference, "title", "titulo", "nome"),
+        "document_type": _pick_document_value(data, reference, "document_type", "tipoDocumentoNome", "tipo"),
+        "sequence": _optional_int(_pick_document_value(data, reference, "sequence", "sequencialDocumento")),
+        "url": _pick_document_value(data, reference, "url", "source_url"),
+        "uri": _pick_document_value(data, reference, "uri"),
+        "published_at": _pick_document_value(data, reference, "published_at", "dataPublicacaoPncp"),
+        "local_path": _pick_document_value(data, reference, "local_path"),
+    }
+
+
+def _has_document_reference_keys(record: dict[str, Any]) -> bool:
+    document_keys = {
+        "title",
+        "titulo",
+        "nome",
+        "url",
+        "uri",
+        "resource_id",
+        "resourceId",
+        "numero_controle_pncp",
+        "numeroControlePNCP",
+    }
+    return any(key in record for key in document_keys)
+
+
+def _object_dict(value: Any) -> dict[str, Any]:
+    if value is None:
+        return {}
+    if is_dataclass(value) and not isinstance(value, type):
+        return asdict(value)
+    if isinstance(value, dict):
+        return dict(value)
+    return {
+        key: getattr(value, key)
+        for key in (
+            "source",
+            "resource_type",
+            "resource_id",
+            "title",
+            "document_type",
+            "sequence",
+            "url",
+            "uri",
+            "published_at",
+            "local_path",
+        )
+        if hasattr(value, key)
+    }
+
+
+def _pick_document_value(data: dict[str, Any], reference: dict[str, Any], *keys: str) -> str:
+    for source in (data, reference):
+        for key in keys:
+            value = source.get(key)
+            if value is not None and value != "":
+                return str(value)
+    return ""
+
+
+def _optional_int(value: Any) -> int | None:
+    if value is None or value == "":
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def _markdown_field(field: dict[str, Any]) -> dict[str, Any]:
     cleaned = dict(field)
     for key in ("manual_value", "official_value", "notes"):
+        cleaned[key] = _markdown_cell(str(cleaned.get(key) or ""))
+    return cleaned
+
+
+def _markdown_document(document: dict[str, Any]) -> dict[str, Any]:
+    cleaned = dict(document)
+    source_ref = cleaned.get("url") or cleaned.get("uri") or cleaned.get("local_path") or ""
+    cleaned["source_ref"] = _markdown_cell(str(source_ref))
+    for key in ("resource_id", "document_type", "title", "published_at", "sequence"):
         cleaned[key] = _markdown_cell(str(cleaned.get(key) or ""))
     return cleaned
 
