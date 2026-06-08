@@ -151,6 +151,97 @@ def render_audit_report_markdown(report: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def build_batch_audit_report(
+    reports: list[dict[str, Any]],
+    *,
+    title: str = "Relatorio Auditavel Multi-linha",
+    generated_at: str | None = None,
+) -> dict[str, Any]:
+    """Build a consolidated audit report from individual audit reports."""
+
+    if not reports:
+        raise ValueError("At least one audit report is required.")
+
+    rows = [_batch_row(report, index) for index, report in enumerate(reports, start=1)]
+    status_counts = _count_by_key(rows, "best_status")
+    review_rows = [row for row in rows if row["review_fields_count"] > 0 or row["best_status"] != "match"]
+
+    return {
+        "title": title,
+        "generated_at": generated_at or datetime.now(timezone.utc).isoformat(),
+        "summary": {
+            "rows_count": len(rows),
+            "total_candidates": sum(row["candidates_count"] for row in rows),
+            "status_counts": status_counts,
+            "review_rows_count": len(review_rows),
+            "duplicate_candidates_total": sum(row["duplicate_candidates_count"] for row in rows),
+        },
+        "rows": rows,
+        "review_rows": review_rows,
+    }
+
+
+def render_batch_audit_report_markdown(report: dict[str, Any]) -> str:
+    """Render a consolidated audit report as Markdown."""
+
+    summary = report["summary"]
+    lines = [
+        f"# {report['title']}",
+        "",
+        "## Resumo",
+        "",
+        f"- Gerado em: `{report['generated_at']}`",
+        f"- Linhas consolidadas: `{summary['rows_count']}`",
+        f"- Candidatos avaliados: `{summary['total_candidates']}`",
+        f"- Linhas para revisao: `{summary['review_rows_count']}`",
+        f"- Duplicatas detectadas: `{summary['duplicate_candidates_total']}`",
+        "",
+        "## Linhas",
+        "",
+        "| linha | melhor candidato | score | status | revisar campos | candidatos |",
+        "|-------|------------------|-------|--------|----------------|------------|",
+    ]
+
+    for row in report["rows"]:
+        lines.append(
+            "| {source_row} | {best_candidate} | {best_score:.4f} | {best_status} | "
+            "{review_fields_count} | {candidates_count} |".format(**row)
+        )
+
+    lines.extend(["", "## Linhas Para Revisao", ""])
+    if report["review_rows"]:
+        lines.extend(
+            [
+                "| linha | motivo | proxima acao |",
+                "|-------|--------|--------------|",
+            ]
+        )
+        for row in report["review_rows"]:
+            lines.append(
+                "| {source_row} | {best_status}; {review_fields_count} campos | "
+                "{recommended_next_action} |".format(**_markdown_row(row))
+            )
+    else:
+        lines.append("Nenhuma linha pendente de revisao.")
+
+    return "\n".join(lines) + "\n"
+
+
+def write_batch_audit_report_json(report: dict[str, Any], *, output_path: str | Path) -> Path:
+    """Write a consolidated audit report as JSON."""
+
+    return write_audit_report_json(report, output_path=output_path)
+
+
+def write_batch_audit_report_markdown(report: dict[str, Any], *, output_path: str | Path) -> Path:
+    """Write a consolidated audit report as Markdown."""
+
+    path = Path(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(render_batch_audit_report_markdown(report), encoding="utf-8")
+    return path
+
+
 def write_audit_report_json(report: dict[str, Any], *, output_path: str | Path) -> Path:
     """Write a structured audit report as JSON."""
 
@@ -202,6 +293,22 @@ def _recommended_next_action(best: dict[str, Any], review_fields: list[dict[str,
     return "revisar manualmente o resultado"
 
 
+def _batch_row(report: dict[str, Any], rank: int) -> dict[str, Any]:
+    summary = report["summary"]
+    return {
+        "rank": rank,
+        "source_row": str(summary.get("source_row") or ""),
+        "best_candidate": str(summary.get("best_candidate") or ""),
+        "best_score": float(summary.get("best_score") or 0.0),
+        "best_status": str(summary.get("best_status") or ""),
+        "candidates_count": int(summary.get("candidates_count") or 0),
+        "review_fields_count": int(summary.get("review_fields_count") or 0),
+        "divergent_fields_count": int(summary.get("divergent_fields_count") or 0),
+        "duplicate_candidates_count": int(summary.get("duplicate_candidates_count") or 0),
+        "recommended_next_action": str(summary.get("recommended_next_action") or ""),
+    }
+
+
 def _candidate_row(candidate: dict[str, Any], rank: int) -> dict[str, Any]:
     return {
         "rank": rank,
@@ -228,6 +335,13 @@ def _field_row(field: dict[str, Any]) -> dict[str, Any]:
 def _markdown_field(field: dict[str, Any]) -> dict[str, Any]:
     cleaned = dict(field)
     for key in ("manual_value", "official_value", "notes"):
+        cleaned[key] = _markdown_cell(str(cleaned.get(key) or ""))
+    return cleaned
+
+
+def _markdown_row(row: dict[str, Any]) -> dict[str, Any]:
+    cleaned = dict(row)
+    for key in ("source_row", "best_status", "recommended_next_action"):
         cleaned[key] = _markdown_cell(str(cleaned.get(key) or ""))
     return cleaned
 

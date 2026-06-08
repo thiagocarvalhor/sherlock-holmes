@@ -6,11 +6,15 @@ import json
 
 from sherlock_holmes.reporting import (
     build_audit_report,
+    build_batch_audit_report,
     load_comparison_results,
     render_audit_report_markdown,
+    render_batch_audit_report_markdown,
     summarize_comparisons,
     write_audit_report_json,
     write_audit_report_markdown,
+    write_batch_audit_report_json,
+    write_batch_audit_report_markdown,
 )
 
 
@@ -100,3 +104,32 @@ def test_load_comparison_results_reads_json_list(tmp_path):
     path = tmp_path / "record_comparison.json"
     path.write_text(json.dumps([_comparison("n", 1.0, "match")]), encoding="utf-8")
     assert load_comparison_results(path)[0]["numero_controle_pncp"] == "n"
+
+
+def test_build_batch_audit_report_summarizes_multiple_rows():
+    row67 = build_audit_report([_comparison("39485438000142-2-000019/2025", 0.85, "partial_match")])
+    row68 = build_audit_report([_comparison("00000000000000-2-000001/2025", 1.0, "match")])
+    batch = build_batch_audit_report([row67, row68], generated_at="2026-06-07T12:00:00+00:00")
+    assert batch["summary"]["rows_count"] == 2
+    assert batch["summary"]["total_candidates"] == 2
+    assert batch["summary"]["review_rows_count"] == 2
+    assert batch["rows"][0]["source_row"] == "67"
+
+
+def test_render_batch_audit_report_markdown_includes_rows_table():
+    row67 = build_audit_report([_comparison("39485438000142-2-000019/2025", 0.85, "partial_match")])
+    batch = build_batch_audit_report([row67])
+    markdown = render_batch_audit_report_markdown(batch)
+    assert "# Relatorio Auditavel Multi-linha" in markdown
+    assert "## Linhas" in markdown
+    assert "39485438000142-2-000019/2025" in markdown
+
+
+def test_write_batch_audit_report_outputs_roundtrip(tmp_path):
+    row67 = build_audit_report([_comparison("39485438000142-2-000019/2025", 0.85, "partial_match")])
+    batch = build_batch_audit_report([row67], generated_at="2026-06-07T12:00:00+00:00")
+    json_path = write_batch_audit_report_json(batch, output_path=tmp_path / "audit_batch_report.json")
+    markdown_path = write_batch_audit_report_markdown(batch, output_path=tmp_path / "audit_batch_report.md")
+    loaded = json.loads(json_path.read_text(encoding="utf-8"))
+    assert loaded["summary"]["rows_count"] == 1
+    assert markdown_path.read_text(encoding="utf-8").startswith("# Relatorio Auditavel Multi-linha")
