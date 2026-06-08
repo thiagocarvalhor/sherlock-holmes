@@ -13,6 +13,7 @@ documentation/projetos-similares/
 __pycache__/
 *.py[cod]
 *.egg-info/
+build/
 
 # Local caches
 .cache/

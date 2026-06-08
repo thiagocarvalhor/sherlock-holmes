@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -16,6 +17,7 @@ from sherlock_holmes.investigation import (
     load_manual_rows,
 )
 from sherlock_holmes.pncp.client import PncpApiError, compact_digits
+from sherlock_holmes.reporting import build_audit_report, render_audit_report_markdown
 from sherlock_holmes.validation import (
     RecordComparison,
     compare_records,
@@ -42,6 +44,29 @@ from sherlock_holmes.webapp.ui import color_status, field_row_html, status_badge
 
 ROOT_DIR = Path(__file__).resolve().parents[3]
 DEFAULT_MANUAL_CSV = ROOT_DIR / "documentation" / "plans" / "pncp-api-smoke-sample.csv"
+
+REVIEW_STATUS_OPTIONS = [
+    "pendente",
+    "em_revisao",
+    "validado",
+    "divergencia_confirmada",
+    "precisa_revisar_documento",
+]
+
+REVIEW_STATUS_LABELS = {
+    "pendente": "Pendente",
+    "em_revisao": "Em revisao",
+    "validado": "Validado",
+    "divergencia_confirmada": "Divergencia confirmada",
+    "precisa_revisar_documento": "Precisa revisar documento",
+}
+
+REVIEW_FIELD_STATUSES = {
+    "partial_match",
+    "divergent",
+    "missing_in_official",
+    "missing_in_manual",
+}
 
 
 @dataclass(frozen=True)
@@ -351,18 +376,25 @@ def _candidate_label(candidate: ContractCandidate) -> str:
 def _render_contract_documents(contract: dict[str, Any]) -> None:
     st.subheader("Arquivos oficiais")
     cnpj, contract_year, sequencial = _contract_parts(contract)
+    contract_context = str(contract.get("numeroControlePNCP", ""))
 
     try:
         with st.spinner("Buscando arquivos do contrato..."):
             files_result = cached_contract_files(cnpj, contract_year, sequencial)
     except PncpApiError as exc:
         st.error(str(exc))
+        st.session_state["selected_pncp_contract_files"] = []
+        st.session_state["selected_pncp_contract_files_context"] = contract_context
         return
     except OSError as exc:
         st.error(f"Erro de conexao com o PNCP: {exc}")
+        st.session_state["selected_pncp_contract_files"] = []
+        st.session_state["selected_pncp_contract_files_context"] = contract_context
         return
 
     files = files_result["payload"] if isinstance(files_result["payload"], list) else []
+    st.session_state["selected_pncp_contract_files"] = files
+    st.session_state["selected_pncp_contract_files_context"] = contract_context
     if not files:
         st.info("Nenhum arquivo encontrado para esse contrato.")
         return
@@ -534,7 +566,12 @@ def render_comparison_section() -> None:
 
         if comparison and comparison_context == selected_context:
             st.caption("Resultado calculado pela priorizacao da busca.")
-            _render_single_comparison(comparison, title="Resultado da comparacao")
+            _render_single_comparison(
+                comparison,
+                title="Resultado da comparacao",
+                contract=selected_contract,
+                key_prefix="selected_ranked",
+            )
         else:
             if st.button("Comparar com contrato selecionado", type="primary", key="comp_selected_contract"):
                 st.session_state["selected_contract_comparison"] = _compare_manual_with_contract(
@@ -545,7 +582,12 @@ def render_comparison_section() -> None:
             direct_comparison = st.session_state.get("selected_contract_comparison")
             direct_context = st.session_state.get("selected_contract_comparison_context")
             if direct_comparison and direct_context == selected_context:
-                _render_single_comparison(direct_comparison, title="Resultado da comparacao")
+                _render_single_comparison(
+                    direct_comparison,
+                    title="Resultado da comparacao",
+                    contract=selected_contract,
+                    key_prefix="selected_direct",
+                )
     else:
         st.info("Selecione um contrato na busca de documentos para comparar diretamente.")
 
@@ -601,7 +643,7 @@ def _render_investigation_result(result: InvestigationResult) -> None:
     matched, total = match_count(result.best)
     metric_cols[1].metric("Melhor score", f"{result.best.overall_score:.2f}")
     metric_cols[2].metric("Campos match", f"{matched}/{total}")
-    _render_single_comparison(result.best, title="Melhor candidato")
+    _render_single_comparison(result.best, title="Melhor candidato", key_prefix="automatic_best")
 
     st.markdown(f"**Todos os candidatos ({len(result.comparisons)})**")
     df = candidates_dataframe(result.comparisons)
@@ -610,7 +652,13 @@ def _render_investigation_result(result: InvestigationResult) -> None:
     st.caption(f"Consulta: {result.query_url}")
 
 
-def _render_single_comparison(comparison: RecordComparison, *, title: str) -> None:
+def _render_single_comparison(
+    comparison: RecordComparison,
+    *,
+    title: str,
+    contract: dict[str, Any] | None = None,
+    key_prefix: str = "comparison",
+) -> None:
     with st.container(border=True):
         head = st.columns([3, 1])
         head[0].markdown(f"**{title}:** `{comparison.numero_controle_pncp}`")
@@ -629,6 +677,262 @@ def _render_single_comparison(comparison: RecordComparison, *, title: str) -> No
             for field in comparison.fields
         )
         st.markdown(rows_html, unsafe_allow_html=True)
+
+        documents = _current_official_documents_for_report(contract)
+        enrichments = _current_cnpj_enrichments_for_report(contract)
+        review = _review_assessment(comparison, documents)
+        review_status, review_notes = _render_review_workflow(
+            comparison,
+            review,
+            key_prefix=key_prefix,
+        )
+        _render_audit_export(
+            comparison,
+            documents=documents,
+            cnpj_enrichments=enrichments,
+            review=review,
+            review_status=review_status,
+            review_notes=review_notes,
+            key_prefix=key_prefix,
+        )
+
+
+def _render_review_workflow(
+    comparison: RecordComparison,
+    review: dict[str, Any],
+    *,
+    key_prefix: str,
+) -> tuple[str, str]:
+    st.markdown("**Revisao operacional**")
+    status_key = f"{key_prefix}_review_status_{_safe_key(comparison.numero_controle_pncp)}"
+    notes_key = f"{key_prefix}_review_notes_{_safe_key(comparison.numero_controle_pncp)}"
+
+    default_status = "precisa_revisar_documento" if review["document_review_required"] else "pendente"
+    current_status = st.session_state.get(status_key, default_status)
+    default_index = REVIEW_STATUS_OPTIONS.index(current_status) if current_status in REVIEW_STATUS_OPTIONS else 0
+
+    status_col, doc_col, ocr_col = st.columns([1, 1, 1])
+    selected_status = status_col.selectbox(
+        "Status",
+        REVIEW_STATUS_OPTIONS,
+        index=default_index,
+        format_func=lambda value: REVIEW_STATUS_LABELS[value],
+        key=status_key,
+    )
+    doc_col.metric("Revisao documental", review["document_review_label"])
+    ocr_col.metric("OCR", review["ocr_label"])
+    notes = st.text_area("Notas da revisao", key=notes_key, height=80)
+    return selected_status, notes
+
+
+def _render_audit_export(
+    comparison: RecordComparison,
+    *,
+    documents: list[dict[str, Any]],
+    cnpj_enrichments: list[dict[str, Any]],
+    review: dict[str, Any],
+    review_status: str,
+    review_notes: str,
+    key_prefix: str,
+) -> None:
+    report = _build_webapp_audit_report(
+        comparison,
+        official_documents=documents,
+        cnpj_enrichments=cnpj_enrichments,
+        review=review,
+        review_status=review_status,
+        review_notes=review_notes,
+    )
+    markdown = _render_webapp_audit_markdown(report)
+    json_data = json.dumps(report, ensure_ascii=False, indent=2).encode("utf-8")
+    markdown_data = markdown.encode("utf-8")
+    filename_base = _audit_filename_base(comparison)
+
+    st.markdown("**Relatorio auditavel**")
+    download_cols = st.columns([1, 1, 2])
+    download_cols[0].download_button(
+        "Baixar Markdown",
+        data=markdown_data,
+        file_name=f"{filename_base}.md",
+        mime="text/markdown",
+        key=f"{key_prefix}_audit_markdown",
+    )
+    download_cols[1].download_button(
+        "Baixar JSON",
+        data=json_data,
+        file_name=f"{filename_base}.json",
+        mime="application/json",
+        key=f"{key_prefix}_audit_json",
+    )
+    download_cols[2].caption(
+        f"Exporta {len(documents)} documentos oficiais e {len(cnpj_enrichments)} enriquecimentos CNPJ."
+    )
+
+
+def _build_webapp_audit_report(
+    comparison: RecordComparison,
+    *,
+    official_documents: list[dict[str, Any]] | None = None,
+    cnpj_enrichments: list[dict[str, Any]] | None = None,
+    review: dict[str, Any] | None = None,
+    review_status: str = "pendente",
+    review_notes: str = "",
+) -> dict[str, Any]:
+    report = build_audit_report(
+        [_comparison_to_report_dict(comparison)],
+        official_documents=official_documents or [],
+        cnpj_enrichments=cnpj_enrichments or [],
+        title=f"Relatorio Auditavel - Linha {comparison.source_row}",
+    )
+    report["review_workflow"] = {
+        "review_status": review_status,
+        "review_status_label": REVIEW_STATUS_LABELS.get(review_status, review_status),
+        "review_notes": review_notes,
+        **(review or _review_assessment(comparison, official_documents or [])),
+    }
+    return report
+
+
+def _render_webapp_audit_markdown(report: dict[str, Any]) -> str:
+    markdown = render_audit_report_markdown(report)
+    review = report.get("review_workflow") or {}
+    lines = [
+        "",
+        "## Revisao Operacional",
+        "",
+        f"- Status: `{review.get('review_status_label', '')}`",
+        f"- Revisao documental: `{review.get('document_review_label', '')}`",
+        f"- OCR: `{review.get('ocr_label', '')}`",
+        f"- Campos para revisao: `{review.get('review_fields_count', 0)}`",
+    ]
+    notes = str(review.get("review_notes") or "").strip()
+    if notes:
+        lines.append(f"- Notas: {notes}")
+    return markdown + "\n".join(lines) + "\n"
+
+
+def _comparison_to_report_dict(comparison: RecordComparison) -> dict[str, Any]:
+    return {
+        "source_row": comparison.source_row,
+        "numero_controle_pncp": comparison.numero_controle_pncp,
+        "overall_score": comparison.overall_score,
+        "status": comparison.status,
+        "fields": [
+            {
+                "field_name": field.field_name,
+                "manual_value": field.manual_value,
+                "official_value": field.official_value,
+                "status": field.status,
+                "similarity_score": field.similarity_score,
+                "manual_evidence_id": field.manual_evidence_id,
+                "official_evidence_id": field.official_evidence_id,
+                "notes": field.notes,
+            }
+            for field in comparison.fields
+        ],
+    }
+
+
+def _review_assessment(comparison: RecordComparison, documents: list[dict[str, Any]]) -> dict[str, Any]:
+    review_fields = [field for field in comparison.fields if field.status in REVIEW_FIELD_STATUSES]
+    has_documents = bool(documents)
+
+    if not review_fields:
+        document_review_status = "nao_necessaria"
+        document_review_label = "Nao necessaria"
+        ocr_status = "nao_necessario"
+        ocr_label = "Nao necessario"
+    elif has_documents:
+        document_review_status = "revisar_documento"
+        document_review_label = "Revisar documento"
+        ocr_status = "pode_precisar"
+        ocr_label = "Pode precisar"
+    else:
+        document_review_status = "sem_documento"
+        document_review_label = "Sem documento"
+        ocr_status = "nao_avaliado"
+        ocr_label = "Nao avaliado"
+
+    return {
+        "document_review_required": bool(review_fields),
+        "document_review_status": document_review_status,
+        "document_review_label": document_review_label,
+        "ocr_status": ocr_status,
+        "ocr_label": ocr_label,
+        "review_fields_count": len(review_fields),
+        "review_fields": [field.field_name for field in review_fields],
+        "documents_count": len(documents),
+    }
+
+
+def _current_official_documents_for_report(contract: dict[str, Any] | None) -> list[dict[str, Any]]:
+    if not contract:
+        return []
+    context = str(contract.get("numeroControlePNCP", ""))
+    if st.session_state.get("selected_pncp_contract_files_context") != context:
+        return []
+    files = st.session_state.get("selected_pncp_contract_files") or []
+    return _official_documents_for_report(contract, files)
+
+
+def _official_documents_for_report(contract: dict[str, Any], files: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    cnpj, contract_year, sequencial = _contract_parts(contract)
+    resource_id = f"{cnpj}/{contract_year}/{sequencial}"
+    documents: list[dict[str, Any]] = []
+    for file_record in files:
+        if not isinstance(file_record, dict):
+            continue
+        document = dict(file_record)
+        document["source"] = document.get("source") or "pncp"
+        document["resource_type"] = document.get("resource_type") or "contract"
+        document["resource_id"] = document.get("resource_id") or resource_id
+        document["numero_controle_pncp"] = str(contract.get("numeroControlePNCP", ""))
+        seq_doc = _optional_int(document.get("sequencialDocumento"))
+        if seq_doc is not None and not document.get("url"):
+            document["url"] = contract_file_download_url(cnpj, contract_year, sequencial, seq_doc)
+        documents.append(document)
+    return documents
+
+
+def _current_cnpj_enrichments_for_report(contract: dict[str, Any] | None) -> list[dict[str, Any]]:
+    if not contract:
+        return []
+    record = st.session_state.get("cnpj_enrichment_record")
+    context = st.session_state.get("cnpj_enrichment_context")
+    contract_number = str(contract.get("numeroControlePNCP", ""))
+    if not record or not context or context[2] != contract_number:
+        return []
+
+    role = str(context[0])
+    if isinstance(record, BrasilApiCnpjRecord):
+        enrichment = record.to_dict()
+    elif isinstance(record, dict):
+        enrichment = dict(record)
+    else:
+        return []
+    enrichment["role"] = role
+    return [enrichment]
+
+
+def _audit_filename_base(comparison: RecordComparison) -> str:
+    row = _safe_key(comparison.source_row or "linha")
+    numero = _safe_key(comparison.numero_controle_pncp or "sem_pncp")
+    return f"relatorio-auditavel-row{row}-{numero}"
+
+
+def _safe_key(value: Any) -> str:
+    text = str(value or "")
+    clean = "".join(char if char.isalnum() else "_" for char in text)
+    return "_".join(part for part in clean.split("_") if part) or "item"
+
+
+def _optional_int(value: Any) -> int | None:
+    if value is None or value == "":
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def _compare_manual_with_contract(manual_row: dict[str, Any], contract: dict[str, Any]) -> RecordComparison:

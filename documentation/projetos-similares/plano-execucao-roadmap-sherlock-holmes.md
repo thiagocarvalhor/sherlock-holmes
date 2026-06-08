@@ -52,6 +52,9 @@ Legenda:
   - [x] Redesign documento-primeiro: busca PNCP de contratos/arquivos no topo, comparacao manual como segunda etapa.
   - [x] Selecao explicavel de contrato: escolha manual clara ou ranking por score contra linha manual.
   - [x] Enriquecimento cadastral BrasilAPI sob demanda para orgao/fornecedor do contrato escolhido.
+  - [x] Exportacao de relatorio auditavel Markdown/JSON a partir da comparacao exibida.
+  - [x] Status e notas de revisao operacional na sessao Streamlit.
+  - [x] Indicador claro de revisao documental/OCR sem executar OCR.
 - [~] Fase 9: criar relatorios auditaveis.
   - [x] Primeira versao de relatorio auditavel a partir de `record_comparison.json`.
   - [x] Saida JSON e Markdown para a linha `67`.
@@ -114,6 +117,7 @@ Legenda:
 - [x] Criar relatorio auditavel multi-linha em `documentation/reports/audit-batch-report-001.md`.
 - [x] Incluir documentos oficiais vinculados nos relatorios auditaveis em `documentation/reports/audit-report-documents-001.md`.
 - [x] Incluir enriquecimento CNPJ nos relatorios auditaveis em `documentation/reports/audit-report-cnpj-enrichment-001.md`.
+- [x] Adicionar exportacao auditavel, status de revisao e indicador OCR no Streamlit em `documentation/reports/streamlit-review-export-001.md`.
 
 ## 2. Pergunta Inicial: Precisamos Conhecer Melhor os Projetos Similares?
 
@@ -507,11 +511,23 @@ Transformar o app Streamlit em uma interface de exploracao e revisao.
 - divergencias;
 - fornecedor enriquecido;
 - status de revisao documental;
-- exportacao CSV.
+- exportacao CSV;
+- exportacao de relatorio auditavel Markdown/JSON;
+- indicador operacional de OCR sem executar OCR.
 
 ### Criterio de conclusao
 
 Um usuario deve conseguir consultar contratos, escolher candidatos, ver divergencias e acessar evidencias sem depender apenas de arquivos locais.
+
+### Status
+
+Em andamento, com fluxo principal funcional.
+
+O app ja prioriza busca documental, permite comparar contrato selecionado contra linha manual, consultar CNPJ sob demanda, registrar status/notas de revisao na sessao, indicar revisao documental/OCR e exportar relatorio auditavel em Markdown/JSON.
+
+Pendencia deliberadamente postergada:
+
+- executar OCR pela UI.
 
 ## 14. Fase 9: Criar Relatorios Auditaveis
 

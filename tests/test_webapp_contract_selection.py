@@ -8,10 +8,14 @@ pytest.importorskip("streamlit")
 
 from sherlock_holmes.enrichment import record_from_payload  # noqa: E402
 from sherlock_holmes.webapp.views import (  # noqa: E402
+    _build_webapp_audit_report,
     _cnpj_enrichment_targets,
     _cnpj_record_summary,
     _contract_candidates_dataframe,
+    _official_documents_for_report,
     _rank_contract_candidates,
+    _render_webapp_audit_markdown,
+    _review_assessment,
 )
 
 MANUAL_ROW = {
@@ -29,6 +33,8 @@ MANUAL_ROW = {
 WINNER = {
     "numeroControlePNCP": "39485438000142-2-000019/2025",
     "orgaoEntidade": {"cnpj": "39485438000142"},
+    "anoContrato": 2025,
+    "sequencialContrato": 19,
     "unidadeOrgao": {"municipioNome": "Belford Roxo", "ufSigla": "RJ"},
     "objetoContrato": "CONTRATACAO DE EMPRESA PARA COLETA DE RESIDUOS",
     "numeroContratoEmpenho": "02/SEMSEP/2025",
@@ -53,6 +59,13 @@ ENRICHMENT_CONTRACT = {
     "orgaoEntidade": {"cnpj": "39485438000142"},
     "nomeRazaoSocialFornecedor": "EMPRESA TESTE LTDA",
     "niFornecedor": "12.345.678/0001-95",
+}
+
+DOCUMENT_FILE = {
+    "sequencialDocumento": 1,
+    "titulo": "Contrato assinado",
+    "tipoDocumentoNome": "Contrato",
+    "dataPublicacaoPncp": "2025-11-03",
 }
 
 
@@ -112,3 +125,43 @@ def test_cnpj_record_summary_formats_main_fields():
     assert summary["razao_social"] == "EMPRESA TESTE LTDA"
     assert summary["municipio_uf"] == "SAO PAULO/SP"
     assert summary["socios_count"] == 1
+
+
+def test_review_assessment_flags_document_review_and_possible_ocr():
+    comparison = _rank_contract_candidates([WINNER], manual_row=MANUAL_ROW)[0].comparison
+    assert comparison is not None
+    documents = _official_documents_for_report(WINNER, [DOCUMENT_FILE])
+    review = _review_assessment(comparison, documents)
+    assert review["document_review_required"] is True
+    assert review["document_review_status"] == "revisar_documento"
+    assert review["ocr_status"] == "pode_precisar"
+    assert review["documents_count"] == 1
+
+
+def test_official_documents_for_report_adds_contract_context_and_download_url():
+    documents = _official_documents_for_report(WINNER, [DOCUMENT_FILE])
+    assert documents[0]["source"] == "pncp"
+    assert documents[0]["resource_type"] == "contract"
+    assert documents[0]["resource_id"] == "39485438000142/2025/19"
+    assert documents[0]["numero_controle_pncp"] == "39485438000142-2-000019/2025"
+    assert "arquivos/1" in documents[0]["url"]
+
+
+def test_build_webapp_audit_report_includes_review_workflow():
+    comparison = _rank_contract_candidates([WINNER], manual_row=MANUAL_ROW)[0].comparison
+    assert comparison is not None
+    documents = _official_documents_for_report(WINNER, [DOCUMENT_FILE])
+    review = _review_assessment(comparison, documents)
+    report = _build_webapp_audit_report(
+        comparison,
+        official_documents=documents,
+        review=review,
+        review_status="precisa_revisar_documento",
+        review_notes="Conferir documento antes da validacao.",
+    )
+    assert report["summary"]["official_documents_count"] == 1
+    assert report["review_workflow"]["review_status"] == "precisa_revisar_documento"
+    assert report["review_workflow"]["ocr_status"] == "pode_precisar"
+    markdown = _render_webapp_audit_markdown(report)
+    assert "## Revisao Operacional" in markdown
+    assert "Conferir documento antes da validacao." in markdown
