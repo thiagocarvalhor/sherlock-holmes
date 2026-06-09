@@ -3,12 +3,12 @@
 # Install inside the project venv:
 #   .venv\Scripts\python.exe -m pip install -r requirements-ocr.txt
 
-Pillow==12.2.0
+Pillow==11.3.0
 opencv-python==4.13.0.92
 opencv-contrib-python==4.10.0.84
 pytesseract==0.3.13
 numpy==2.2.6
-pandas==2.3.3
+pandas==2.2.3
 ipykernel==6.29.5
 pypdfium2==5.7.1
 

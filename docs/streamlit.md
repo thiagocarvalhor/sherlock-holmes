@@ -46,6 +46,10 @@ As dependencias do deploy ficam em `requirements.txt`, que instala o pacote
 local com o extra `webapp`. O arquivo `requirements-streamlit.txt` aponta para
 a mesma instalacao para preservar compatibilidade com o deploy antigo.
 
+O extra `ocr` mantem `Pillow` em versao compativel com `streamlit==1.45.1`;
+isso evita falhas de resolucao quando o Streamlit Cloud inspeciona o
+`pyproject.toml`.
+
 ## Decisões importantes
 
 - A busca PNCP vem antes da comparação.
