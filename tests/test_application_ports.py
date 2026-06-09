@@ -29,13 +29,14 @@ class _PncpGateway:
         start_date: date,
         end_date: date,
         cnpj_orgao: str,
+        codigo_unidade: str = "",
         page_size: int = 500,
         max_pages: int = 20,
         timeout: int = 30,
     ) -> _GatewayResult:
         return _GatewayResult(
             url=f"https://example.test/{cnpj_orgao}",
-            payload={"start": start_date.isoformat(), "end": end_date.isoformat()},
+            payload={"start": start_date.isoformat(), "end": end_date.isoformat(), "unit": codigo_unidade},
         )
 
 

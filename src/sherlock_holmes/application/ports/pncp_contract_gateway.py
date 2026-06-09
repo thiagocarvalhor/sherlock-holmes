@@ -23,6 +23,7 @@ class PncpContractGateway(Protocol):
         start_date: date,
         end_date: date,
         cnpj_orgao: str,
+        codigo_unidade: str = "",
         page_size: int = 500,
         max_pages: int = 20,
         timeout: int = 30,

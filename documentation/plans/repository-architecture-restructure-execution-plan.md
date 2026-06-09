@@ -45,6 +45,9 @@ Concluido nesta rodada:
 - Fase 4 avancada com conexao do enriquecimento CNPJ ao port `CnpjEnrichmentGateway` via `application/use_cases/enrich_cnpj.py`.
 - Fase 4 avancada com conexao da escrita de relatorios ao port `ReportWriter` e adapter `adapters/outbound/filesystem/report_writer.py`.
 - Fase 4 avancada com conexao da listagem de documentos oficiais ao port `DocumentGateway` e adapter `adapters/outbound/pncp/document_gateway.py`.
+- Fase 4 avancada com conexao da busca de contratos PNCP ao port `PncpContractGateway` e adapter `adapters/outbound/pncp/contract_gateway.py`.
+- Fase 4 concluida localmente com adapter BrasilAPI concreto e use cases recebendo gateways explicitos.
+- Fase 5 iniciada com migracao do cliente BrasilAPI para `adapters/outbound/brasilapi/client.py` e wrapper legado em `enrichment/brasilapi.py`.
 
 Validacoes realizadas durante a Fase 0:
 
@@ -62,7 +65,7 @@ Pendente para considerar a Fase 0 publicada:
 Proximo passo tecnico:
 
 ```text
-Fase 4: revisar ports restantes antes de fechar a fase e iniciar adapters outbound.
+Fase 5: iniciar migracao dos modulos externos legados para adapters outbound.
 ```
 
 ## Problema Atual
@@ -471,7 +474,7 @@ Criterio de conclusao:
 
 ### Fase 4: Ports
 
-Status: em andamento.
+Status: concluida localmente.
 
 Objetivo:
 
@@ -496,14 +499,17 @@ Criterio de conclusao:
 - [x] adapter filesystem concreto criado para escrita de relatorios;
 - [x] listagem de documentos oficiais conectada ao port `DocumentGateway`;
 - [x] adapter PNCP concreto criado para documentos oficiais;
+- [x] busca de contratos PNCP conectada ao port `PncpContractGateway`;
+- [x] adapter PNCP concreto criado para busca de contratos;
+- [x] adapter BrasilAPI concreto criado para enriquecimento CNPJ;
 - [x] testes cobrem fakes/in-memory que satisfazem os ports;
-- [ ] demais use cases conectados aos ports quando aplicavel;
-- [ ] adapters concretos implementam ports;
-- [ ] dependencias externas preparadas para migracao em Fase 5.
+- [x] use cases PNCP principais conectados aos ports quando aplicavel;
+- [x] adapters concretos implementam os ports externos usados na UI e nos scripts nesta fase;
+- [x] dependencias externas preparadas para migracao em Fase 5.
 
 ### Fase 5: Adapters outbound
 
-Status: pendente.
+Status: em andamento.
 
 Objetivo:
 
@@ -520,9 +526,12 @@ ocr/        -> adapters/outbound/ocr/
 
 Criterio de conclusao:
 
-- adapters sabem chamar APIs e filesystem;
-- dominio e use cases nao importam Streamlit, urllib ou detalhes de path;
-- wrappers antigos preservam compatibilidade temporaria.
+- [x] cliente BrasilAPI movido para `adapters/outbound/brasilapi/client.py`;
+- [ ] clientes PNCP movidos para `adapters/outbound/pncp/`;
+- [ ] adapters de documentos/filesystem revisados;
+- [ ] OCR posicionado como adapter outbound sem executar OCR real nesta rodada;
+- [ ] dominio e use cases nao importam Streamlit, urllib ou detalhes de path;
+- [x] wrappers antigos preservam compatibilidade temporaria para BrasilAPI.
 
 ### Fase 6: Adapters inbound
 
@@ -696,13 +705,13 @@ Scripts operacionais principais a revalidar quando afetados:
 
 ## Proximo Passo Concreto
 
-Executar a Fase 4:
+Executar a Fase 5:
 
 ```text
-revisar ports restantes antes de fechar a fase e iniciar adapters outbound
+iniciar a Fase 5 movendo clientes legados de PNCP e BrasilAPI em fatias pequenas
 ```
 
-Depois disso, iniciar a Fase 5, movendo adapters externos em migracoes pequenas e com testes verdes.
+Depois disso, seguir para os adapters inbound, mantendo migracoes pequenas e testes verdes.
 
 ## Criterio Geral De Conclusao
 

@@ -110,7 +110,13 @@ O enriquecimento CNPJ já passa pelo caso de uso:
 src/sherlock_holmes/application/use_cases/enrich_cnpj.py
 ```
 
-Esse caso de uso depende do port `CnpjEnrichmentGateway`; a implementação concreta atual ainda está em `sherlock_holmes.enrichment` até a migração de adapters.
+Esse caso de uso depende do port `CnpjEnrichmentGateway`; a implementação concreta da BrasilAPI fica no adapter:
+
+```text
+src/sherlock_holmes/adapters/outbound/brasilapi/cnpj_gateway.py
+```
+
+O módulo antigo `sherlock_holmes.enrichment` permanece como wrapper legado durante a transição.
 
 A escrita de relatórios já pode usar o port `ReportWriter`, com adapter concreto em:
 
@@ -127,6 +133,15 @@ src/sherlock_holmes/adapters/outbound/pncp/document_gateway.py
 ```
 
 O helper Streamlit de PNCP chama `application.use_cases.list_contract_documents` para buscar arquivos oficiais.
+
+A busca de contratos PNCP também passa pelo port `PncpContractGateway`, com caso de uso e adapter concreto em:
+
+```text
+src/sherlock_holmes/application/use_cases/search_pncp_contracts.py
+src/sherlock_holmes/adapters/outbound/pncp/contract_gateway.py
+```
+
+O Streamlit usa esse caminho tanto na busca anual de contratos quanto na investigação automática de uma linha manual.
 
 ## Arquitetura alvo
 

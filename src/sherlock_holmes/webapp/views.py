@@ -10,6 +10,8 @@ from typing import Any
 import pandas as pd
 import streamlit as st
 
+from sherlock_holmes.adapters.outbound.brasilapi import BrasilApiCnpjGateway
+from sherlock_holmes.adapters.outbound.pncp import PncpContractSearchGateway
 from sherlock_holmes.application.use_cases import (
     InvestigationResult,
     build_audit_report,
@@ -76,6 +78,7 @@ def cached_investigate_row(
 
     return investigate_row(
         manual_row,
+        fetch_fn=PncpContractSearchGateway(),
         window_days=window_days,
         page_size=page_size,
         max_pages=max_pages,
@@ -86,7 +89,7 @@ def cached_investigate_row(
 def cached_cnpj_enrichment(cnpj: str) -> BrasilApiCnpjRecord:
     """Cached wrapper around BrasilAPI CNPJ enrichment."""
 
-    return enrich_cnpj(cnpj)
+    return enrich_cnpj(cnpj, gateway=BrasilApiCnpjGateway())
 
 
 def render_app() -> None:

@@ -17,7 +17,6 @@ from sherlock_holmes.domain.entities import (
     evidence_from_official_api,
 )
 from sherlock_holmes.domain.value_objects import compact_digits
-from sherlock_holmes.pncp.client import fetch_contracts_by_publication
 
 FetchFn = PncpContractGateway
 
@@ -77,7 +76,7 @@ class InvestigationResult:
 def investigate_row(
     manual_row: dict[str, Any],
     *,
-    fetch_fn: FetchFn = fetch_contracts_by_publication,
+    fetch_fn: FetchFn,
     window_days: int = DEFAULT_WINDOW_DAYS,
     page_size: int = 500,
     max_pages: int = 20,

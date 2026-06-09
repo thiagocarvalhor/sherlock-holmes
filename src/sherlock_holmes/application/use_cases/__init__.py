@@ -26,6 +26,7 @@ from sherlock_holmes.application.use_cases.investigate_manual_row import (
 )
 from sherlock_holmes.application.use_cases.list_contract_documents import list_contract_documents
 from sherlock_holmes.application.use_cases.prepare_review import prepare_review
+from sherlock_holmes.application.use_cases.search_pncp_contracts import search_pncp_contracts
 
 __all__ = [
     "DEFAULT_WINDOW_DAYS",
@@ -45,6 +46,7 @@ __all__ = [
     "prepare_review",
     "render_audit_report_markdown",
     "render_batch_audit_report_markdown",
+    "search_pncp_contracts",
     "summarize_comparisons",
     "write_audit_report_json",
     "write_audit_report_markdown",

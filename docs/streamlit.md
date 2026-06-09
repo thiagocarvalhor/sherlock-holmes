@@ -22,12 +22,13 @@ O Streamlit é a interface de investigação do Sherlock Holmes.
 ## Decisões importantes
 
 - A busca PNCP vem antes da comparação.
+- A busca de contratos PNCP chama `application.use_cases.search_pncp_contracts` com adapter outbound.
 - A comparação usa a linha manual apenas para priorizar e justificar candidatos.
-- A investigação automática chama o caso de uso `application.use_cases.investigate_manual_row`.
+- A investigação automática chama `application.use_cases.investigate_manual_row` usando o mesmo gateway PNCP de contratos.
 - A comparação direta com o contrato selecionado chama `application.use_cases.compare_manual_record`.
 - A indicação de revisão documental e OCR chama `application.use_cases.prepare_review`.
 - A listagem de arquivos oficiais chama `application.use_cases.list_contract_documents`.
-- A BrasilAPI é consultada sob demanda via `application.use_cases.enrich_cnpj`.
+- A BrasilAPI é consultada sob demanda via `application.use_cases.enrich_cnpj` com adapter outbound.
 - OCR não é executado pela UI nesta fase.
 - O indicador `Pode precisar OCR` é operacional, não uma execução real de OCR.
 - Status e notas de revisão ainda ficam na sessão Streamlit.
