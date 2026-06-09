@@ -14,7 +14,11 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 build/
+site/
 
 # Local caches
 .cache/
 .local/
+
+# Local image drafts
+image/
