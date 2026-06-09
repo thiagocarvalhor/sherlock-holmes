@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 
+from sherlock_holmes.adapters.outbound.filesystem import FileSystemReportWriter
 from sherlock_holmes.application.use_cases import (
     build_audit_report,
     build_batch_audit_report,
@@ -153,6 +154,20 @@ def test_write_audit_report_outputs_roundtrip(tmp_path):
     markdown_path = write_audit_report_markdown(report, output_path=tmp_path / "audit_report.md")
     loaded = json.loads(json_path.read_text(encoding="utf-8"))
     assert loaded["summary"]["best_score"] == 0.85
+    assert markdown_path.read_text(encoding="utf-8").startswith("# Relatorio Auditavel")
+
+
+def test_write_audit_report_uses_report_writer(tmp_path):
+    report = build_audit_report(
+        [_comparison("39485438000142-2-000019/2025", 0.85, "partial_match")],
+        generated_at="2026-06-07T12:00:00+00:00",
+    )
+    writer = FileSystemReportWriter(render_audit_report_markdown)
+
+    json_path = write_audit_report_json(report, output_path=tmp_path / "audit_report.json", writer=writer)
+    markdown_path = write_audit_report_markdown(report, output_path=tmp_path / "audit_report.md", writer=writer)
+
+    assert json.loads(json_path.read_text(encoding="utf-8"))["summary"]["best_score"] == 0.85
     assert markdown_path.read_text(encoding="utf-8").startswith("# Relatorio Auditavel")
 
 

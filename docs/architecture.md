@@ -112,6 +112,14 @@ src/sherlock_holmes/application/use_cases/enrich_cnpj.py
 
 Esse caso de uso depende do port `CnpjEnrichmentGateway`; a implementação concreta atual ainda está em `sherlock_holmes.enrichment` até a migração de adapters.
 
+A escrita de relatórios já pode usar o port `ReportWriter`, com adapter concreto em:
+
+```text
+src/sherlock_holmes/adapters/outbound/filesystem/report_writer.py
+```
+
+Os scripts de relatório usam esse adapter para gravar JSON e Markdown no filesystem.
+
 ## Arquitetura alvo
 
 Estrutura planejada:

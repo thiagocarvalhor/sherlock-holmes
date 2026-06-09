@@ -8,6 +8,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from sherlock_holmes.application.ports import ReportWriter
+
 
 def load_comparison_results(path: str | Path) -> list[dict[str, Any]]:
     """Load a record comparison JSON file."""
@@ -293,14 +295,27 @@ def render_batch_audit_report_markdown(report: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def write_batch_audit_report_json(report: dict[str, Any], *, output_path: str | Path) -> Path:
+def write_batch_audit_report_json(
+    report: dict[str, Any],
+    *,
+    output_path: str | Path,
+    writer: ReportWriter | None = None,
+) -> Path:
     """Write a consolidated audit report as JSON."""
 
-    return write_audit_report_json(report, output_path=output_path)
+    return write_audit_report_json(report, output_path=output_path, writer=writer)
 
 
-def write_batch_audit_report_markdown(report: dict[str, Any], *, output_path: str | Path) -> Path:
+def write_batch_audit_report_markdown(
+    report: dict[str, Any],
+    *,
+    output_path: str | Path,
+    writer: ReportWriter | None = None,
+) -> Path:
     """Write a consolidated audit report as Markdown."""
+
+    if writer is not None:
+        return writer.write_markdown(report, output_path=output_path)
 
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -308,8 +323,16 @@ def write_batch_audit_report_markdown(report: dict[str, Any], *, output_path: st
     return path
 
 
-def write_audit_report_json(report: dict[str, Any], *, output_path: str | Path) -> Path:
+def write_audit_report_json(
+    report: dict[str, Any],
+    *,
+    output_path: str | Path,
+    writer: ReportWriter | None = None,
+) -> Path:
     """Write a structured audit report as JSON."""
+
+    if writer is not None:
+        return writer.write_json(report, output_path=output_path)
 
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -317,8 +340,16 @@ def write_audit_report_json(report: dict[str, Any], *, output_path: str | Path) 
     return path
 
 
-def write_audit_report_markdown(report: dict[str, Any], *, output_path: str | Path) -> Path:
+def write_audit_report_markdown(
+    report: dict[str, Any],
+    *,
+    output_path: str | Path,
+    writer: ReportWriter | None = None,
+) -> Path:
     """Write a structured audit report as Markdown."""
+
+    if writer is not None:
+        return writer.write_markdown(report, output_path=output_path)
 
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)

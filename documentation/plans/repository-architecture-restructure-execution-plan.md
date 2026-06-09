@@ -43,6 +43,7 @@ Concluido nesta rodada:
 - Fase 3 concluida localmente com migracao da preparacao de revisao operacional para `application/use_cases/prepare_review.py`.
 - Fase 4 iniciada com criacao dos ports para PNCP, BrasilAPI, documentos, escrita de relatorios e status de revisao.
 - Fase 4 avancada com conexao do enriquecimento CNPJ ao port `CnpjEnrichmentGateway` via `application/use_cases/enrich_cnpj.py`.
+- Fase 4 avancada com conexao da escrita de relatorios ao port `ReportWriter` e adapter `adapters/outbound/filesystem/report_writer.py`.
 
 Validacoes realizadas durante a Fase 0:
 
@@ -60,7 +61,7 @@ Pendente para considerar a Fase 0 publicada:
 Proximo passo tecnico:
 
 ```text
-Fase 4: conectar documentos/relatorios aos ports e preparar adapters concretos.
+Fase 4: conectar documentos aos ports e preparar adapters PNCP concretos.
 ```
 
 ## Problema Atual
@@ -490,6 +491,8 @@ Criterio de conclusao:
 - [x] ports principais criados em `application/ports`;
 - [x] use case de investigacao tipado com `PncpContractGateway`;
 - [x] enriquecimento CNPJ conectado ao port `CnpjEnrichmentGateway`;
+- [x] escrita de relatorios conectada ao port `ReportWriter`;
+- [x] adapter filesystem concreto criado para escrita de relatorios;
 - [x] testes cobrem fakes/in-memory que satisfazem os ports;
 - [ ] demais use cases conectados aos ports quando aplicavel;
 - [ ] adapters concretos implementam ports;
@@ -693,7 +696,7 @@ Scripts operacionais principais a revalidar quando afetados:
 Executar a Fase 4:
 
 ```text
-conectar documentos/relatorios aos ports e preparar adapters concretos para a Fase 5
+conectar documentos aos ports e preparar adapters PNCP concretos para a Fase 5
 ```
 
 Depois disso, iniciar a Fase 5, movendo adapters externos em migracoes pequenas e com testes verdes.

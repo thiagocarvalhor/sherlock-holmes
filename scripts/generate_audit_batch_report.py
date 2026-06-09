@@ -5,12 +5,14 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from sherlock_holmes.adapters.outbound.filesystem import FileSystemReportWriter
 from sherlock_holmes.application.use_cases import (
     build_audit_report,
     build_batch_audit_report,
     load_cnpj_enrichments,
     load_comparison_results,
     load_document_references,
+    render_batch_audit_report_markdown,
     write_batch_audit_report_json,
     write_batch_audit_report_markdown,
 )
@@ -59,8 +61,17 @@ def main() -> None:
         )
 
     batch_report = build_batch_audit_report(reports)
-    json_path = write_batch_audit_report_json(batch_report, output_path=output_dir / "audit_batch_report.json")
-    markdown_path = write_batch_audit_report_markdown(batch_report, output_path=output_dir / "audit_batch_report.md")
+    writer = FileSystemReportWriter(render_batch_audit_report_markdown)
+    json_path = write_batch_audit_report_json(
+        batch_report,
+        output_path=output_dir / "audit_batch_report.json",
+        writer=writer,
+    )
+    markdown_path = write_batch_audit_report_markdown(
+        batch_report,
+        output_path=output_dir / "audit_batch_report.md",
+        writer=writer,
+    )
 
     summary = batch_report["summary"]
     print(f"Linhas consolidadas: {summary['rows_count']}")

@@ -5,11 +5,13 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from sherlock_holmes.adapters.outbound.filesystem import FileSystemReportWriter
 from sherlock_holmes.application.use_cases import (
     build_audit_report,
     load_cnpj_enrichments,
     load_comparison_results,
     load_document_references,
+    render_audit_report_markdown,
     write_audit_report_json,
     write_audit_report_markdown,
 )
@@ -33,9 +35,10 @@ def main() -> None:
     documents = load_document_references(args.documents) if args.documents else []
     enrichments = load_cnpj_enrichments(args.cnpj_enrichment) if args.cnpj_enrichment else []
     report = build_audit_report(comparisons, official_documents=documents, cnpj_enrichments=enrichments)
+    writer = FileSystemReportWriter(render_audit_report_markdown)
 
-    json_path = write_audit_report_json(report, output_path=output_dir / "audit_report.json")
-    markdown_path = write_audit_report_markdown(report, output_path=output_dir / "audit_report.md")
+    json_path = write_audit_report_json(report, output_path=output_dir / "audit_report.json", writer=writer)
+    markdown_path = write_audit_report_markdown(report, output_path=output_dir / "audit_report.md", writer=writer)
 
     summary = report["summary"]
     print(f"Linha manual: {summary['source_row']}")
