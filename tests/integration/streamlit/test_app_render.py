@@ -10,7 +10,7 @@ pytest.importorskip("streamlit")
 
 from streamlit.testing.v1 import AppTest  # noqa: E402
 
-APP = Path(__file__).resolve().parents[1] / "scripts" / "pncp_streamlit_app.py"
+APP = Path(__file__).resolve().parents[3] / "scripts" / "pncp_streamlit_app.py"
 
 
 def test_app_renders_without_exception():

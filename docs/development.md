@@ -23,6 +23,17 @@
 - preferir funções puras para comparação, evidência e relatório;
 - deixar Streamlit e scripts como bordas.
 
+## Organização dos testes
+
+```text
+tests/unit/domain/                 regras puras de domínio
+tests/unit/application/            casos de uso e ports com fakes
+tests/integration/adapters/        adapters inbound/outbound com mocks
+tests/integration/streamlit/       renderização e helpers da UI
+```
+
+Novos testes devem entrar na camada mais próxima do comportamento testado. Testes unitários não devem chamar rede nem depender de arquivos grandes.
+
 ## CI
 
 O CI roda:

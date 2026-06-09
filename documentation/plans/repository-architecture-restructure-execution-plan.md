@@ -51,6 +51,7 @@ Concluido nesta rodada:
 - Fase 5 avancada com migracao dos clientes PNCP para `adapters/outbound/pncp/` e wrappers legados em `pncp/`.
 - Fase 5 concluida localmente com documentos/filesystem em `adapters/outbound/filesystem/documents/` e OCR em `adapters/outbound/ocr/`.
 - Fase 6 concluida localmente com Streamlit em `adapters/inbound/streamlit/`, CLI em `adapters/inbound/cli/` e wrappers em `webapp/` e `scripts/`.
+- Fase 7 concluida localmente com testes reorganizados em `tests/unit/` e `tests/integration/`.
 
 Validacoes realizadas durante a Fase 0:
 
@@ -68,7 +69,7 @@ Pendente para considerar a Fase 0 publicada:
 Proximo passo tecnico:
 
 ```text
-Fase 7: reorganizar testes por camada.
+Fase 8: iniciar limpeza de pontes antigas e módulos legados.
 ```
 
 ## Problema Atual
@@ -572,7 +573,7 @@ Criterio de conclusao:
 
 ### Fase 7: Testes por camada
 
-Status: pendente.
+Status: concluida localmente.
 
 Objetivo:
 
@@ -594,9 +595,12 @@ tests/
 
 Criterio de conclusao:
 
-- testes unitarios nao usam rede;
-- testes de adapters externos usam mocks/injecao;
-- testes Streamlit ficam em integration.
+- [x] testes unitarios de dominio em `tests/unit/domain/`;
+- [x] testes unitarios de aplicacao em `tests/unit/application/`;
+- [x] testes de adapters em `tests/integration/adapters/`;
+- [x] testes Streamlit em `tests/integration/streamlit/`;
+- [x] testes unitarios nao usam rede;
+- [x] testes de adapters externos usam mocks/injecao;
 
 ### Fase 8: Limpeza e remocao de pontes
 
@@ -715,7 +719,7 @@ Scripts operacionais principais a revalidar quando afetados:
 Executar a Fase 5:
 
 ```text
-reorganizar testes por camada
+iniciar limpeza de pontes antigas e modulos legados
 ```
 
 Depois disso, reorganizar testes por camada, mantendo migracoes pequenas e testes verdes.

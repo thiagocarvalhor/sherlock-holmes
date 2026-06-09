@@ -178,6 +178,15 @@ src/sherlock_holmes/adapters/inbound/cli/
 
 Os pacotes antigos `sherlock_holmes.webapp` e os arquivos em `scripts/` permanecem como wrappers finos para preservar os comandos e imports existentes.
 
+Na Fase 7, os testes passaram a acompanhar a arquitetura:
+
+```text
+tests/unit/domain/
+tests/unit/application/
+tests/integration/adapters/
+tests/integration/streamlit/
+```
+
 ## Arquitetura alvo
 
 Estrutura planejada:

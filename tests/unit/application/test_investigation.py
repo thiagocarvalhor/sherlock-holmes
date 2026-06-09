@@ -15,7 +15,7 @@ from sherlock_holmes.investigation import investigate_row as legacy_investigate_
 from sherlock_holmes.pncp.client import PncpRequestResult
 
 SAMPLE_CSV = (
-    Path(__file__).resolve().parents[1]
+    Path(__file__).resolve().parents[3]
     / "documentation"
     / "plans"
     / "pncp-api-smoke-sample.csv"
