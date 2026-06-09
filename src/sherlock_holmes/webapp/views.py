@@ -10,6 +10,7 @@ from typing import Any
 import pandas as pd
 import streamlit as st
 
+from sherlock_holmes.domain.services import assess_review_needs
 from sherlock_holmes.enrichment import BrasilApiCnpjRecord, BrasilApiError, fetch_cnpj
 from sherlock_holmes.investigation import (
     InvestigationResult,
@@ -60,14 +61,6 @@ REVIEW_STATUS_LABELS = {
     "divergencia_confirmada": "Divergencia confirmada",
     "precisa_revisar_documento": "Precisa revisar documento",
 }
-
-REVIEW_FIELD_STATUSES = {
-    "partial_match",
-    "divergent",
-    "missing_in_official",
-    "missing_in_manual",
-}
-
 
 @dataclass(frozen=True)
 class ContractCandidate:
@@ -834,35 +827,7 @@ def _comparison_to_report_dict(comparison: RecordComparison) -> dict[str, Any]:
 
 
 def _review_assessment(comparison: RecordComparison, documents: list[dict[str, Any]]) -> dict[str, Any]:
-    review_fields = [field for field in comparison.fields if field.status in REVIEW_FIELD_STATUSES]
-    has_documents = bool(documents)
-
-    if not review_fields:
-        document_review_status = "nao_necessaria"
-        document_review_label = "Nao necessaria"
-        ocr_status = "nao_necessario"
-        ocr_label = "Nao necessario"
-    elif has_documents:
-        document_review_status = "revisar_documento"
-        document_review_label = "Revisar documento"
-        ocr_status = "pode_precisar"
-        ocr_label = "Pode precisar"
-    else:
-        document_review_status = "sem_documento"
-        document_review_label = "Sem documento"
-        ocr_status = "nao_avaliado"
-        ocr_label = "Nao avaliado"
-
-    return {
-        "document_review_required": bool(review_fields),
-        "document_review_status": document_review_status,
-        "document_review_label": document_review_label,
-        "ocr_status": ocr_status,
-        "ocr_label": ocr_label,
-        "review_fields_count": len(review_fields),
-        "review_fields": [field.field_name for field in review_fields],
-        "documents_count": len(documents),
-    }
+    return assess_review_needs(comparison, documents).to_dict()
 
 
 def _current_official_documents_for_report(contract: dict[str, Any] | None) -> list[dict[str, Any]]:
