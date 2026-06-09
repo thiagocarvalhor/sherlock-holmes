@@ -42,6 +42,7 @@ Concluido nesta rodada:
 - Fase 3 avancada com migracao da comparacao direta manual versus contrato para `application/use_cases/compare_manual_record.py`.
 - Fase 3 concluida localmente com migracao da preparacao de revisao operacional para `application/use_cases/prepare_review.py`.
 - Fase 4 iniciada com criacao dos ports para PNCP, BrasilAPI, documentos, escrita de relatorios e status de revisao.
+- Fase 4 avancada com conexao do enriquecimento CNPJ ao port `CnpjEnrichmentGateway` via `application/use_cases/enrich_cnpj.py`.
 
 Validacoes realizadas durante a Fase 0:
 
@@ -59,7 +60,7 @@ Pendente para considerar a Fase 0 publicada:
 Proximo passo tecnico:
 
 ```text
-Fase 4: conectar use cases aos ports e preparar adapters concretos.
+Fase 4: conectar documentos/relatorios aos ports e preparar adapters concretos.
 ```
 
 ## Problema Atual
@@ -488,6 +489,7 @@ Criterio de conclusao:
 
 - [x] ports principais criados em `application/ports`;
 - [x] use case de investigacao tipado com `PncpContractGateway`;
+- [x] enriquecimento CNPJ conectado ao port `CnpjEnrichmentGateway`;
 - [x] testes cobrem fakes/in-memory que satisfazem os ports;
 - [ ] demais use cases conectados aos ports quando aplicavel;
 - [ ] adapters concretos implementam ports;
@@ -691,7 +693,7 @@ Scripts operacionais principais a revalidar quando afetados:
 Executar a Fase 4:
 
 ```text
-conectar use cases aos ports e preparar adapters concretos para a Fase 5
+conectar documentos/relatorios aos ports e preparar adapters concretos para a Fase 5
 ```
 
 Depois disso, iniciar a Fase 5, movendo adapters externos em migracoes pequenas e com testes verdes.

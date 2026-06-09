@@ -14,13 +14,14 @@ from sherlock_holmes.application.use_cases import (
     InvestigationResult,
     build_audit_report,
     compare_manual_record,
+    enrich_cnpj,
     investigate_row,
     load_manual_rows,
     prepare_review,
     render_audit_report_markdown,
 )
 from sherlock_holmes.domain.entities import RecordComparison
-from sherlock_holmes.enrichment import BrasilApiCnpjRecord, BrasilApiError, fetch_cnpj
+from sherlock_holmes.enrichment import BrasilApiCnpjRecord, BrasilApiError
 from sherlock_holmes.pncp.client import PncpApiError, compact_digits
 from sherlock_holmes.webapp.comparison import (
     MANUAL_FIELDS,
@@ -85,7 +86,7 @@ def cached_investigate_row(
 def cached_cnpj_enrichment(cnpj: str) -> BrasilApiCnpjRecord:
     """Cached wrapper around BrasilAPI CNPJ enrichment."""
 
-    return fetch_cnpj(cnpj)
+    return enrich_cnpj(cnpj)
 
 
 def render_app() -> None:

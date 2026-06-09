@@ -15,6 +15,7 @@ from sherlock_holmes.application.use_cases.build_audit_report import (
     write_batch_audit_report_markdown,
 )
 from sherlock_holmes.application.use_cases.compare_manual_record import compare_manual_record
+from sherlock_holmes.application.use_cases.enrich_cnpj import enrich_cnpj
 from sherlock_holmes.application.use_cases.investigate_manual_row import (
     DEFAULT_WINDOW_DAYS,
     FetchFn,
@@ -33,6 +34,7 @@ __all__ = [
     "build_batch_audit_report",
     "build_search_window",
     "compare_manual_record",
+    "enrich_cnpj",
     "investigate_row",
     "load_cnpj_enrichments",
     "load_comparison_results",

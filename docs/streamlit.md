@@ -26,7 +26,7 @@ O Streamlit é a interface de investigação do Sherlock Holmes.
 - A investigação automática chama o caso de uso `application.use_cases.investigate_manual_row`.
 - A comparação direta com o contrato selecionado chama `application.use_cases.compare_manual_record`.
 - A indicação de revisão documental e OCR chama `application.use_cases.prepare_review`.
-- A BrasilAPI é consultada sob demanda, não automaticamente.
+- A BrasilAPI é consultada sob demanda via `application.use_cases.enrich_cnpj`.
 - OCR não é executado pela UI nesta fase.
 - O indicador `Pode precisar OCR` é operacional, não uma execução real de OCR.
 - Status e notas de revisão ainda ficam na sessão Streamlit.

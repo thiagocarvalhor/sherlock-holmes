@@ -104,6 +104,14 @@ src/sherlock_holmes/application/ports/review_status_store.py
 
 Esses contratos ainda convivem com wrappers antigos e adapters legados. A Fase 5 deve mover PNCP, BrasilAPI, documentos e OCR para `adapters/outbound`.
 
+O enriquecimento CNPJ já passa pelo caso de uso:
+
+```text
+src/sherlock_holmes/application/use_cases/enrich_cnpj.py
+```
+
+Esse caso de uso depende do port `CnpjEnrichmentGateway`; a implementação concreta atual ainda está em `sherlock_holmes.enrichment` até a migração de adapters.
+
 ## Arquitetura alvo
 
 Estrutura planejada:
