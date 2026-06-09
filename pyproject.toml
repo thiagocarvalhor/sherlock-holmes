@@ -21,7 +21,7 @@ webapp = [
     "pandas==2.2.3",
 ]
 ocr = [
-    "Pillow==12.2.0",
+    "Pillow==11.3.0",
     "opencv-python==4.13.0.92",
     "opencv-contrib-python==4.10.0.84",
     "pytesseract==0.3.13",
