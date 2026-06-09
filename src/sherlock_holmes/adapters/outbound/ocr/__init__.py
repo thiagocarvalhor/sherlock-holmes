@@ -1,0 +1,1 @@
+"""Outbound OCR adapter package."""

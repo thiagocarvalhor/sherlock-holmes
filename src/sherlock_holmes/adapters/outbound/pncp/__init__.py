@@ -1,0 +1,1 @@
+"""Outbound PNCP adapter package."""

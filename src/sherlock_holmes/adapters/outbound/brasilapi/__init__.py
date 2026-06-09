@@ -1,0 +1,1 @@
+"""Outbound BrasilAPI adapter package."""

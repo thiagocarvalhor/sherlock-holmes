@@ -29,6 +29,21 @@ src/sherlock_holmes/
 
 Essa estrutura ajudou a evoluir rápido, mas agora começa a misturar responsabilidades. Por exemplo, `validation` concentra regra central, enquanto `pncp` e `enrichment` são integrações externas.
 
+## Estrutura de transição
+
+A Fase 1 já criou os pacotes da arquitetura alvo sem mover regra de negócio. Nesta etapa, os módulos antigos continuam funcionando e os novos diretórios servem como destino explícito para as próximas migrações:
+
+```text
+src/sherlock_holmes/
+|-- domain/
+|-- application/
+|-- adapters/
+|-- infrastructure/
+`-- shared/
+```
+
+Essa convivência é temporária. As próximas fases movem conceitos centrais, casos de uso e integrações externas em ondas pequenas, preservando wrappers quando necessário.
+
 ## Arquitetura alvo
 
 Estrutura planejada:

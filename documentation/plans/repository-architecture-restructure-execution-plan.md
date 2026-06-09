@@ -33,6 +33,7 @@ Concluido nesta rodada:
 - logo vertical e logo horizontal copiadas para `docs/assets/images/`;
 - textos principais da documentacao navegavel revisados com acentuacao e portugues mais polido;
 - `site/` e `image/` mantidos fora do versionamento por `.gitignore`.
+- Fase 1 executada com criacao dos pacotes `domain`, `application`, `adapters`, `infrastructure` e `shared`.
 
 Validacoes realizadas durante a Fase 0:
 
@@ -50,7 +51,7 @@ Pendente para considerar a Fase 0 publicada:
 Proximo passo tecnico:
 
 ```text
-Fase 1: criar o esqueleto arquitetural sem mover regra critica.
+Fase 2: migrar uma primeira fatia pequena do dominio central.
 ```
 
 ## Problema Atual
@@ -360,7 +361,7 @@ Criterio de conclusao:
 
 ### Fase 1: Esqueleto arquitetural
 
-Status: proxima fase.
+Status: concluida localmente.
 
 Objetivo:
 
@@ -377,12 +378,13 @@ Entregas:
 
 Criterio de conclusao:
 
-- imports atuais continuam funcionando;
-- testes continuam verdes.
+- [x] pacotes de camada criados;
+- [x] imports atuais continuam funcionando;
+- [x] testes continuam verdes.
 
 ### Fase 2: Dominio central
 
-Status: pendente.
+Status: proxima fase.
 
 Objetivo:
 
@@ -625,8 +627,8 @@ Mitigacao:
 1. `docs: add architecture restructure plan` - concluido.
 2. `feat: add mkdocs documentation site` - concluido.
 3. `style: customize MkDocs branding and Portuguese copy` - concluido.
-4. `refactor: add architecture package skeleton` - proximo.
-5. `refactor: move comparison and evidence domain models`
+4. `refactor: add architecture package skeleton` - concluido localmente.
+5. `refactor: move comparison and evidence domain models` - proximo.
 6. `refactor: move investigation use case`
 7. `refactor: introduce application ports`
 8. `refactor: move pncp and brasilapi adapters`
@@ -659,13 +661,13 @@ Scripts operacionais principais a revalidar quando afetados:
 
 ## Proximo Passo Concreto
 
-Executar a Fase 1:
+Executar a Fase 2:
 
 ```text
-criar o esqueleto domain/application/adapters/infrastructure/shared sem mover regra critica
+migrar uma primeira fatia pequena de comparison/evidence para domain preservando wrappers antigos
 ```
 
-Depois disso, iniciar a Fase 2 com migracao pequena do dominio central, preservando wrappers temporarios para imports antigos.
+Depois disso, seguir para os casos de uso em `application`, tambem em migracoes pequenas e com testes verdes.
 
 ## Criterio Geral De Conclusao
 
