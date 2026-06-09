@@ -8,9 +8,25 @@
 
 ::: sherlock_holmes.domain.value_objects.cnpj
 
+## Cliente base
+
+::: sherlock_holmes.adapters.outbound.pncp.client
+
+## Datas PNCP
+
+::: sherlock_holmes.adapters.outbound.pncp.dates
+
 ## Contratos
 
-::: sherlock_holmes.pncp.contratos
+::: sherlock_holmes.adapters.outbound.pncp.contratos
+
+## Licitações
+
+::: sherlock_holmes.adapters.outbound.pncp.licitacoes
+
+## Arquivos
+
+::: sherlock_holmes.adapters.outbound.pncp.arquivos
 
 ## Busca de contratos
 

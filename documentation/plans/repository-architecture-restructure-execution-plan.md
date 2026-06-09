@@ -48,6 +48,8 @@ Concluido nesta rodada:
 - Fase 4 avancada com conexao da busca de contratos PNCP ao port `PncpContractGateway` e adapter `adapters/outbound/pncp/contract_gateway.py`.
 - Fase 4 concluida localmente com adapter BrasilAPI concreto e use cases recebendo gateways explicitos.
 - Fase 5 iniciada com migracao do cliente BrasilAPI para `adapters/outbound/brasilapi/client.py` e wrapper legado em `enrichment/brasilapi.py`.
+- Fase 5 avancada com migracao dos clientes PNCP para `adapters/outbound/pncp/` e wrappers legados em `pncp/`.
+- Fase 5 concluida localmente com documentos/filesystem em `adapters/outbound/filesystem/documents/` e OCR em `adapters/outbound/ocr/`.
 
 Validacoes realizadas durante a Fase 0:
 
@@ -65,7 +67,7 @@ Pendente para considerar a Fase 0 publicada:
 Proximo passo tecnico:
 
 ```text
-Fase 5: iniciar migracao dos modulos externos legados para adapters outbound.
+Fase 6: iniciar migracao de entradas Streamlit e CLI para adapters inbound.
 ```
 
 ## Problema Atual
@@ -509,7 +511,7 @@ Criterio de conclusao:
 
 ### Fase 5: Adapters outbound
 
-Status: em andamento.
+Status: concluida localmente.
 
 Objetivo:
 
@@ -527,11 +529,12 @@ ocr/        -> adapters/outbound/ocr/
 Criterio de conclusao:
 
 - [x] cliente BrasilAPI movido para `adapters/outbound/brasilapi/client.py`;
-- [ ] clientes PNCP movidos para `adapters/outbound/pncp/`;
-- [ ] adapters de documentos/filesystem revisados;
-- [ ] OCR posicionado como adapter outbound sem executar OCR real nesta rodada;
-- [ ] dominio e use cases nao importam Streamlit, urllib ou detalhes de path;
-- [x] wrappers antigos preservam compatibilidade temporaria para BrasilAPI.
+- [x] clientes PNCP movidos para `adapters/outbound/pncp/`;
+- [x] adapters de documentos/filesystem revisados;
+- [x] OCR posicionado como adapter outbound sem executar OCR real nesta rodada;
+- [x] dominio e application sem imports diretos de clientes PNCP/BrasilAPI ou `urllib`;
+- [x] wrappers antigos preservam compatibilidade temporaria para BrasilAPI e PNCP.
+- [x] wrappers antigos preservam compatibilidade temporaria para documentos e OCR.
 
 ### Fase 6: Adapters inbound
 
@@ -708,10 +711,10 @@ Scripts operacionais principais a revalidar quando afetados:
 Executar a Fase 5:
 
 ```text
-iniciar a Fase 5 movendo clientes legados de PNCP e BrasilAPI em fatias pequenas
+iniciar a Fase 6 movendo entradas Streamlit e CLI para `adapters/inbound`
 ```
 
-Depois disso, seguir para os adapters inbound, mantendo migracoes pequenas e testes verdes.
+Depois disso, reorganizar testes por camada, mantendo migracoes pequenas e testes verdes.
 
 ## Criterio Geral De Conclusao
 

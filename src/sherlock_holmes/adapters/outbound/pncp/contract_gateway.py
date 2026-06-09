@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from sherlock_holmes.pncp.client import PncpRequestResult, fetch_contracts_by_publication
+from sherlock_holmes.adapters.outbound.pncp.client import PncpRequestResult, fetch_contracts_by_publication
 
 
 class PncpContractSearchGateway:

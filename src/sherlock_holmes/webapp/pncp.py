@@ -9,13 +9,13 @@ import pandas as pd
 import streamlit as st
 
 from sherlock_holmes.adapters.outbound.pncp import PncpContractSearchGateway, PncpDocumentGateway
-from sherlock_holmes.application.use_cases import list_contract_documents, search_pncp_contracts
-from sherlock_holmes.pncp.client import (
+from sherlock_holmes.adapters.outbound.pncp.client import (
     contract_detail_url,
     contract_file_download_url,
     filter_records_by_terms,
     normalize_text,
 )
+from sherlock_holmes.application.use_cases import list_contract_documents, search_pncp_contracts
 
 KEYWORD_SUGGESTIONS: dict[str, list[str]] = {
     "limpeza": [

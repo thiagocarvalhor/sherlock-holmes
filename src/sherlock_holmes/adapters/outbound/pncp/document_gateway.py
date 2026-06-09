@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sherlock_holmes.pncp.client import PncpRequestResult, fetch_contract_files
+from sherlock_holmes.adapters.outbound.pncp.client import PncpRequestResult, fetch_contract_files
 
 
 class PncpDocumentGateway:

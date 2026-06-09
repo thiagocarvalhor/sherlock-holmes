@@ -12,6 +12,7 @@ import streamlit as st
 
 from sherlock_holmes.adapters.outbound.brasilapi import BrasilApiCnpjGateway
 from sherlock_holmes.adapters.outbound.pncp import PncpContractSearchGateway
+from sherlock_holmes.adapters.outbound.pncp.client import PncpApiError
 from sherlock_holmes.application.use_cases import (
     InvestigationResult,
     build_audit_report,
@@ -23,8 +24,8 @@ from sherlock_holmes.application.use_cases import (
     render_audit_report_markdown,
 )
 from sherlock_holmes.domain.entities import RecordComparison
+from sherlock_holmes.domain.value_objects import compact_digits
 from sherlock_holmes.enrichment import BrasilApiCnpjRecord, BrasilApiError
-from sherlock_holmes.pncp.client import PncpApiError, compact_digits
 from sherlock_holmes.webapp.comparison import (
     MANUAL_FIELDS,
     candidate_detail_url,

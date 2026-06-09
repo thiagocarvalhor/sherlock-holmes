@@ -143,6 +143,32 @@ src/sherlock_holmes/adapters/outbound/pncp/contract_gateway.py
 
 O Streamlit usa esse caminho tanto na busca anual de contratos quanto na investigação automática de uma linha manual.
 
+Na Fase 5, os clientes PNCP legados foram movidos para `adapters/outbound/pncp`:
+
+```text
+src/sherlock_holmes/adapters/outbound/pncp/client.py
+src/sherlock_holmes/adapters/outbound/pncp/dates.py
+src/sherlock_holmes/adapters/outbound/pncp/contratos.py
+src/sherlock_holmes/adapters/outbound/pncp/licitacoes.py
+src/sherlock_holmes/adapters/outbound/pncp/arquivos.py
+```
+
+Os módulos antigos em `sherlock_holmes.pncp` permanecem como wrappers de compatibilidade.
+
+Também na Fase 5, a inspeção/extração direta de documentos locais foi posicionada no adapter de filesystem:
+
+```text
+src/sherlock_holmes/adapters/outbound/filesystem/documents/
+```
+
+O OCR técnico usado em experimentos e manifestos foi posicionado em:
+
+```text
+src/sherlock_holmes/adapters/outbound/ocr/
+```
+
+Os pacotes antigos `sherlock_holmes.documents` e `sherlock_holmes.ocr` permanecem como wrappers temporários.
+
 ## Arquitetura alvo
 
 Estrutura planejada:

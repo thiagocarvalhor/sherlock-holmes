@@ -79,5 +79,7 @@ nav:
       - Investigação: reference/investigation.md
       - PNCP: reference/pncp.md
       - BrasilAPI: reference/brasilapi.md
+      - Documentos: reference/documents.md
+      - OCR: reference/ocr.md
       - Ports: reference/ports.md
       - Relatórios: reference/reporting.md
