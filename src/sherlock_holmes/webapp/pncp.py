@@ -8,10 +8,11 @@ from typing import Any
 import pandas as pd
 import streamlit as st
 
+from sherlock_holmes.adapters.outbound.pncp import PncpDocumentGateway
+from sherlock_holmes.application.use_cases import list_contract_documents
 from sherlock_holmes.pncp.client import (
     contract_detail_url,
     contract_file_download_url,
-    fetch_contract_files,
     fetch_contracts_by_publication,
     filter_records_by_terms,
     normalize_text,
@@ -120,7 +121,12 @@ def cached_contract_search(
 
 @st.cache_data(show_spinner=False, ttl=900)
 def cached_contract_files(cnpj_orgao: str, year: int, sequencial: int) -> dict[str, Any]:
-    result = fetch_contract_files(cnpj_orgao, year, sequencial)
+    result = list_contract_documents(
+        cnpj_orgao,
+        year,
+        sequencial,
+        gateway=PncpDocumentGateway(),
+    )
     return {"url": result.url, "payload": result.payload}
 
 

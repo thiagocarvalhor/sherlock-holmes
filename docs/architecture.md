@@ -120,6 +120,14 @@ src/sherlock_holmes/adapters/outbound/filesystem/report_writer.py
 
 Os scripts de relatório usam esse adapter para gravar JSON e Markdown no filesystem.
 
+A listagem de documentos oficiais de contratos já passa pelo port `DocumentGateway`, com adapter concreto em:
+
+```text
+src/sherlock_holmes/adapters/outbound/pncp/document_gateway.py
+```
+
+O helper Streamlit de PNCP chama `application.use_cases.list_contract_documents` para buscar arquivos oficiais.
+
 ## Arquitetura alvo
 
 Estrutura planejada:

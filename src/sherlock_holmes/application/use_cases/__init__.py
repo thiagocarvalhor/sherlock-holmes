@@ -24,6 +24,7 @@ from sherlock_holmes.application.use_cases.investigate_manual_row import (
     investigate_row,
     load_manual_rows,
 )
+from sherlock_holmes.application.use_cases.list_contract_documents import list_contract_documents
 from sherlock_holmes.application.use_cases.prepare_review import prepare_review
 
 __all__ = [
@@ -39,6 +40,7 @@ __all__ = [
     "load_cnpj_enrichments",
     "load_comparison_results",
     "load_document_references",
+    "list_contract_documents",
     "load_manual_rows",
     "prepare_review",
     "render_audit_report_markdown",

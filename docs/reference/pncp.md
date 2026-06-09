@@ -11,3 +11,11 @@
 ## Contratos
 
 ::: sherlock_holmes.pncp.contratos
+
+## Documentos
+
+::: sherlock_holmes.application.use_cases.list_contract_documents
+
+## Adapter PNCP
+
+::: sherlock_holmes.adapters.outbound.pncp.document_gateway
