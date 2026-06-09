@@ -41,6 +41,7 @@ Concluido nesta rodada:
 - Fase 3 avancada com migracao da geracao de relatorio auditavel para `application/use_cases/build_audit_report.py`.
 - Fase 3 avancada com migracao da comparacao direta manual versus contrato para `application/use_cases/compare_manual_record.py`.
 - Fase 3 concluida localmente com migracao da preparacao de revisao operacional para `application/use_cases/prepare_review.py`.
+- Fase 4 iniciada com criacao dos ports para PNCP, BrasilAPI, documentos, escrita de relatorios e status de revisao.
 
 Validacoes realizadas durante a Fase 0:
 
@@ -58,7 +59,7 @@ Pendente para considerar a Fase 0 publicada:
 Proximo passo tecnico:
 
 ```text
-Fase 4: introduzir application ports para dependencias externas.
+Fase 4: conectar use cases aos ports e preparar adapters concretos.
 ```
 
 ## Problema Atual
@@ -467,7 +468,7 @@ Criterio de conclusao:
 
 ### Fase 4: Ports
 
-Status: pendente.
+Status: em andamento.
 
 Objetivo:
 
@@ -476,18 +477,21 @@ Definir contratos para dependencias externas.
 Entregas sugeridas:
 
 ```text
-application/ports/pncp_contract_gateway.py
-application/ports/cnpj_enrichment_gateway.py
-application/ports/document_gateway.py
-application/ports/report_writer.py
-application/ports/review_status_store.py
+application/ports/pncp_contract_gateway.py - criado
+application/ports/cnpj_enrichment_gateway.py - criado
+application/ports/document_gateway.py - criado
+application/ports/report_writer.py - criado
+application/ports/review_status_store.py - criado
 ```
 
 Criterio de conclusao:
 
-- use cases dependem de ports;
-- adapters concretos implementam ports;
-- testes usam adapters fake/in-memory.
+- [x] ports principais criados em `application/ports`;
+- [x] use case de investigacao tipado com `PncpContractGateway`;
+- [x] testes cobrem fakes/in-memory que satisfazem os ports;
+- [ ] demais use cases conectados aos ports quando aplicavel;
+- [ ] adapters concretos implementam ports;
+- [ ] dependencias externas preparadas para migracao em Fase 5.
 
 ### Fase 5: Adapters outbound
 
@@ -653,7 +657,7 @@ Mitigacao:
 7. `refactor: move audit report use case` - concluido.
 8. `refactor: move manual comparison use case` - concluido.
 9. `refactor: move review preparation use case` - concluido localmente.
-10. `refactor: introduce application ports`
+10. `refactor: introduce application ports` - em andamento.
 11. `refactor: move pncp and brasilapi adapters`
 12. `refactor: move streamlit and cli adapters`
 13. `test: organize tests by architecture layer`
@@ -687,7 +691,7 @@ Scripts operacionais principais a revalidar quando afetados:
 Executar a Fase 4:
 
 ```text
-introduzir application ports para PNCP, BrasilAPI, documentos e escrita de relatorios
+conectar use cases aos ports e preparar adapters concretos para a Fase 5
 ```
 
 Depois disso, iniciar a Fase 5, movendo adapters externos em migracoes pequenas e com testes verdes.

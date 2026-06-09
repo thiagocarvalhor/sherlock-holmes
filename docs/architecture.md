@@ -92,6 +92,18 @@ src/sherlock_holmes/application/use_cases/prepare_review.py
 
 Os módulos antigos `sherlock_holmes.investigation` e `sherlock_holmes.reporting` continuam como wrappers de compatibilidade.
 
+A Fase 4 iniciou a criação de ports da aplicação para dependências externas:
+
+```text
+src/sherlock_holmes/application/ports/pncp_contract_gateway.py
+src/sherlock_holmes/application/ports/cnpj_enrichment_gateway.py
+src/sherlock_holmes/application/ports/document_gateway.py
+src/sherlock_holmes/application/ports/report_writer.py
+src/sherlock_holmes/application/ports/review_status_store.py
+```
+
+Esses contratos ainda convivem com wrappers antigos e adapters legados. A Fase 5 deve mover PNCP, BrasilAPI, documentos e OCR para `adapters/outbound`.
+
 ## Arquitetura alvo
 
 Estrutura planejada:

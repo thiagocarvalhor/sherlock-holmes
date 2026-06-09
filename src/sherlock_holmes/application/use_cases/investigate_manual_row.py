@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import csv
 import re
-from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from sherlock_holmes.application.ports import PncpContractGateway
 from sherlock_holmes.domain.entities import (
     RecordComparison,
     compare_records,
@@ -17,12 +17,9 @@ from sherlock_holmes.domain.entities import (
     evidence_from_official_api,
 )
 from sherlock_holmes.domain.value_objects import compact_digits
-from sherlock_holmes.pncp.client import (
-    PncpRequestResult,
-    fetch_contracts_by_publication,
-)
+from sherlock_holmes.pncp.client import fetch_contracts_by_publication
 
-FetchFn = Callable[..., PncpRequestResult]
+FetchFn = PncpContractGateway
 
 DEFAULT_WINDOW_DAYS = 45
 
