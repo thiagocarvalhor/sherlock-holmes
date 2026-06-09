@@ -11,6 +11,8 @@ from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
+from sherlock_holmes.domain.value_objects import compact_digits
+
 CONSULTA_BASE_URL = "https://pncp.gov.br/api/consulta"
 PNCP_BASE_URL = "https://pncp.gov.br/api/pncp"
 PNCP_FILE_BASE_URL = "https://pncp.gov.br/pncp-api"
@@ -27,12 +29,6 @@ class PncpRequestResult:
 
 class PncpApiError(RuntimeError):
     """Raised when the PNCP API returns a non-success response."""
-
-
-def compact_digits(value: str | None) -> str:
-    """Return only digits from a string."""
-
-    return "".join(char for char in str(value or "") if char.isdigit())
 
 
 def normalize_text(value: Any) -> str:
@@ -203,4 +199,3 @@ def filter_records_by_terms(records: list[dict[str, Any]], terms: list[str]) -> 
         if any(term in target for term in normalized_terms):
             filtered.append(record)
     return filtered
-

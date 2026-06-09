@@ -2,7 +2,11 @@
 
 ## Identificadores
 
-::: sherlock_holmes.pncp.ids
+::: sherlock_holmes.domain.value_objects.pncp_id
+
+## CNPJ
+
+::: sherlock_holmes.domain.value_objects.cnpj
 
 ## Contratos
 

@@ -51,7 +51,14 @@ src/sherlock_holmes/domain/entities/comparison.py
 src/sherlock_holmes/domain/entities/evidence.py
 ```
 
-Os módulos antigos em `sherlock_holmes.validation` continuam existindo como wrappers de compatibilidade durante a transição.
+A segunda fatia moveu normalização de CNPJ e identificadores PNCP para:
+
+```text
+src/sherlock_holmes/domain/value_objects/cnpj.py
+src/sherlock_holmes/domain/value_objects/pncp_id.py
+```
+
+Os módulos antigos em `sherlock_holmes.validation` e `sherlock_holmes.pncp.ids` continuam existindo como wrappers de compatibilidade durante a transição.
 
 ## Arquitetura alvo
 
