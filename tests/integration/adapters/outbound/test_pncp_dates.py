@@ -6,7 +6,7 @@ from datetime import date
 
 import pytest
 
-from sherlock_holmes.pncp.dates import (
+from sherlock_holmes.adapters.outbound.pncp.dates import (
     PncpDateRange,
     default_date_range,
     format_pncp_date,

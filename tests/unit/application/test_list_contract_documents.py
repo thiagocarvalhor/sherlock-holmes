@@ -6,9 +6,9 @@ from dataclasses import dataclass
 from typing import Any
 
 from sherlock_holmes.adapters.outbound.pncp import PncpDocumentGateway
+from sherlock_holmes.adapters.outbound.pncp.client import PncpRequestResult
 from sherlock_holmes.application.ports import DocumentGateway
 from sherlock_holmes.application.use_cases import list_contract_documents
-from sherlock_holmes.pncp.client import PncpRequestResult
 
 
 @dataclass(frozen=True)

@@ -52,6 +52,7 @@ Concluido nesta rodada:
 - Fase 5 concluida localmente com documentos/filesystem em `adapters/outbound/filesystem/documents/` e OCR em `adapters/outbound/ocr/`.
 - Fase 6 concluida localmente com Streamlit em `adapters/inbound/streamlit/`, CLI em `adapters/inbound/cli/` e wrappers em `webapp/` e `scripts/`.
 - Fase 7 concluida localmente com testes reorganizados em `tests/unit/` e `tests/integration/`.
+- Fase 8 concluida localmente com remocao de wrappers legados de pacote e manutencao apenas dos wrappers operacionais em `scripts/`.
 
 Validacoes realizadas durante a Fase 0:
 
@@ -69,7 +70,7 @@ Pendente para considerar a Fase 0 publicada:
 Proximo passo tecnico:
 
 ```text
-Fase 8: iniciar limpeza de pontes antigas e módulos legados.
+Migracao arquitetural concluida localmente; proximo passo e revisar PR/merge e publicacao.
 ```
 
 ## Problema Atual
@@ -604,7 +605,7 @@ Criterio de conclusao:
 
 ### Fase 8: Limpeza e remocao de pontes
 
-Status: pendente.
+Status: concluida localmente.
 
 Objetivo:
 
@@ -612,20 +613,21 @@ Remover compatibilidade antiga quando a migracao estiver consolidada.
 
 Inclui:
 
-- remover wrappers antigos;
-- revisar `__all__`;
-- atualizar README;
-- atualizar docs;
-- remover modulos orfaos;
-- revisar nomes de scripts;
-- revisar `.gitignore`;
-- revisar dependencias no `pyproject.toml`.
+- [x] remover wrappers antigos de pacote;
+- [x] manter apenas wrappers operacionais em `scripts/`;
+- [x] revisar `__all__` dos caminhos principais;
+- [x] atualizar README;
+- [x] atualizar docs;
+- [x] remover modulos orfaos versionados;
+- [x] revisar nomes de scripts;
+- [x] revisar `.gitignore`;
+- [x] revisar dependencias no `pyproject.toml`.
 
 Criterio de conclusao:
 
-- nao ha imports antigos desnecessarios;
-- docs descrevem a estrutura real;
-- CI e docs passam.
+- [x] nao ha imports antigos desnecessarios;
+- [x] docs descrevem a estrutura real;
+- [x] CI e docs passam localmente.
 
 ## Fora De Escopo Nesta Rodada
 
@@ -719,7 +721,7 @@ Scripts operacionais principais a revalidar quando afetados:
 Executar a Fase 5:
 
 ```text
-iniciar limpeza de pontes antigas e modulos legados
+revisar PR/merge e publicacao da documentacao
 ```
 
 Depois disso, reorganizar testes por camada, mantendo migracoes pequenas e testes verdes.

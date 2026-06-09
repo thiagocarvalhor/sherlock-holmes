@@ -5,8 +5,8 @@ from __future__ import annotations
 import pandas as pd
 
 from sherlock_holmes.adapters.outbound.pncp.client import contract_detail_url
+from sherlock_holmes.domain.entities import RecordComparison
 from sherlock_holmes.domain.value_objects import parse_numero_controle_pncp
-from sherlock_holmes.validation import RecordComparison
 
 # Manual-row keys shown in the "registro manual" header.
 MANUAL_FIELDS = [

@@ -27,7 +27,7 @@ from sherlock_holmes.adapters.inbound.streamlit.pncp import (
     suggested_terms,
 )
 from sherlock_holmes.adapters.inbound.streamlit.ui import color_status, field_row_html, status_badge
-from sherlock_holmes.adapters.outbound.brasilapi import BrasilApiCnpjGateway
+from sherlock_holmes.adapters.outbound.brasilapi import BrasilApiCnpjGateway, BrasilApiCnpjRecord, BrasilApiError
 from sherlock_holmes.adapters.outbound.pncp import PncpContractSearchGateway
 from sherlock_holmes.adapters.outbound.pncp.client import PncpApiError
 from sherlock_holmes.application.use_cases import (
@@ -42,7 +42,6 @@ from sherlock_holmes.application.use_cases import (
 )
 from sherlock_holmes.domain.entities import RecordComparison
 from sherlock_holmes.domain.value_objects import compact_digits
-from sherlock_holmes.enrichment import BrasilApiCnpjRecord, BrasilApiError
 
 ROOT_DIR = Path(__file__).resolve().parents[5]
 DEFAULT_MANUAL_CSV = ROOT_DIR / "documentation" / "plans" / "pncp-api-smoke-sample.csv"

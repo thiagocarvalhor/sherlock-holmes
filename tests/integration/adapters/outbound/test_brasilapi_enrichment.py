@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-from sherlock_holmes.enrichment.brasilapi import (
+from sherlock_holmes.adapters.outbound.brasilapi import (
     build_cnpj_url,
     evidence_from_cnpj_record,
     fetch_cnpj,

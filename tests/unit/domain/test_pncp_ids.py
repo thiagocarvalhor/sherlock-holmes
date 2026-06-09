@@ -5,35 +5,12 @@ from __future__ import annotations
 import pytest
 
 from sherlock_holmes.domain.value_objects import (
-    PncpResourceId as DomainPncpResourceId,
-)
-from sherlock_holmes.domain.value_objects import (
-    compact_digits as domain_compact_digits,
-)
-from sherlock_holmes.domain.value_objects import (
-    normalize_cnpj as domain_normalize_cnpj,
-)
-from sherlock_holmes.domain.value_objects import (
-    parse_numero_controle_pncp as domain_parse_numero_controle_pncp,
-)
-from sherlock_holmes.domain.value_objects import (
-    resolve_pncp_contract_id as domain_resolve_pncp_contract_id,
-)
-from sherlock_holmes.pncp.ids import (
     PncpResourceId,
     compact_digits,
     normalize_cnpj,
     parse_numero_controle_pncp,
     resolve_pncp_contract_id,
 )
-
-
-def test_pncp_ids_exports_domain_value_objects():
-    assert PncpResourceId is DomainPncpResourceId
-    assert compact_digits is domain_compact_digits
-    assert normalize_cnpj is domain_normalize_cnpj
-    assert parse_numero_controle_pncp is domain_parse_numero_controle_pncp
-    assert resolve_pncp_contract_id is domain_resolve_pncp_contract_id
 
 
 def test_compact_digits_strips_mask():

@@ -18,13 +18,13 @@ estruturado nao basta.
 
 ```text
 src/sherlock_holmes/    # biblioteca instalavel
-  pncp/                 # cliente e helpers da API PNCP
-  validation/           # evidencia e comparacao
-  documents/            # inspecao e extracao de texto
-  ocr/                  # OCR como fallback
-  webapp/               # helpers das paginas Streamlit
-scripts/                # ferramentas operacionais e app Streamlit
-tests/                  # testes automatizados (pytest)
+  domain/               # regras centrais, entidades e value objects
+  application/          # casos de uso e ports
+  adapters/             # entradas Streamlit/CLI e saidas PNCP/BrasilAPI/filesystem/OCR
+  infrastructure/       # configuracao e detalhes tecnicos compartilhados
+scripts/                # wrappers operacionais e app Streamlit
+tests/                  # testes por camada (unit e integration)
+docs/                   # documentacao navegavel MkDocs
 documentation/          # planos, relatorios e roadmap
 ```
 

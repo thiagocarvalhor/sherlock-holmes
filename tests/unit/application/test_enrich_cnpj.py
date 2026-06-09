@@ -5,9 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from sherlock_holmes.adapters.outbound.brasilapi import BrasilApiCnpjGateway
+from sherlock_holmes.adapters.outbound.brasilapi import BrasilApiCnpjGateway, BrasilApiCnpjRecord
 from sherlock_holmes.application.use_cases import enrich_cnpj
-from sherlock_holmes.enrichment import BrasilApiCnpjRecord
 
 
 @dataclass(frozen=True)

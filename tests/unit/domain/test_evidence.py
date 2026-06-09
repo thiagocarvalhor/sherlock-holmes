@@ -2,16 +2,14 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import FrozenInstanceError
 
 import pytest
 
-from sherlock_holmes.validation import (
+from sherlock_holmes.domain.entities import (
     EvidenceRecord,
     evidence_from_manual_spreadsheet,
     evidence_from_official_api,
-    write_evidence_records,
 )
 
 
@@ -37,30 +35,6 @@ def test_manual_spreadsheet_is_unknown_confidence():
     assert record.source_type == "manual_spreadsheet"
     assert record.confidence_level == "unknown"
     assert record.metadata["source_row"] == "67"
-
-
-def test_write_evidence_roundtrip(tmp_path):
-    records = [
-        evidence_from_official_api(
-            evidence_id="e1",
-            source_url="https://pncp.gov.br/api",
-            method="m",
-        ),
-        evidence_from_manual_spreadsheet(
-            evidence_id="m1",
-            field_name="cnpj",
-            value="39485438000142",
-            source_row="67",
-        ),
-    ]
-    out = tmp_path / "evidence.json"
-    written = write_evidence_records(records, output_path=out)
-
-    assert written == out
-    data = json.loads(out.read_text(encoding="utf-8"))
-    assert len(data) == 2
-    assert data[0]["evidence_id"] == "e1"
-    assert data[1]["source_type"] == "manual_spreadsheet"
 
 
 def test_evidence_record_is_frozen():

@@ -6,8 +6,7 @@ import pytest
 
 pytest.importorskip("streamlit")
 
-from sherlock_holmes.enrichment import record_from_payload  # noqa: E402
-from sherlock_holmes.webapp.views import (  # noqa: E402
+from sherlock_holmes.adapters.inbound.streamlit.views import (  # noqa: E402
     _build_webapp_audit_report,
     _cnpj_enrichment_targets,
     _cnpj_record_summary,
@@ -17,6 +16,7 @@ from sherlock_holmes.webapp.views import (  # noqa: E402
     _render_webapp_audit_markdown,
     _review_assessment,
 )
+from sherlock_holmes.adapters.outbound.brasilapi import record_from_payload  # noqa: E402
 
 MANUAL_ROW = {
     "source_row": "67",

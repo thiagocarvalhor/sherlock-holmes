@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from sherlock_holmes.validation import (
+from sherlock_holmes.domain.entities import (
     compare_field_values,
     compare_records,
     evidence_from_manual_spreadsheet,

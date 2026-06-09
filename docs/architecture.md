@@ -13,25 +13,7 @@ O objetivo da reestruturação é separar o que pertence ao domínio do que pert
 
 ## Estrutura atual
 
-Hoje o pacote está organizado principalmente por trilhas técnicas:
-
-```text
-src/sherlock_holmes/
-|-- pncp/
-|-- enrichment/
-|-- validation/
-|-- documents/
-|-- reporting/
-|-- webapp/
-|-- ocr/
-`-- investigation.py
-```
-
-Essa estrutura ajudou a evoluir rápido, mas agora começa a misturar responsabilidades. Por exemplo, `validation` concentra regra central, enquanto `pncp` e `enrichment` são integrações externas.
-
-## Estrutura de transição
-
-A Fase 1 já criou os pacotes da arquitetura alvo sem mover regra de negócio. Nesta etapa, os módulos antigos continuam funcionando e os novos diretórios servem como destino explícito para as próximas migrações:
+Hoje o pacote está organizado por camadas:
 
 ```text
 src/sherlock_holmes/
@@ -42,7 +24,22 @@ src/sherlock_holmes/
 `-- shared/
 ```
 
-Essa convivência é temporária. As próximas fases movem conceitos centrais, casos de uso e integrações externas em ondas pequenas, preservando wrappers quando necessário.
+Os módulos legados por trilha técnica foram removidos na Fase 8. O código central fica em `domain` e `application`; integrações e entradas ficam em `adapters`.
+
+## Estrutura consolidada
+
+A migração criou e consolidou os pacotes da arquitetura alvo:
+
+```text
+src/sherlock_holmes/
+|-- domain/
+|-- application/
+|-- adapters/
+|-- infrastructure/
+`-- shared/
+```
+
+Os comandos em `scripts/` continuam como wrappers operacionais finos para preservar a forma de execução local.
 
 A Fase 2 já iniciou a migração do domínio central. A primeira fatia moveu os modelos e regras de comparação/evidência para:
 
@@ -64,7 +61,7 @@ A terceira fatia moveu a decisão de revisão operacional e indicação de OCR p
 src/sherlock_holmes/domain/services/review.py
 ```
 
-Os módulos antigos em `sherlock_holmes.validation`, `sherlock_holmes.pncp.ids` e `sherlock_holmes.webapp` continuam existindo como wrappers de compatibilidade durante a transição.
+Os módulos antigos de validação foram removidos na Fase 8. O domínio passa a ser importado diretamente por `sherlock_holmes.domain`.
 
 A Fase 3 iniciou a migração de casos de uso. A investigação de uma linha manual contra candidatos PNCP foi movida para:
 
@@ -90,7 +87,7 @@ A preparação de revisão operacional foi movida para:
 src/sherlock_holmes/application/use_cases/prepare_review.py
 ```
 
-Os módulos antigos `sherlock_holmes.investigation` e `sherlock_holmes.reporting` continuam como wrappers de compatibilidade.
+Os wrappers antigos `sherlock_holmes.investigation` e `sherlock_holmes.reporting` foram removidos na Fase 8. Os fluxos devem importar casos de uso diretamente de `sherlock_holmes.application.use_cases`.
 
 A Fase 4 iniciou a criação de ports da aplicação para dependências externas:
 
@@ -116,7 +113,7 @@ Esse caso de uso depende do port `CnpjEnrichmentGateway`; a implementação conc
 src/sherlock_holmes/adapters/outbound/brasilapi/cnpj_gateway.py
 ```
 
-O módulo antigo `sherlock_holmes.enrichment` permanece como wrapper legado durante a transição.
+O módulo antigo `sherlock_holmes.enrichment` foi removido na Fase 8. A integração BrasilAPI fica em `sherlock_holmes.adapters.outbound.brasilapi`.
 
 A escrita de relatórios já pode usar o port `ReportWriter`, com adapter concreto em:
 
@@ -153,7 +150,7 @@ src/sherlock_holmes/adapters/outbound/pncp/licitacoes.py
 src/sherlock_holmes/adapters/outbound/pncp/arquivos.py
 ```
 
-Os módulos antigos em `sherlock_holmes.pncp` permanecem como wrappers de compatibilidade.
+Os módulos antigos em `sherlock_holmes.pncp` foram removidos na Fase 8. Clientes PNCP devem ser importados de `sherlock_holmes.adapters.outbound.pncp`; identificadores PNCP e CNPJ devem ser importados de `sherlock_holmes.domain.value_objects`.
 
 Também na Fase 5, a inspeção/extração direta de documentos locais foi posicionada no adapter de filesystem:
 
@@ -167,7 +164,7 @@ O OCR técnico usado em experimentos e manifestos foi posicionado em:
 src/sherlock_holmes/adapters/outbound/ocr/
 ```
 
-Os pacotes antigos `sherlock_holmes.documents` e `sherlock_holmes.ocr` permanecem como wrappers temporários.
+Os pacotes antigos `sherlock_holmes.documents` e `sherlock_holmes.ocr` foram removidos na Fase 8.
 
 Na Fase 6, as entradas do sistema foram posicionadas em `adapters/inbound`:
 
@@ -176,7 +173,7 @@ src/sherlock_holmes/adapters/inbound/streamlit/
 src/sherlock_holmes/adapters/inbound/cli/
 ```
 
-Os pacotes antigos `sherlock_holmes.webapp` e os arquivos em `scripts/` permanecem como wrappers finos para preservar os comandos e imports existentes.
+O pacote antigo `sherlock_holmes.webapp` foi removido na Fase 8. Os arquivos em `scripts/` permanecem como wrappers finos para preservar comandos operacionais.
 
 Na Fase 7, os testes passaram a acompanhar a arquitetura:
 

@@ -7,7 +7,7 @@ import json
 from dataclasses import asdict
 from pathlib import Path
 
-from sherlock_holmes.validation import (
+from sherlock_holmes.domain.entities import (
     RecordComparison,
     compare_records,
     evidence_from_manual_spreadsheet,

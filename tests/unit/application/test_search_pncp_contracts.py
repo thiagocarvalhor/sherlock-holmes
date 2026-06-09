@@ -6,9 +6,9 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Any
 
+from sherlock_holmes.adapters.outbound.pncp.client import PncpRequestResult
 from sherlock_holmes.adapters.outbound.pncp.contract_gateway import PncpContractSearchGateway
 from sherlock_holmes.application.use_cases import search_pncp_contracts
-from sherlock_holmes.pncp.client import PncpRequestResult
 
 
 @dataclass
