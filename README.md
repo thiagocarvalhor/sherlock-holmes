@@ -55,7 +55,9 @@ Main file path: streamlit_app.py
 Python: 3.10
 ```
 
-O arquivo `requirements.txt` instala o pacote local com o extra `webapp`.
+Os arquivos `requirements.txt` e `requirements-streamlit.txt` instalam o
+pacote local com o extra `webapp`; o segundo fica preservado por compatibilidade
+com o deploy antigo.
 
 ## Testes e lint
 

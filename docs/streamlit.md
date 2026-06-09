@@ -43,7 +43,8 @@ Streamlit Cloud. Ele chama o mesmo entrypoint usado localmente pelo wrapper
 `scripts/pncp_streamlit_app.py`.
 
 As dependencias do deploy ficam em `requirements.txt`, que instala o pacote
-local com o extra `webapp`.
+local com o extra `webapp`. O arquivo `requirements-streamlit.txt` aponta para
+a mesma instalacao para preservar compatibilidade com o deploy antigo.
 
 ## Decisões importantes
 
