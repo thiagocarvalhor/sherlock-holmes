@@ -1,0 +1,57 @@
+site_name: Sherlock Holmes
+site_description: Pipeline investigativo e auditavel para contratos publicos.
+site_url: https://thiagocarvalhor.github.io/sherlock-holmes/
+repo_url: https://github.com/thiagocarvalhor/sherlock-holmes
+repo_name: thiagocarvalhor/sherlock-holmes
+
+theme:
+  name: material
+  language: pt-BR
+  features:
+    - navigation.sections
+    - navigation.tabs
+    - navigation.top
+    - search.highlight
+    - search.suggest
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths:
+            - src
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - Visao geral: index.md
+  - Comecar: getting-started.md
+  - Arquitetura: architecture.md
+  - Streamlit: streamlit.md
+  - CLI: cli.md
+  - Dados e artefatos: data-artifacts.md
+  - Relatorios auditaveis: audit-reports.md
+  - Desenvolvimento: development.md
+  - Roadmap: roadmap.md
+  - Decisoes:
+      - PNCP primeiro: decisions/0001-pncp-first.md
+      - OCR como fallback: decisions/0002-ocr-as-fallback.md
+      - Reestruturacao arquitetural: decisions/0003-architecture-restructure.md
+  - Referencia:
+      - Comparacao: reference/comparison.md
+      - PNCP: reference/pncp.md
+      - BrasilAPI: reference/brasilapi.md
+      - Relatorios: reference/reporting.md

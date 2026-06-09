@@ -33,11 +33,11 @@ documentation/          # planos, relatorios e roadmap
 Usando o ambiente virtual do projeto (`.venv`, Python 3.10):
 
 ```bash
-.venv/Scripts/python.exe -m pip install -e ".[dev,webapp]"
+.venv/Scripts/python.exe -m pip install -e ".[dev,webapp,docs]"
 ```
 
 Extras disponiveis: `webapp` (Streamlit), `ocr` (pipeline de OCR), `dev`
-(pytest, ruff).
+(pytest, ruff) e `docs` (MkDocs).
 
 ## Rodar o app
 
@@ -50,11 +50,17 @@ Extras disponiveis: `webapp` (Streamlit), `ocr` (pipeline de OCR), `dev`
 ```bash
 .venv/Scripts/python.exe -m pytest
 .venv/Scripts/python.exe -m ruff check .
+.venv/Scripts/python.exe -m mkdocs build --strict
 ```
 
 ## Documentacao
 
-O estado do projeto e mantido em
+A documentacao navegavel fica em `docs/` e e gerada com MkDocs:
+
+```bash
+.venv/Scripts/python.exe -m mkdocs serve
+```
+
+O historico de execucao continua em `documentation/`: planos em
+`documentation/plans/`, relatorios em `documentation/reports/` e roadmap em
 `documentation/projetos-similares/plano-execucao-roadmap-sherlock-holmes.md`.
-Cada entrega tem um plano em `documentation/plans/` e um relatorio em
-`documentation/reports/`.
