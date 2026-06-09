@@ -13,6 +13,46 @@ Documentacao como codigo.
 Migracao incremental, sem big bang.
 ```
 
+## Status Atual
+
+Data da atualizacao: 2026-06-09.
+
+Branch de trabalho:
+
+```text
+restructure/mkdocs-architecture
+```
+
+Concluido nesta rodada:
+
+- Fase 0 criada com MkDocs, navegacao inicial e paginas-base em `docs/`;
+- workflow de documentacao preparado para build em pull request e deploy via GitHub Pages em `main`;
+- `pyproject.toml` atualizado com extra de documentacao;
+- README atualizado para apontar para a documentacao;
+- estetica do MkDocs customizada com Material for MkDocs, CSS proprio e identidade visual do Sherlock Holmes;
+- logo vertical e logo horizontal copiadas para `docs/assets/images/`;
+- textos principais da documentacao navegavel revisados com acentuacao e portugues mais polido;
+- `site/` e `image/` mantidos fora do versionamento por `.gitignore`.
+
+Validacoes realizadas durante a Fase 0:
+
+- `mkdocs build --strict` passou apos a criacao do site;
+- `mkdocs build --strict` passou novamente apos os ajustes de tema, logo e portugues;
+- `ruff check .` passou durante a rodada de criacao do MkDocs;
+- `pytest` passou durante a rodada de criacao do MkDocs, com 64 testes.
+
+Pendente para considerar a Fase 0 publicada:
+
+- abrir/fechar PR ou fazer merge da branch em `main`;
+- configurar o GitHub Pages como `GitHub Actions` em `Settings > Pages`;
+- confirmar o deploy automatico depois do push em `main`.
+
+Proximo passo tecnico:
+
+```text
+Fase 1: criar o esqueleto arquitetural sem mover regra critica.
+```
+
 ## Problema Atual
 
 O projeto evoluiu rapido e ja possui varias entregas funcionais:
@@ -188,7 +228,7 @@ Exemplos:
 
 ## Documentacao Alvo
 
-Criar documentacao automatica com MkDocs:
+A primeira versao navegavel com MkDocs ja foi criada. Estrutura atual esperada:
 
 ```text
 docs/
@@ -201,14 +241,17 @@ docs/
 |-- audit-reports.md
 |-- development.md
 |-- roadmap.md
+|-- assets/
+|   |-- images/
+|   `-- stylesheets/
 |-- decisions/
 |   |-- 0001-pncp-first.md
 |   |-- 0002-ocr-as-fallback.md
 |   `-- 0003-architecture-restructure.md
 `-- reference/
-    |-- domain.md
-    |-- application.md
-    |-- adapters.md
+    |-- pncp.md
+    |-- brasilapi.md
+    |-- comparison.md
     `-- reporting.md
 ```
 
@@ -284,6 +327,8 @@ Isso permite migrar codigo em ondas sem quebrar scripts, testes e Streamlit de u
 
 ### Fase 0: Documentacao automatica e mapa da migracao
 
+Status: concluida localmente; publicacao pendente apos merge em `main`.
+
 Objetivo:
 
 Criar a documentacao navegavel antes de mover codigo.
@@ -297,18 +342,25 @@ Entregas:
 - `docs/development.md`;
 - `docs/decisions/0003-architecture-restructure.md`;
 - `docs/reference/`;
+- `docs/assets/images/`;
+- `docs/assets/stylesheets/extra.css`;
 - extras de documentacao no `pyproject.toml`;
 - workflow `docs.yml` para build/deploy;
-- atualizar README apontando para docs.
+- atualizar README apontando para docs;
+- tema Material customizado com logo e cores da aplicacao.
 
 Criterio de conclusao:
 
-- `mkdocs build --strict` passa;
-- `ruff check .` passa;
-- `pytest` passa;
-- documentacao publicada no GitHub Pages apos push em `main`.
+- [x] `mkdocs build --strict` passa;
+- [x] `ruff check .` passa durante a rodada;
+- [x] `pytest` passa durante a rodada;
+- [x] workflow de documentacao preparado;
+- [x] identidade visual inicial aplicada ao MkDocs;
+- [ ] documentacao publicada no GitHub Pages apos push em `main`.
 
 ### Fase 1: Esqueleto arquitetural
+
+Status: proxima fase.
 
 Objetivo:
 
@@ -329,6 +381,8 @@ Criterio de conclusao:
 - testes continuam verdes.
 
 ### Fase 2: Dominio central
+
+Status: pendente.
 
 Objetivo:
 
@@ -361,6 +415,8 @@ Criterio de conclusao:
 
 ### Fase 3: Casos de uso
 
+Status: pendente.
+
 Objetivo:
 
 Mover orquestracao para `application/use_cases`.
@@ -389,6 +445,8 @@ Criterio de conclusao:
 
 ### Fase 4: Ports
 
+Status: pendente.
+
 Objetivo:
 
 Definir contratos para dependencias externas.
@@ -411,6 +469,8 @@ Criterio de conclusao:
 
 ### Fase 5: Adapters outbound
 
+Status: pendente.
+
 Objetivo:
 
 Mover integracoes externas para as bordas.
@@ -431,6 +491,8 @@ Criterio de conclusao:
 - wrappers antigos preservam compatibilidade temporaria.
 
 ### Fase 6: Adapters inbound
+
+Status: pendente.
 
 Objetivo:
 
@@ -460,6 +522,8 @@ Criterio de conclusao:
 
 ### Fase 7: Testes por camada
 
+Status: pendente.
+
 Objetivo:
 
 Reorganizar testes para acompanhar a arquitetura.
@@ -485,6 +549,8 @@ Criterio de conclusao:
 - testes Streamlit ficam em integration.
 
 ### Fase 8: Limpeza e remocao de pontes
+
+Status: pendente.
 
 Objetivo:
 
@@ -556,16 +622,17 @@ Mitigacao:
 
 ## Ordem Recomendada De Commits
 
-1. `feat: add mkdocs documentation site`
-2. `docs: add architecture restructure plan`
-3. `refactor: add architecture package skeleton`
-4. `refactor: move comparison and evidence domain models`
-5. `refactor: move investigation use case`
-6. `refactor: introduce application ports`
-7. `refactor: move pncp and brasilapi adapters`
-8. `refactor: move streamlit and cli adapters`
-9. `test: organize tests by architecture layer`
-10. `refactor: remove legacy import bridges`
+1. `docs: add architecture restructure plan` - concluido.
+2. `feat: add mkdocs documentation site` - concluido.
+3. `style: customize MkDocs branding and Portuguese copy` - concluido.
+4. `refactor: add architecture package skeleton` - proximo.
+5. `refactor: move comparison and evidence domain models`
+6. `refactor: move investigation use case`
+7. `refactor: introduce application ports`
+8. `refactor: move pncp and brasilapi adapters`
+9. `refactor: move streamlit and cli adapters`
+10. `test: organize tests by architecture layer`
+11. `refactor: remove legacy import bridges`
 
 ## Validacoes Por Fase
 
@@ -590,15 +657,15 @@ Scripts operacionais principais a revalidar quando afetados:
 .\.venv\Scripts\python.exe -m streamlit run scripts\pncp_streamlit_app.py
 ```
 
-## Primeiro Passo Concreto
+## Proximo Passo Concreto
 
-Executar a Fase 0:
+Executar a Fase 1:
 
 ```text
-criar MkDocs + docs/ + deploy GitHub Pages + pagina inicial de arquitetura
+criar o esqueleto domain/application/adapters/infrastructure/shared sem mover regra critica
 ```
 
-Depois disso, iniciar Fase 1 e Fase 2 com migracao pequena do dominio central.
+Depois disso, iniciar a Fase 2 com migracao pequena do dominio central, preservando wrappers temporarios para imports antigos.
 
 ## Criterio Geral De Conclusao
 
