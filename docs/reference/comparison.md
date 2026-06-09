@@ -1,3 +1,3 @@
 # Referência: Comparação
 
-::: sherlock_holmes.validation.comparison
+::: sherlock_holmes.domain.entities.comparison

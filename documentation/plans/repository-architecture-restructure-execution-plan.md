@@ -34,6 +34,7 @@ Concluido nesta rodada:
 - textos principais da documentacao navegavel revisados com acentuacao e portugues mais polido;
 - `site/` e `image/` mantidos fora do versionamento por `.gitignore`.
 - Fase 1 executada com criacao dos pacotes `domain`, `application`, `adapters`, `infrastructure` e `shared`.
+- Fase 2 iniciada com migracao de `comparison` e `evidence` para `domain/entities`.
 
 Validacoes realizadas durante a Fase 0:
 
@@ -51,7 +52,7 @@ Pendente para considerar a Fase 0 publicada:
 Proximo passo tecnico:
 
 ```text
-Fase 2: migrar uma primeira fatia pequena do dominio central.
+Fase 2: migrar a proxima fatia pequena do dominio central.
 ```
 
 ## Problema Atual
@@ -384,7 +385,7 @@ Criterio de conclusao:
 
 ### Fase 2: Dominio central
 
-Status: proxima fase.
+Status: em andamento.
 
 Objetivo:
 
@@ -392,8 +393,8 @@ Mover conceitos centrais para `domain`.
 
 Candidatos:
 
-- `validation/comparison.py`;
-- `validation/evidence.py`;
+- `validation/comparison.py` - migrado para `domain/entities/comparison.py`;
+- `validation/evidence.py` - migrado parcialmente para `domain/entities/evidence.py`;
 - `pncp/ids.py`;
 - modelos de revisao operacional;
 - status de comparacao.
@@ -411,9 +412,12 @@ domain/entities/review.py
 
 Criterio de conclusao:
 
-- regras puras ficam sem dependencias de PNCP HTTP, Streamlit ou filesystem;
-- wrappers antigos preservam compatibilidade;
-- testes unitarios de dominio passam.
+- [x] primeira fatia de comparacao/evidencia movida para `domain/entities`;
+- [x] wrappers antigos em `validation` preservam compatibilidade;
+- [x] testes cobrem que imports legados apontam para os modelos de dominio;
+- [ ] regras puras ficam sem dependencias de PNCP HTTP, Streamlit ou filesystem;
+- [ ] proximas fatias de dominio central migradas;
+- [ ] testes unitarios de dominio passam.
 
 ### Fase 3: Casos de uso
 
@@ -628,7 +632,7 @@ Mitigacao:
 2. `feat: add mkdocs documentation site` - concluido.
 3. `style: customize MkDocs branding and Portuguese copy` - concluido.
 4. `refactor: add architecture package skeleton` - concluido localmente.
-5. `refactor: move comparison and evidence domain models` - proximo.
+5. `refactor: move comparison and evidence domain models` - em andamento.
 6. `refactor: move investigation use case`
 7. `refactor: introduce application ports`
 8. `refactor: move pncp and brasilapi adapters`
@@ -664,7 +668,7 @@ Scripts operacionais principais a revalidar quando afetados:
 Executar a Fase 2:
 
 ```text
-migrar uma primeira fatia pequena de comparison/evidence para domain preservando wrappers antigos
+migrar a proxima fatia pequena do dominio central, provavelmente identificadores PNCP/CNPJ ou status de revisao
 ```
 
 Depois disso, seguir para os casos de uso em `application`, tambem em migracoes pequenas e com testes verdes.

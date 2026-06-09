@@ -73,6 +73,7 @@ nav:
       - Reestruturação arquitetural: decisions/0003-architecture-restructure.md
   - Referência:
       - Comparação: reference/comparison.md
+      - Evidência: reference/evidence.md
       - PNCP: reference/pncp.md
       - BrasilAPI: reference/brasilapi.md
       - Relatórios: reference/reporting.md

@@ -44,6 +44,15 @@ src/sherlock_holmes/
 
 Essa convivência é temporária. As próximas fases movem conceitos centrais, casos de uso e integrações externas em ondas pequenas, preservando wrappers quando necessário.
 
+A Fase 2 já iniciou a migração do domínio central. A primeira fatia moveu os modelos e regras de comparação/evidência para:
+
+```text
+src/sherlock_holmes/domain/entities/comparison.py
+src/sherlock_holmes/domain/entities/evidence.py
+```
+
+Os módulos antigos em `sherlock_holmes.validation` continuam existindo como wrappers de compatibilidade durante a transição.
+
 ## Arquitetura alvo
 
 Estrutura planejada:
