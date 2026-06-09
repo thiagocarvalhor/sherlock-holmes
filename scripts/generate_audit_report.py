@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from sherlock_holmes.reporting import (
+from sherlock_holmes.application.use_cases import (
     build_audit_report,
     load_cnpj_enrichments,
     load_comparison_results,

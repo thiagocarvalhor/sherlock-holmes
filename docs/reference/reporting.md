@@ -1,3 +1,3 @@
 # Referência: Relatórios
 
-::: sherlock_holmes.reporting.audit
+::: sherlock_holmes.application.use_cases.build_audit_report

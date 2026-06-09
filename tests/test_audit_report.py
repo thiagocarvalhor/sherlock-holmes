@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-from sherlock_holmes.reporting import (
+from sherlock_holmes.application.use_cases import (
     build_audit_report,
     build_batch_audit_report,
     load_cnpj_enrichments,
@@ -18,6 +18,7 @@ from sherlock_holmes.reporting import (
     write_batch_audit_report_json,
     write_batch_audit_report_markdown,
 )
+from sherlock_holmes.reporting import build_audit_report as legacy_build_audit_report
 
 
 def _comparison(numero: str, score: float, status: str) -> dict:
@@ -82,6 +83,10 @@ def _cnpj_enrichment() -> dict:
         "collected_at": "2026-06-07T12:00:00+00:00",
         "raw_payload": {"cnpj": "39485438000142"},
     }
+
+
+def test_reporting_wrapper_exports_audit_use_case():
+    assert legacy_build_audit_report is build_audit_report
 
 
 def test_summarize_comparisons_identifies_best_candidate():

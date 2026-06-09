@@ -72,7 +72,13 @@ A Fase 3 iniciou a migração de casos de uso. A investigação de uma linha man
 src/sherlock_holmes/application/use_cases/investigate_manual_row.py
 ```
 
-O módulo antigo `sherlock_holmes.investigation` continua como wrapper de compatibilidade.
+A geração de relatórios auditáveis foi movida para:
+
+```text
+src/sherlock_holmes/application/use_cases/build_audit_report.py
+```
+
+Os módulos antigos `sherlock_holmes.investigation` e `sherlock_holmes.reporting` continuam como wrappers de compatibilidade.
 
 ## Arquitetura alvo
 

@@ -45,4 +45,4 @@ data/processed/reports/batch/audit_batch_report.md
 
 ## Observação
 
-Na reestruturação arquitetural, os scripts devem virar wrappers finos chamando casos de uso em `application/use_cases`.
+Na reestruturação arquitetural, os scripts já começam a atuar como wrappers finos chamando casos de uso em `application/use_cases`.
