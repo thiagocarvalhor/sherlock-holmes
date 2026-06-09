@@ -36,6 +36,7 @@ Concluido nesta rodada:
 - Fase 1 executada com criacao dos pacotes `domain`, `application`, `adapters`, `infrastructure` e `shared`.
 - Fase 2 iniciada com migracao de `comparison` e `evidence` para `domain/entities`.
 - Fase 2 avancada com migracao de CNPJ e identificadores PNCP para `domain/value_objects`.
+- Fase 2 avancada com migracao da decisao de revisao operacional e indicacao de OCR para `domain/services`.
 
 Validacoes realizadas durante a Fase 0:
 
@@ -397,8 +398,8 @@ Candidatos:
 - `validation/comparison.py` - migrado para `domain/entities/comparison.py`;
 - `validation/evidence.py` - migrado parcialmente para `domain/entities/evidence.py`;
 - `pncp/ids.py` - migrado para `domain/value_objects/cnpj.py` e `domain/value_objects/pncp_id.py`;
-- modelos de revisao operacional;
-- status de comparacao.
+- modelos de revisao operacional - migrados para `domain/services/review.py`;
+- status de comparacao - concentrados em `domain/entities/comparison.py`.
 
 Destino sugerido:
 
@@ -415,10 +416,11 @@ Criterio de conclusao:
 
 - [x] primeira fatia de comparacao/evidencia movida para `domain/entities`;
 - [x] CNPJ e identificadores PNCP movidos para `domain/value_objects`;
+- [x] decisao de revisao operacional e OCR movida para `domain/services`;
 - [x] wrappers antigos em `validation` preservam compatibilidade;
 - [x] wrapper antigo em `pncp.ids` preserva compatibilidade;
 - [x] testes cobrem que imports legados apontam para os modelos de dominio;
-- [ ] regras puras ficam sem dependencias de PNCP HTTP, Streamlit ou filesystem;
+- [x] principais regras puras migradas sem dependencias de PNCP HTTP, Streamlit ou filesystem;
 - [ ] proximas fatias de dominio central migradas;
 - [ ] testes unitarios de dominio passam.
 
@@ -671,7 +673,7 @@ Scripts operacionais principais a revalidar quando afetados:
 Executar a Fase 2:
 
 ```text
-migrar a proxima fatia pequena do dominio central, provavelmente status de revisao ou regras restantes de matching
+revisar se ainda ha regra pura relevante presa em modulos tecnicos antes de fechar a Fase 2
 ```
 
 Depois disso, seguir para os casos de uso em `application`, tambem em migracoes pequenas e com testes verdes.

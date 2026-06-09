@@ -58,7 +58,13 @@ src/sherlock_holmes/domain/value_objects/cnpj.py
 src/sherlock_holmes/domain/value_objects/pncp_id.py
 ```
 
-Os módulos antigos em `sherlock_holmes.validation` e `sherlock_holmes.pncp.ids` continuam existindo como wrappers de compatibilidade durante a transição.
+A terceira fatia moveu a decisão de revisão operacional e indicação de OCR para:
+
+```text
+src/sherlock_holmes/domain/services/review.py
+```
+
+Os módulos antigos em `sherlock_holmes.validation` e `sherlock_holmes.pncp.ids` continuam existindo como wrappers de compatibilidade durante a transição. O Streamlit também mantém wrappers internos enquanto a borda visual ainda não foi movida para `adapters/inbound/streamlit`.
 
 ## Arquitetura alvo
 
