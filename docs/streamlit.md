@@ -27,6 +27,24 @@ O arquivo `scripts/pncp_streamlit_app.py` é um wrapper fino para preservar o co
 .\.venv\Scripts\python.exe -m streamlit run scripts\pncp_streamlit_app.py
 ```
 
+## Deploy no Streamlit Community Cloud
+
+O app publicado deve apontar para:
+
+```text
+Repository: thiagocarvalhor/sherlock-holmes
+Branch: main
+Main file path: streamlit_app.py
+Python: 3.10
+```
+
+O arquivo `streamlit_app.py` existe para compatibilidade com o padrao do
+Streamlit Cloud. Ele chama o mesmo entrypoint usado localmente pelo wrapper
+`scripts/pncp_streamlit_app.py`.
+
+As dependencias do deploy ficam em `requirements.txt`, que instala o pacote
+local com o extra `webapp`.
+
 ## Decisões importantes
 
 - A busca PNCP vem antes da comparação.

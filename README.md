@@ -45,6 +45,18 @@ Extras disponiveis: `webapp` (Streamlit), `ocr` (pipeline de OCR), `dev`
 .venv/Scripts/python.exe -m streamlit run scripts/pncp_streamlit_app.py
 ```
 
+## Deploy Streamlit
+
+O deploy no Streamlit Community Cloud usa:
+
+```text
+Branch: main
+Main file path: streamlit_app.py
+Python: 3.10
+```
+
+O arquivo `requirements.txt` instala o pacote local com o extra `webapp`.
+
 ## Testes e lint
 
 ```bash
