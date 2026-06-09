@@ -39,6 +39,7 @@ Concluido nesta rodada:
 - Fase 2 avancada com migracao da decisao de revisao operacional e indicacao de OCR para `domain/services`.
 - Fase 3 iniciada com migracao de `investigation.py` para `application/use_cases/investigate_manual_row.py`.
 - Fase 3 avancada com migracao da geracao de relatorio auditavel para `application/use_cases/build_audit_report.py`.
+- Fase 3 avancada com migracao da comparacao direta manual versus contrato para `application/use_cases/compare_manual_record.py`.
 
 Validacoes realizadas durante a Fase 0:
 
@@ -438,7 +439,7 @@ Candidatos:
 
 - `investigation.py` - migrado para `application/use_cases/investigate_manual_row.py`;
 - geracao de relatorio auditavel - migrada para `application/use_cases/build_audit_report.py`;
-- comparacao manual versus contrato;
+- comparacao manual versus contrato - migrada para `application/use_cases/compare_manual_record.py`;
 - preparacao de revisao operacional.
 
 Destino sugerido:
@@ -457,6 +458,7 @@ Criterio de conclusao:
 - [x] geracao de relatorio auditavel movida para `application/use_cases`;
 - [x] wrapper antigo em `sherlock_holmes.reporting` preserva compatibilidade;
 - [x] scripts de relatorio chamam casos de uso pelo caminho novo;
+- [x] comparacao direta manual versus contrato movida para `application/use_cases`;
 - [ ] Streamlit chama use cases em vez de montar regra complexa;
 - [ ] scripts CLI chamam use cases em vez de duplicar fluxo;
 - [ ] testes de application passam com dados fake/offline.
@@ -646,12 +648,13 @@ Mitigacao:
 4. `refactor: add architecture package skeleton` - concluido localmente.
 5. `refactor: move comparison and evidence domain models` - em andamento.
 6. `refactor: move investigation use case` - concluido.
-7. `refactor: move audit report use case` - em andamento.
-8. `refactor: introduce application ports`
-9. `refactor: move pncp and brasilapi adapters`
-10. `refactor: move streamlit and cli adapters`
-11. `test: organize tests by architecture layer`
-12. `refactor: remove legacy import bridges`
+7. `refactor: move audit report use case` - concluido.
+8. `refactor: move manual comparison use case` - em andamento.
+9. `refactor: introduce application ports`
+10. `refactor: move pncp and brasilapi adapters`
+11. `refactor: move streamlit and cli adapters`
+12. `test: organize tests by architecture layer`
+13. `refactor: remove legacy import bridges`
 
 ## Validacoes Por Fase
 

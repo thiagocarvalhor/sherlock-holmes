@@ -73,6 +73,7 @@ nav:
       - Reestruturação arquitetural: decisions/0003-architecture-restructure.md
   - Referência:
       - Comparação: reference/comparison.md
+      - Comparação manual: reference/manual-comparison.md
       - Evidência: reference/evidence.md
       - Revisão: reference/review.md
       - Investigação: reference/investigation.md

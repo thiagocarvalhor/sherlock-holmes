@@ -13,19 +13,15 @@ import streamlit as st
 from sherlock_holmes.application.use_cases import (
     InvestigationResult,
     build_audit_report,
+    compare_manual_record,
     investigate_row,
     load_manual_rows,
     render_audit_report_markdown,
 )
+from sherlock_holmes.domain.entities import RecordComparison
 from sherlock_holmes.domain.services import assess_review_needs
 from sherlock_holmes.enrichment import BrasilApiCnpjRecord, BrasilApiError, fetch_cnpj
 from sherlock_holmes.pncp.client import PncpApiError, compact_digits
-from sherlock_holmes.validation import (
-    RecordComparison,
-    compare_records,
-    evidence_from_manual_spreadsheet,
-    evidence_from_official_api,
-)
 from sherlock_holmes.webapp.comparison import (
     MANUAL_FIELDS,
     candidate_detail_url,
@@ -902,29 +898,13 @@ def _optional_int(value: Any) -> int | None:
 
 
 def _compare_manual_with_contract(manual_row: dict[str, Any], contract: dict[str, Any]) -> RecordComparison:
-    source_row = str(manual_row.get("source_row", ""))
     numero = str(contract.get("numeroControlePNCP", ""))
     url = candidate_detail_url(numero) or ""
-
-    manual_evidence = evidence_from_manual_spreadsheet(
-        evidence_id=f"manual_row{source_row}",
-        field_name="",
-        value=manual_row,
-        source_row=source_row,
-    )
-    official_evidence = evidence_from_official_api(
-        evidence_id=f"pncp_{numero}",
+    return compare_manual_record(
+        manual_row,
+        contract,
         source_url=url,
         method="pncp_contract_selected_in_webapp",
-        value=contract,
-        metadata={"numeroControlePNCP": numero},
-    )
-    return compare_records(
-        source_row=source_row,
-        manual_record=manual_row,
-        pncp_record=contract,
-        manual_evidence=manual_evidence,
-        official_evidence=official_evidence,
     )
 
 

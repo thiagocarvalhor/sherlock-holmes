@@ -78,6 +78,12 @@ A geração de relatórios auditáveis foi movida para:
 src/sherlock_holmes/application/use_cases/build_audit_report.py
 ```
 
+A comparação direta de uma linha manual com um contrato oficial foi movida para:
+
+```text
+src/sherlock_holmes/application/use_cases/compare_manual_record.py
+```
+
 Os módulos antigos `sherlock_holmes.investigation` e `sherlock_holmes.reporting` continuam como wrappers de compatibilidade.
 
 ## Arquitetura alvo
