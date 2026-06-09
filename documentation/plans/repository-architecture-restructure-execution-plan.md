@@ -50,6 +50,7 @@ Concluido nesta rodada:
 - Fase 5 iniciada com migracao do cliente BrasilAPI para `adapters/outbound/brasilapi/client.py` e wrapper legado em `enrichment/brasilapi.py`.
 - Fase 5 avancada com migracao dos clientes PNCP para `adapters/outbound/pncp/` e wrappers legados em `pncp/`.
 - Fase 5 concluida localmente com documentos/filesystem em `adapters/outbound/filesystem/documents/` e OCR em `adapters/outbound/ocr/`.
+- Fase 6 concluida localmente com Streamlit em `adapters/inbound/streamlit/`, CLI em `adapters/inbound/cli/` e wrappers em `webapp/` e `scripts/`.
 
 Validacoes realizadas durante a Fase 0:
 
@@ -67,7 +68,7 @@ Pendente para considerar a Fase 0 publicada:
 Proximo passo tecnico:
 
 ```text
-Fase 6: iniciar migracao de entradas Streamlit e CLI para adapters inbound.
+Fase 7: reorganizar testes por camada.
 ```
 
 ## Problema Atual
@@ -538,7 +539,7 @@ Criterio de conclusao:
 
 ### Fase 6: Adapters inbound
 
-Status: pendente.
+Status: concluida localmente.
 
 Objetivo:
 
@@ -562,9 +563,12 @@ if __name__ == "__main__":
 
 Criterio de conclusao:
 
-- Streamlit fica mais fino;
-- scripts viram wrappers;
-- regra principal fica em `application`.
+- [x] Streamlit movido para `adapters/inbound/streamlit/`;
+- [x] pacote legado `webapp` preservado como wrapper temporario;
+- [x] scripts movidos para `adapters/inbound/cli/`;
+- [x] arquivos em `scripts/` preservados como wrappers finos;
+- [x] regra principal continua em `application`;
+- [x] testes cobrem compatibilidade dos wrappers inbound.
 
 ### Fase 7: Testes por camada
 
@@ -711,7 +715,7 @@ Scripts operacionais principais a revalidar quando afetados:
 Executar a Fase 5:
 
 ```text
-iniciar a Fase 6 movendo entradas Streamlit e CLI para `adapters/inbound`
+reorganizar testes por camada
 ```
 
 Depois disso, reorganizar testes por camada, mantendo migracoes pequenas e testes verdes.

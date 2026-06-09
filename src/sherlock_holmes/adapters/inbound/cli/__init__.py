@@ -1,1 +1,1 @@
-"""Command-line adapter package."""
+﻿"""Command-line adapter package."""

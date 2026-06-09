@@ -1,6 +1,12 @@
 # CLI
 
-Os scripts em `scripts/` são entradas operacionais para executar partes do pipeline.
+Os scripts em `scripts/` são wrappers finos para entradas operacionais do pipeline.
+
+A implementação fica em:
+
+```text
+src/sherlock_holmes/adapters/inbound/cli/
+```
 
 ## Relatório auditável unitário
 
@@ -45,4 +51,4 @@ data/processed/reports/batch/audit_batch_report.md
 
 ## Observação
 
-Na reestruturação arquitetural, os scripts já atuam como wrappers finos chamando casos de uso em `application/use_cases` e adapters em `adapters/outbound`.
+Na reestruturação arquitetural, os scripts chamam os adapters inbound, que orquestram casos de uso em `application/use_cases` e adapters em `adapters/outbound`.

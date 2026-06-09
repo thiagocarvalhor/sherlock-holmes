@@ -64,7 +64,7 @@ A terceira fatia moveu a decisão de revisão operacional e indicação de OCR p
 src/sherlock_holmes/domain/services/review.py
 ```
 
-Os módulos antigos em `sherlock_holmes.validation` e `sherlock_holmes.pncp.ids` continuam existindo como wrappers de compatibilidade durante a transição. O Streamlit também mantém wrappers internos enquanto a borda visual ainda não foi movida para `adapters/inbound/streamlit`.
+Os módulos antigos em `sherlock_holmes.validation`, `sherlock_holmes.pncp.ids` e `sherlock_holmes.webapp` continuam existindo como wrappers de compatibilidade durante a transição.
 
 A Fase 3 iniciou a migração de casos de uso. A investigação de uma linha manual contra candidatos PNCP foi movida para:
 
@@ -168,6 +168,15 @@ src/sherlock_holmes/adapters/outbound/ocr/
 ```
 
 Os pacotes antigos `sherlock_holmes.documents` e `sherlock_holmes.ocr` permanecem como wrappers temporários.
+
+Na Fase 6, as entradas do sistema foram posicionadas em `adapters/inbound`:
+
+```text
+src/sherlock_holmes/adapters/inbound/streamlit/
+src/sherlock_holmes/adapters/inbound/cli/
+```
+
+Os pacotes antigos `sherlock_holmes.webapp` e os arquivos em `scripts/` permanecem como wrappers finos para preservar os comandos e imports existentes.
 
 ## Arquitetura alvo
 

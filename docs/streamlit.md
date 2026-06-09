@@ -2,6 +2,14 @@
 
 O Streamlit é a interface de investigação do Sherlock Holmes.
 
+A implementação da interface fica em:
+
+```text
+src/sherlock_holmes/adapters/inbound/streamlit/
+```
+
+O arquivo `scripts/pncp_streamlit_app.py` é um wrapper fino para preservar o comando local.
+
 ## Fluxo principal
 
 ```text
