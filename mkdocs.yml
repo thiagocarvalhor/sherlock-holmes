@@ -7,8 +7,8 @@ repo_name: thiagocarvalhor/sherlock-holmes
 theme:
   name: material
   language: pt-BR
-  logo: assets/images/logo-sherlock-holmes.png
-  favicon: assets/images/logo-sherlock-holmes.png
+  logo: assets/images/logo-sherlock-holmes-mark.png
+  favicon: assets/images/logo-sherlock-holmes-mark.png
   palette:
     - scheme: slate
       primary: black
