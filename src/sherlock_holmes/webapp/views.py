@@ -16,10 +16,10 @@ from sherlock_holmes.application.use_cases import (
     compare_manual_record,
     investigate_row,
     load_manual_rows,
+    prepare_review,
     render_audit_report_markdown,
 )
 from sherlock_holmes.domain.entities import RecordComparison
-from sherlock_holmes.domain.services import assess_review_needs
 from sherlock_holmes.enrichment import BrasilApiCnpjRecord, BrasilApiError, fetch_cnpj
 from sherlock_holmes.pncp.client import PncpApiError, compact_digits
 from sherlock_holmes.webapp.comparison import (
@@ -824,7 +824,7 @@ def _comparison_to_report_dict(comparison: RecordComparison) -> dict[str, Any]:
 
 
 def _review_assessment(comparison: RecordComparison, documents: list[dict[str, Any]]) -> dict[str, Any]:
-    return assess_review_needs(comparison, documents).to_dict()
+    return prepare_review(comparison, documents).to_dict()
 
 
 def _current_official_documents_for_report(contract: dict[str, Any] | None) -> list[dict[str, Any]]:

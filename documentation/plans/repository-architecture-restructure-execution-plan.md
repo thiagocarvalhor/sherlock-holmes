@@ -40,6 +40,7 @@ Concluido nesta rodada:
 - Fase 3 iniciada com migracao de `investigation.py` para `application/use_cases/investigate_manual_row.py`.
 - Fase 3 avancada com migracao da geracao de relatorio auditavel para `application/use_cases/build_audit_report.py`.
 - Fase 3 avancada com migracao da comparacao direta manual versus contrato para `application/use_cases/compare_manual_record.py`.
+- Fase 3 concluida localmente com migracao da preparacao de revisao operacional para `application/use_cases/prepare_review.py`.
 
 Validacoes realizadas durante a Fase 0:
 
@@ -57,7 +58,7 @@ Pendente para considerar a Fase 0 publicada:
 Proximo passo tecnico:
 
 ```text
-Fase 3: migrar casos de uso de orquestracao para application/use_cases.
+Fase 4: introduzir application ports para dependencias externas.
 ```
 
 ## Problema Atual
@@ -429,7 +430,7 @@ Criterio de conclusao:
 
 ### Fase 3: Casos de uso
 
-Status: em andamento.
+Status: concluida localmente para os candidatos previstos nesta rodada.
 
 Objetivo:
 
@@ -440,7 +441,7 @@ Candidatos:
 - `investigation.py` - migrado para `application/use_cases/investigate_manual_row.py`;
 - geracao de relatorio auditavel - migrada para `application/use_cases/build_audit_report.py`;
 - comparacao manual versus contrato - migrada para `application/use_cases/compare_manual_record.py`;
-- preparacao de revisao operacional.
+- preparacao de revisao operacional - migrada para `application/use_cases/prepare_review.py`.
 
 Destino sugerido:
 
@@ -459,9 +460,10 @@ Criterio de conclusao:
 - [x] wrapper antigo em `sherlock_holmes.reporting` preserva compatibilidade;
 - [x] scripts de relatorio chamam casos de uso pelo caminho novo;
 - [x] comparacao direta manual versus contrato movida para `application/use_cases`;
-- [ ] Streamlit chama use cases em vez de montar regra complexa;
-- [ ] scripts CLI chamam use cases em vez de duplicar fluxo;
-- [ ] testes de application passam com dados fake/offline.
+- [x] preparacao de revisao operacional movida para `application/use_cases`;
+- [x] Streamlit chama use cases para investigacao, comparacao direta, revisao e relatorio auditavel;
+- [x] scripts CLI de relatorio chamam use cases em vez de duplicar fluxo;
+- [x] testes de application passam com dados fake/offline.
 
 ### Fase 4: Ports
 
@@ -646,15 +648,16 @@ Mitigacao:
 2. `feat: add mkdocs documentation site` - concluido.
 3. `style: customize MkDocs branding and Portuguese copy` - concluido.
 4. `refactor: add architecture package skeleton` - concluido localmente.
-5. `refactor: move comparison and evidence domain models` - em andamento.
+5. `refactor: move comparison and evidence domain models` - concluido.
 6. `refactor: move investigation use case` - concluido.
 7. `refactor: move audit report use case` - concluido.
-8. `refactor: move manual comparison use case` - em andamento.
-9. `refactor: introduce application ports`
-10. `refactor: move pncp and brasilapi adapters`
-11. `refactor: move streamlit and cli adapters`
-12. `test: organize tests by architecture layer`
-13. `refactor: remove legacy import bridges`
+8. `refactor: move manual comparison use case` - concluido.
+9. `refactor: move review preparation use case` - concluido localmente.
+10. `refactor: introduce application ports`
+11. `refactor: move pncp and brasilapi adapters`
+12. `refactor: move streamlit and cli adapters`
+13. `test: organize tests by architecture layer`
+14. `refactor: remove legacy import bridges`
 
 ## Validacoes Por Fase
 
@@ -681,13 +684,13 @@ Scripts operacionais principais a revalidar quando afetados:
 
 ## Proximo Passo Concreto
 
-Executar a Fase 3:
+Executar a Fase 4:
 
 ```text
-migrar casos de uso de orquestracao para application/use_cases, mantendo wrappers antigos
+introduzir application ports para PNCP, BrasilAPI, documentos e escrita de relatorios
 ```
 
-Depois disso, seguir para `application/ports`, tambem em migracoes pequenas e com testes verdes.
+Depois disso, iniciar a Fase 5, movendo adapters externos em migracoes pequenas e com testes verdes.
 
 ## Criterio Geral De Conclusao
 

@@ -84,6 +84,12 @@ A comparação direta de uma linha manual com um contrato oficial foi movida par
 src/sherlock_holmes/application/use_cases/compare_manual_record.py
 ```
 
+A preparação de revisão operacional foi movida para:
+
+```text
+src/sherlock_holmes/application/use_cases/prepare_review.py
+```
+
 Os módulos antigos `sherlock_holmes.investigation` e `sherlock_holmes.reporting` continuam como wrappers de compatibilidade.
 
 ## Arquitetura alvo

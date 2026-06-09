@@ -23,6 +23,7 @@ from sherlock_holmes.application.use_cases.investigate_manual_row import (
     investigate_row,
     load_manual_rows,
 )
+from sherlock_holmes.application.use_cases.prepare_review import prepare_review
 
 __all__ = [
     "DEFAULT_WINDOW_DAYS",
@@ -37,6 +38,7 @@ __all__ = [
     "load_comparison_results",
     "load_document_references",
     "load_manual_rows",
+    "prepare_review",
     "render_audit_report_markdown",
     "render_batch_audit_report_markdown",
     "summarize_comparisons",
