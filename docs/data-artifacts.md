@@ -1,14 +1,14 @@
 # Dados e artefatos
 
-O projeto separa dados brutos, intermediarios e processados.
+O projeto separa dados brutos, intermediários e processados.
 
 ```text
 data/raw/         dados coletados ou baixados
-data/interim/     artefatos intermediarios
+data/interim/     artefatos intermediários
 data/processed/   resultados prontos para auditoria ou consumo
 ```
 
-Esses diretorios sao ignorados pelo Git.
+Esses diretórios são ignorados pelo Git.
 
 ## Exemplos
 
@@ -24,19 +24,19 @@ Documentos baixados:
 data/raw/pncp/documents/
 ```
 
-Texto extraido de documentos:
+Texto extraído de documentos:
 
 ```text
 data/processed/pncp/documents/
 ```
 
-Comparacoes:
+Comparações:
 
 ```text
 data/processed/comparison/
 ```
 
-Relatorios:
+Relatórios:
 
 ```text
 data/processed/reports/
@@ -44,4 +44,4 @@ data/processed/reports/
 
 ## Regra
 
-Artefatos gerados localmente devem ser reproduziveis por scripts ou pela UI. O Git deve versionar codigo, configuracao, documentacao e amostras pequenas, nao saidas grandes de execucao.
+Artefatos gerados localmente devem ser reproduzíveis por scripts ou pela UI. O Git deve versionar código, configuração, documentação e amostras pequenas, não saídas grandes de execução.

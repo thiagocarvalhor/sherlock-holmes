@@ -19,3 +19,6 @@ site/
 # Local caches
 .cache/
 .local/
+
+# Local image drafts
+image/

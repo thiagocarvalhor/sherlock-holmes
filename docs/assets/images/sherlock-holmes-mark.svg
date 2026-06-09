@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Sherlock Holmes">
+  <rect width="128" height="128" rx="16" fill="#141414"/>
+  <circle cx="64" cy="54" r="42" fill="#ead3a3" stroke="#c8662d" stroke-width="6"/>
+  <path d="M34 61c10-18 30-31 55-24 8 2 14 6 19 12-9-4-21-4-34-1-14 4-28 10-40 13z" fill="#151515"/>
+  <path d="M48 61c7 4 14 6 24 5 7 0 14-2 20-4-4 12-13 20-26 20-11 0-19-7-18-21z" fill="#151515"/>
+  <path d="M45 83c-9 0-15 5-17 13" fill="none" stroke="#151515" stroke-width="6" stroke-linecap="round"/>
+  <path d="M23 99c10-2 20-2 30 0" fill="none" stroke="#151515" stroke-width="7" stroke-linecap="round"/>
+  <path d="M54 34c7-8 18-10 28-5" fill="none" stroke="#151515" stroke-width="5" stroke-linecap="round"/>
+  <path d="M46 45c22-9 43-8 62 6" fill="none" stroke="#ead3a3" stroke-width="2" opacity=".75"/>
+  <path d="M42 56c26-12 51-12 76 0" fill="none" stroke="#ead3a3" stroke-width="2" opacity=".75"/>
+  <path d="M67 25c-4 14-6 27-6 39" fill="none" stroke="#ead3a3" stroke-width="2" opacity=".75"/>
+  <path d="M83 29c-2 12-3 24-3 36" fill="none" stroke="#ead3a3" stroke-width="2" opacity=".75"/>
+  <text x="64" y="115" fill="#c8662d" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="2">SH</text>
+</svg>

@@ -1,24 +1,24 @@
-# Relatorios auditaveis
+# Relatórios auditáveis
 
-Relatorios auditaveis sao saidas estruturadas para revisao tecnica.
+Relatórios auditáveis são saídas estruturadas para revisão técnica.
 
-## Conteudo atual
+## Conteúdo atual
 
-Um relatorio pode conter:
+Um relatório pode conter:
 
-- resumo da comparacao;
+- resumo da comparação;
 - candidatos avaliados;
 - melhor candidato;
 - campos comparados;
-- campos para revisao;
+- campos para revisão;
 - documentos oficiais vinculados;
 - enriquecimentos CNPJ;
-- status e notas de revisao quando exportado pelo Streamlit.
+- status e notas de revisão quando exportado pelo Streamlit.
 
 ## Formatos
 
 - JSON para consumo estruturado;
-- Markdown para leitura e revisao humana.
+- Markdown para leitura e revisão humana.
 
 ## Gerar via script
 
@@ -29,13 +29,13 @@ Um relatorio pode conter:
 
 ## Gerar via Streamlit
 
-Na tela de comparacao:
+Na tela de comparação:
 
 1. selecione um contrato;
 2. compare com uma linha manual;
 3. revise status/notas;
 4. clique em `Baixar Markdown` ou `Baixar JSON`.
 
-## Decisao
+## Decisão
 
-O relatorio nao acusa automaticamente irregularidade. Ele organiza evidencias e divergencias para revisao.
+O relatório não acusa automaticamente irregularidade. Ele organiza evidências e divergências para revisão.

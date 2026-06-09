@@ -1,5 +1,5 @@
 site_name: Sherlock Holmes
-site_description: Pipeline investigativo e auditavel para contratos publicos.
+site_description: Pipeline investigativo e auditável para contratos públicos.
 site_url: https://thiagocarvalhor.github.io/sherlock-holmes/
 repo_url: https://github.com/thiagocarvalhor/sherlock-holmes
 repo_name: thiagocarvalhor/sherlock-holmes
@@ -7,6 +7,24 @@ repo_name: thiagocarvalhor/sherlock-holmes
 theme:
   name: material
   language: pt-BR
+  logo: assets/images/logo-sherlock-holmes.png
+  favicon: assets/images/logo-sherlock-holmes.png
+  palette:
+    - scheme: slate
+      primary: black
+      accent: deep orange
+      toggle:
+        icon: material/weather-sunny
+        name: Alternar para tema claro
+    - scheme: default
+      primary: black
+      accent: deep orange
+      toggle:
+        icon: material/weather-night
+        name: Alternar para tema escuro
+  font:
+    text: Inter
+    code: JetBrains Mono
   features:
     - navigation.sections
     - navigation.tabs
@@ -36,22 +54,25 @@ markdown_extensions:
   - pymdownx.tabbed:
       alternate_style: true
 
+extra_css:
+  - assets/stylesheets/extra.css
+
 nav:
-  - Visao geral: index.md
-  - Comecar: getting-started.md
+  - Visão geral: index.md
+  - Começar: getting-started.md
   - Arquitetura: architecture.md
   - Streamlit: streamlit.md
   - CLI: cli.md
   - Dados e artefatos: data-artifacts.md
-  - Relatorios auditaveis: audit-reports.md
+  - Relatórios auditáveis: audit-reports.md
   - Desenvolvimento: development.md
   - Roadmap: roadmap.md
-  - Decisoes:
+  - Decisões:
       - PNCP primeiro: decisions/0001-pncp-first.md
       - OCR como fallback: decisions/0002-ocr-as-fallback.md
-      - Reestruturacao arquitetural: decisions/0003-architecture-restructure.md
-  - Referencia:
-      - Comparacao: reference/comparison.md
+      - Reestruturação arquitetural: decisions/0003-architecture-restructure.md
+  - Referência:
+      - Comparação: reference/comparison.md
       - PNCP: reference/pncp.md
       - BrasilAPI: reference/brasilapi.md
-      - Relatorios: reference/reporting.md
+      - Relatórios: reference/reporting.md

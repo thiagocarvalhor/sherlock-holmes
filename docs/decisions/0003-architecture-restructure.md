@@ -1,10 +1,10 @@
-# Decisao 0003: Reestruturacao Arquitetural
+# Decisão 0003: Reestruturação Arquitetural
 
 ## Contexto
 
-O repositorio cresceu rapidamente e acumulou modulos por trilha tecnica.
+O repositório cresceu rapidamente e acumulou módulos por trilha técnica.
 
-## Decisao
+## Decisão
 
 Migrar gradualmente para uma arquitetura em camadas:
 
@@ -15,18 +15,18 @@ adapters
 infrastructure
 ```
 
-## Consequencias
+## Consequências
 
-- dominio deve ficar livre de Streamlit, rede e filesystem;
+- domínio deve ficar livre de Streamlit, rede e filesystem;
 - PNCP e BrasilAPI viram adapters externos;
 - scripts e Streamlit viram adapters de entrada;
 - casos de uso ficam em `application`;
-- `docs/` passa a ser a documentacao publicada;
-- `documentation/` continua como historico de planos e relatorios.
+- `docs/` passa a ser a documentação publicada;
+- `documentation/` continua como histórico de planos e relatórios.
 
 ## Plano
 
-O plano detalhado esta em:
+O plano detalhado está em:
 
 ```text
 documentation/plans/repository-architecture-restructure-execution-plan.md

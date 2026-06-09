@@ -1,13 +1,13 @@
-# Comecar
+# Começar
 
 ## Requisitos
 
 - Python 3.10 ou superior;
 - ambiente virtual local em `.venv`;
 - Git;
-- acesso a internet para chamadas reais ao PNCP, BrasilAPI e instalacao de dependencias.
+- acesso à internet para chamadas reais ao PNCP, BrasilAPI e instalação de dependências.
 
-## Instalar dependencias
+## Instalar dependências
 
 No Windows/PowerShell:
 
@@ -16,13 +16,13 @@ No Windows/PowerShell:
 .\.venv\Scripts\python.exe -m pip install -e ".[dev,webapp,docs]"
 ```
 
-Para OCR completo, instale tambem o extra `ocr`:
+Para OCR completo, instale também o extra `ocr`:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -e ".[dev,webapp,docs,ocr]"
 ```
 
-## Rodar validacoes
+## Rodar validações
 
 ```powershell
 .\.venv\Scripts\python.exe -m ruff check .
@@ -42,7 +42,7 @@ Depois abra:
 http://localhost:8501
 ```
 
-## Servir documentacao local
+## Servir documentação local
 
 ```powershell
 .\.venv\Scripts\python.exe -m mkdocs serve

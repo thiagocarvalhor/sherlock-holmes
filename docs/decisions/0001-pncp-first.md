@@ -1,23 +1,23 @@
-# Decisao 0001: PNCP Primeiro
+# Decisão 0001: PNCP Primeiro
 
 ## Contexto
 
 O Sherlock Holmes nasceu com experimentos de OCR, mas o problema central exige comparar dados manuais contra fontes oficiais.
 
-## Decisao
+## Decisão
 
-O PNCP e a fonte primaria sempre que o dado estruturado oficial estiver disponivel.
+O PNCP é a fonte primária sempre que o dado estruturado oficial estiver disponível.
 
 ```text
 PNCP primeiro.
 Documentos depois.
-OCR apenas quando necessario.
-Evidencia sempre.
+OCR apenas quando necessário.
+Evidência sempre.
 ```
 
-## Consequencias
+## Consequências
 
-- buscas PNCP vem antes de OCR;
+- buscas PNCP vêm antes de OCR;
 - documentos oficiais entram para complementar ou revisar;
-- OCR e fallback, nao ponto de partida;
-- relatorios precisam separar dado oficial estruturado, documento oficial, OCR e revisao humana.
+- OCR é fallback, não ponto de partida;
+- relatórios precisam separar dado oficial estruturado, documento oficial, OCR e revisão humana.

@@ -1,3 +1,3 @@
-# Referencia: Comparacao
+# Referência: Comparação
 
 ::: sherlock_holmes.validation.comparison

@@ -1,6 +1,6 @@
 # Arquitetura
 
-## Direcao
+## Direção
 
 A arquitetura do Sherlock Holmes segue esta regra:
 
@@ -9,11 +9,11 @@ Regra principal no centro.
 Ferramentas nas bordas.
 ```
 
-O objetivo da reestruturacao e separar o que pertence ao dominio do que pertence a integracoes externas, interfaces, scripts e detalhes de infraestrutura.
+O objetivo da reestruturação é separar o que pertence ao domínio do que pertence a integrações externas, interfaces, scripts e detalhes de infraestrutura.
 
 ## Estrutura atual
 
-Hoje o pacote esta organizado principalmente por trilhas tecnicas:
+Hoje o pacote está organizado principalmente por trilhas técnicas:
 
 ```text
 src/sherlock_holmes/
@@ -27,7 +27,7 @@ src/sherlock_holmes/
 `-- investigation.py
 ```
 
-Essa estrutura ajudou a evoluir rapido, mas agora comeca a misturar responsabilidades. Por exemplo, `validation` concentra regra central, enquanto `pncp` e `enrichment` sao integracoes externas.
+Essa estrutura ajudou a evoluir rápido, mas agora começa a misturar responsabilidades. Por exemplo, `validation` concentra regra central, enquanto `pncp` e `enrichment` são integrações externas.
 
 ## Arquitetura alvo
 
@@ -72,10 +72,10 @@ Conceitos centrais:
 
 - contrato;
 - documento oficial;
-- evidencia;
-- comparacao;
+- evidência;
+- comparação;
 - campo comparado;
-- status de revisao;
+- status de revisão;
 - CNPJ;
 - identificador PNCP.
 
@@ -85,9 +85,9 @@ Casos de uso:
 
 - investigar linha manual;
 - comparar linha manual com contrato oficial;
-- gerar relatorio auditavel;
-- preparar revisao operacional;
-- consolidar relatorios.
+- gerar relatório auditável;
+- preparar revisão operacional;
+- consolidar relatórios.
 
 ### Adapters
 
@@ -102,26 +102,26 @@ Bordas do sistema:
 
 ### Infrastructure
 
-Detalhes tecnicos compartilhados:
+Detalhes técnicos compartilhados:
 
-- configuracao;
+- configuração;
 - logging;
 - paths;
-- bootstrap de execucao.
+- bootstrap de execução.
 
-## Plano de migracao
+## Plano de migração
 
-A migracao deve ser incremental. O plano detalhado esta em:
+A migração deve ser incremental. O plano detalhado está em:
 
 ```text
 documentation/plans/repository-architecture-restructure-execution-plan.md
 ```
 
-As fases principais sao:
+As fases principais são:
 
-1. criar documentacao automatica;
+1. criar documentação automática;
 2. criar esqueleto arquitetural;
-3. mover dominio central;
+3. mover domínio central;
 4. mover casos de uso;
 5. introduzir ports;
 6. mover adapters externos;

@@ -1,4 +1,4 @@
-# Referencia: PNCP
+# Referência: PNCP
 
 ## Identificadores
 

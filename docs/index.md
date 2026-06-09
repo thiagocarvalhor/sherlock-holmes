@@ -1,36 +1,57 @@
-# Sherlock Holmes
+<section class="sh-hero">
+  <div class="sh-hero__content">
+    <img class="sh-hero__brand" src="assets/images/logo-sherlock-holmes-horizontal.png" alt="Sherlock Holmes">
+    <p>Pipeline investigativo e auditável para localizar contratos públicos, comparar fontes manuais com dados oficiais e preservar evidências técnicas.</p>
+    <div class="sh-rule">Evidência sempre</div>
+    <div class="sh-action-row">
+      <a href="getting-started/">Começar</a>
+      <a href="architecture/">Arquitetura</a>
+      <a href="audit-reports/">Relatórios</a>
+    </div>
+  </div>
+</section>
 
-Sherlock Holmes e um pipeline investigativo e auditavel para contratos publicos.
+## Norte
 
 ```text
 PNCP primeiro.
 Documentos depois.
-OCR apenas quando necessario.
-Evidencia sempre.
+OCR apenas quando necessário.
+Evidência sempre.
 ```
 
-O projeto compara registros manuais com dados oficiais do PNCP, preserva evidencias por campo, consulta documentos oficiais quando o dado estruturado nao basta e gera relatorios auditaveis para revisao tecnica.
+O projeto compara registros manuais com dados oficiais do PNCP, preserva evidências por campo, consulta documentos oficiais quando o dado estruturado não basta e gera relatórios auditáveis para revisão técnica.
 
 ## O que o projeto faz hoje
 
-- busca contratos no PNCP;
-- lista documentos oficiais vinculados;
-- compara linha manual versus contrato PNCP;
-- calcula score e status de candidatos;
-- enriquece CNPJ via BrasilAPI sob demanda;
-- gera relatorios auditaveis em JSON e Markdown;
-- oferece uma interface Streamlit para investigacao;
-- mantem OCR como fallback documental, sem tratar OCR como ponto de partida.
+<div class="sh-card-grid">
+  <div class="sh-card">
+    <strong>PNCP primeiro</strong>
+    <p>Busca contratos, candidatos e documentos oficiais antes de acionar camadas mais caras.</p>
+  </div>
+  <div class="sh-card">
+    <strong>Comparação auditável</strong>
+    <p>Compara linha manual contra dado oficial, campo a campo, com score e status.</p>
+  </div>
+  <div class="sh-card">
+    <strong>Evidência</strong>
+    <p>Preserva origem, método e confiança para cada valor relevante.</p>
+  </div>
+  <div class="sh-card">
+    <strong>Relatórios</strong>
+    <p>Exporta JSON e Markdown para revisão técnica e rastreabilidade.</p>
+  </div>
+</div>
 
-## Como ler esta documentacao
+## Como ler esta documentação
 
-- Use [Comecar](getting-started.md) para instalar, testar e rodar o app.
-- Use [Arquitetura](architecture.md) para entender a estrutura atual e a migracao planejada.
-- Use [Streamlit](streamlit.md) para o fluxo de investigacao visual.
+- Use [Começar](getting-started.md) para instalar, testar e rodar o app.
+- Use [Arquitetura](architecture.md) para entender a estrutura atual e a migração planejada.
+- Use [Streamlit](streamlit.md) para o fluxo de investigação visual.
 - Use [CLI](cli.md) para scripts operacionais.
-- Use [Relatorios auditaveis](audit-reports.md) para entender os artefatos de auditoria.
-- Use [Referencia](reference/comparison.md) para documentacao automatica de modulos Python.
+- Use [Relatórios auditáveis](audit-reports.md) para entender os artefatos de auditoria.
+- Use [Referência](reference/comparison.md) para documentação automática de módulos Python.
 
-## Historico de execucao
+## Histórico de execução
 
-O diretorio `documentation/` continua sendo o historico auditavel de planos, relatorios e decisoes de implementacao. Esta pasta `docs/` e a documentacao navegavel e publicada do projeto.
+O diretório `documentation/` continua sendo o histórico auditável de planos, relatórios e decisões de implementação. Esta pasta `docs/` é a documentação navegável e publicada do projeto.

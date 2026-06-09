@@ -1,21 +1,21 @@
-# Decisao 0002: OCR Como Fallback
+# Decisão 0002: OCR Como Fallback
 
 ## Contexto
 
-OCR e caro, sensivel a qualidade do documento e pode introduzir erro de leitura.
+OCR é caro, sensível à qualidade do documento e pode introduzir erro de leitura.
 
-## Decisao
+## Decisão
 
 OCR deve ser acionado apenas quando:
 
-- o dado estruturado do PNCP nao basta;
-- um documento oficial contem informacao necessaria;
-- o documento nao tem texto extraivel;
-- a revisao documental indicar necessidade.
+- o dado estruturado do PNCP não basta;
+- um documento oficial contém informação necessária;
+- o documento não tem texto extraível;
+- a revisão documental indica necessidade.
 
-## Consequencias
+## Consequências
 
-- a UI pode indicar que OCR talvez seja necessario;
-- a UI nao precisa executar OCR agora;
-- OCR deve gerar evidencia propria com nivel de confianca adequado;
-- revisao humana continua necessaria para conclusoes sensiveis.
+- a UI pode indicar que OCR talvez seja necessário;
+- a UI não precisa executar OCR agora;
+- OCR deve gerar evidência própria com nível de confiança adequado;
+- revisão humana continua necessária para conclusões sensíveis.
