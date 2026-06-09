@@ -5,12 +5,13 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 
-from sherlock_holmes.investigation import (
+from sherlock_holmes.application.use_cases import (
     InvestigationResult,
     build_search_window,
     investigate_row,
     load_manual_rows,
 )
+from sherlock_holmes.investigation import investigate_row as legacy_investigate_row
 from sherlock_holmes.pncp.client import PncpRequestResult
 
 SAMPLE_CSV = (
@@ -63,6 +64,10 @@ def _fake_fetch(candidates):
         )
 
     return fetch_fn
+
+
+def test_legacy_investigation_wrapper_exports_use_case():
+    assert legacy_investigate_row is investigate_row
 
 
 def test_build_search_window_from_vigencia():

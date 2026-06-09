@@ -37,6 +37,7 @@ Concluido nesta rodada:
 - Fase 2 iniciada com migracao de `comparison` e `evidence` para `domain/entities`.
 - Fase 2 avancada com migracao de CNPJ e identificadores PNCP para `domain/value_objects`.
 - Fase 2 avancada com migracao da decisao de revisao operacional e indicacao de OCR para `domain/services`.
+- Fase 3 iniciada com migracao de `investigation.py` para `application/use_cases/investigate_manual_row.py`.
 
 Validacoes realizadas durante a Fase 0:
 
@@ -54,7 +55,7 @@ Pendente para considerar a Fase 0 publicada:
 Proximo passo tecnico:
 
 ```text
-Fase 2: migrar a proxima fatia pequena do dominio central.
+Fase 3: migrar casos de uso de orquestracao para application/use_cases.
 ```
 
 ## Problema Atual
@@ -387,7 +388,7 @@ Criterio de conclusao:
 
 ### Fase 2: Dominio central
 
-Status: em andamento.
+Status: concluida localmente para os candidatos previstos nesta rodada.
 
 Objetivo:
 
@@ -421,12 +422,12 @@ Criterio de conclusao:
 - [x] wrapper antigo em `pncp.ids` preserva compatibilidade;
 - [x] testes cobrem que imports legados apontam para os modelos de dominio;
 - [x] principais regras puras migradas sem dependencias de PNCP HTTP, Streamlit ou filesystem;
-- [ ] proximas fatias de dominio central migradas;
-- [ ] testes unitarios de dominio passam.
+- [x] proximas fatias de dominio central migradas;
+- [x] testes unitarios de dominio passam.
 
 ### Fase 3: Casos de uso
 
-Status: pendente.
+Status: em andamento.
 
 Objetivo:
 
@@ -434,7 +435,7 @@ Mover orquestracao para `application/use_cases`.
 
 Candidatos:
 
-- `investigation.py`;
+- `investigation.py` - migrado para `application/use_cases/investigate_manual_row.py`;
 - geracao de relatorio auditavel;
 - comparacao manual versus contrato;
 - preparacao de revisao operacional.
@@ -450,7 +451,9 @@ application/use_cases/prepare_review.py
 
 Criterio de conclusao:
 
-- Streamlit chama use cases em vez de montar regra complexa;
+- [x] Streamlit chama o use case de investigacao pelo caminho novo;
+- [x] wrapper antigo em `sherlock_holmes.investigation` preserva compatibilidade;
+- [ ] Streamlit chama use cases em vez de montar regra complexa;
 - scripts CLI chamam use cases em vez de duplicar fluxo;
 - testes de application passam com dados fake/offline.
 
@@ -638,7 +641,7 @@ Mitigacao:
 3. `style: customize MkDocs branding and Portuguese copy` - concluido.
 4. `refactor: add architecture package skeleton` - concluido localmente.
 5. `refactor: move comparison and evidence domain models` - em andamento.
-6. `refactor: move investigation use case`
+6. `refactor: move investigation use case` - em andamento.
 7. `refactor: introduce application ports`
 8. `refactor: move pncp and brasilapi adapters`
 9. `refactor: move streamlit and cli adapters`
@@ -670,13 +673,13 @@ Scripts operacionais principais a revalidar quando afetados:
 
 ## Proximo Passo Concreto
 
-Executar a Fase 2:
+Executar a Fase 3:
 
 ```text
-revisar se ainda ha regra pura relevante presa em modulos tecnicos antes de fechar a Fase 2
+migrar casos de uso de orquestracao para application/use_cases, mantendo wrappers antigos
 ```
 
-Depois disso, seguir para os casos de uso em `application`, tambem em migracoes pequenas e com testes verdes.
+Depois disso, seguir para `application/ports`, tambem em migracoes pequenas e com testes verdes.
 
 ## Criterio Geral De Conclusao
 

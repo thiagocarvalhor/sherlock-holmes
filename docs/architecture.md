@@ -66,6 +66,14 @@ src/sherlock_holmes/domain/services/review.py
 
 Os módulos antigos em `sherlock_holmes.validation` e `sherlock_holmes.pncp.ids` continuam existindo como wrappers de compatibilidade durante a transição. O Streamlit também mantém wrappers internos enquanto a borda visual ainda não foi movida para `adapters/inbound/streamlit`.
 
+A Fase 3 iniciou a migração de casos de uso. A investigação de uma linha manual contra candidatos PNCP foi movida para:
+
+```text
+src/sherlock_holmes/application/use_cases/investigate_manual_row.py
+```
+
+O módulo antigo `sherlock_holmes.investigation` continua como wrapper de compatibilidade.
+
 ## Arquitetura alvo
 
 Estrutura planejada:

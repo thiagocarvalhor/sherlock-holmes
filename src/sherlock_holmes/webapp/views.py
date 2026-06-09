@@ -10,13 +10,13 @@ from typing import Any
 import pandas as pd
 import streamlit as st
 
-from sherlock_holmes.domain.services import assess_review_needs
-from sherlock_holmes.enrichment import BrasilApiCnpjRecord, BrasilApiError, fetch_cnpj
-from sherlock_holmes.investigation import (
+from sherlock_holmes.application.use_cases import (
     InvestigationResult,
     investigate_row,
     load_manual_rows,
 )
+from sherlock_holmes.domain.services import assess_review_needs
+from sherlock_holmes.enrichment import BrasilApiCnpjRecord, BrasilApiError, fetch_cnpj
 from sherlock_holmes.pncp.client import PncpApiError, compact_digits
 from sherlock_holmes.reporting import build_audit_report, render_audit_report_markdown
 from sherlock_holmes.validation import (

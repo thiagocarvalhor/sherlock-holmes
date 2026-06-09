@@ -23,6 +23,7 @@ O Streamlit é a interface de investigação do Sherlock Holmes.
 
 - A busca PNCP vem antes da comparação.
 - A comparação usa a linha manual apenas para priorizar e justificar candidatos.
+- A investigação automática chama o caso de uso `application.use_cases.investigate_manual_row`.
 - A BrasilAPI é consultada sob demanda, não automaticamente.
 - OCR não é executado pela UI nesta fase.
 - O indicador `Pode precisar OCR` é operacional, não uma execução real de OCR.
