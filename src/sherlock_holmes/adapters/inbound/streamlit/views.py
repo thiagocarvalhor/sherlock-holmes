@@ -100,18 +100,6 @@ def render_app() -> None:
     render_comparison_section()
 
 
-def render_busca_tab() -> None:
-    """Backward-compatible entry point for the old tab-based app."""
-
-    render_document_search_section()
-
-
-def render_comparacao_tab() -> None:
-    """Backward-compatible entry point for the old tab-based app."""
-
-    render_comparison_section()
-
-
 def render_document_search_section() -> None:
     """Render the first workflow step: find PNCP contracts and documents."""
 

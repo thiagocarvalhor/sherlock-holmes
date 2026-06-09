@@ -99,7 +99,7 @@ src/sherlock_holmes/application/ports/report_writer.py
 src/sherlock_holmes/application/ports/review_status_store.py
 ```
 
-Esses contratos ainda convivem com wrappers antigos e adapters legados. A Fase 5 deve mover PNCP, BrasilAPI, documentos e OCR para `adapters/outbound`.
+Esses ports agora isolam os casos de uso das implementações concretas. PNCP, BrasilAPI, documentos, OCR e relatórios ficam em adapters outbound.
 
 O enriquecimento CNPJ já passa pelo caso de uso:
 

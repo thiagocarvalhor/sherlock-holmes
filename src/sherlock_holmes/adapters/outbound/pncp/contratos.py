@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Any
 
-from sherlock_holmes.adapters.outbound.pncp.dates import format_pncp_date, validate_pncp_date_range
+from sherlock_holmes.adapters.outbound.pncp.dates import validate_pncp_date_range
 from sherlock_holmes.domain.value_objects import compact_digits, resolve_pncp_contract_id
 
 CONSULTA_BASE_URL = "https://pncp.gov.br/api/consulta"
@@ -221,48 +221,4 @@ def contrato_arquivo_download_url(
             f"/v1/orgaos/{resolved.orgao_cnpj}/contratos/"
             f"{resolved.ano}/{resolved.sequencial}/arquivos/{sequencial_documento}"
         ),
-    )
-
-
-def contract_publication_url(
-    *,
-    start_date: date,
-    end_date: date,
-    cnpj_orgao: str,
-    page: int,
-    page_size: int,
-    codigo_unidade: str = "",
-) -> str:
-    """Compatibility wrapper for the previous contract search URL helper."""
-
-    return search_contratos_url(
-        data_inicial=format_pncp_date(start_date),
-        data_final=format_pncp_date(end_date),
-        cnpj_orgao=cnpj_orgao,
-        codigo_unidade=codigo_unidade,
-        pagina=page,
-        tamanho_pagina=page_size,
-    )
-
-
-def fetch_contracts_by_publication(
-    *,
-    start_date: date,
-    end_date: date,
-    cnpj_orgao: str,
-    codigo_unidade: str = "",
-    page_size: int = 500,
-    max_pages: int = 20,
-    timeout: int = 30,
-) -> PncpRequestResult:
-    """Compatibility wrapper for the previous paged contract search."""
-
-    return search_contratos(
-        data_inicial=start_date,
-        data_final=end_date,
-        cnpj_orgao=cnpj_orgao,
-        codigo_unidade=codigo_unidade,
-        tamanho_pagina=page_size,
-        max_pages=max_pages,
-        timeout=timeout,
     )

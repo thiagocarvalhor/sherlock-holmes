@@ -53,6 +53,7 @@ Concluido nesta rodada:
 - Fase 6 concluida localmente com Streamlit em `adapters/inbound/streamlit/`, CLI em `adapters/inbound/cli/` e wrappers em `webapp/` e `scripts/`.
 - Fase 7 concluida localmente com testes reorganizados em `tests/unit/` e `tests/integration/`.
 - Fase 8 concluida localmente com remocao de wrappers legados de pacote e manutencao apenas dos wrappers operacionais em `scripts/`.
+- Limpeza pos-Fase 8 concluida com remocao de wrappers internos nao usados no Streamlit, wrappers duplicados de busca PNCP e texto stale da arquitetura.
 
 Validacoes realizadas durante a Fase 0:
 
@@ -467,9 +468,9 @@ application/use_cases/prepare_review.py
 Criterio de conclusao:
 
 - [x] Streamlit chama o use case de investigacao pelo caminho novo;
-- [x] wrapper antigo em `sherlock_holmes.investigation` preserva compatibilidade;
+- [x] wrapper antigo em `sherlock_holmes.investigation` preservou compatibilidade durante a transicao e foi removido na Fase 8;
 - [x] geracao de relatorio auditavel movida para `application/use_cases`;
-- [x] wrapper antigo em `sherlock_holmes.reporting` preserva compatibilidade;
+- [x] wrapper antigo em `sherlock_holmes.reporting` preservou compatibilidade durante a transicao e foi removido na Fase 8;
 - [x] scripts de relatorio chamam casos de uso pelo caminho novo;
 - [x] comparacao direta manual versus contrato movida para `application/use_cases`;
 - [x] preparacao de revisao operacional movida para `application/use_cases`;
@@ -626,6 +627,7 @@ Inclui:
 Criterio de conclusao:
 
 - [x] nao ha imports antigos desnecessarios;
+- [x] wrappers internos nao usados foram removidos;
 - [x] docs descrevem a estrutura real;
 - [x] CI e docs passam localmente.
 
@@ -667,7 +669,7 @@ Mitigacao:
 
 - manter testes `AppTest`;
 - deixar Streamlit como ultima borda a ser migrada;
-- preservar wrappers antigos durante a transicao.
+- preservar wrappers antigos durante a transicao e remove-los na limpeza final.
 
 ### Risco: scripts operacionais quebrarem
 
